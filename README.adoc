@@ -1,0 +1,98 @@
+
+= Atari 8bit WNF Compiler
+
+Yes! The first ideas for such compiler are over 30 years old!
+
+de_DE:: WNF für "WiNiFe"-Projekt oder "Wird nie fertig" (ak. Baumann und Clausen Comedy)
+
+en_EN:: WNF stays for "WiNeFi" project or "Will never finished" (german gov. comedy)
+
+
+== Licenses
+The Atari 8bit WNF Compiler sources are licensed under
+https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses].
+
+
+
+This small Java application has been rewritten in Java language
+since october 2020.
+
+It reads Atari 8bit wnf-files and compile these files to 6502-assembler.
+The assembler files are full compatible to
+https://atari.miribilist.com/atasm/[atasm-Assembler],
+and mostly compatible to mac/65 from OSS.
+
+* [x] read full wnf file
+* [x] get_symbol
+* [x] expressions
+* [x] generate assembler of expressions
+* [x] peephole optimizer
+
+
+== TODOs
+* [ ] lot of german comments, sorry
+
+== Build
+This is a Apache Maven based Java program. You need at least OpenJDK 8.
+To build it, just call `mvn verify` or use the
+bash-script `./build.sh`, which also simply call Apache-Maven.
+
+There exist a lot JUnit tests, therefore you see lot of output.
+The source-code-coverage of tests is more then 95%.
+
+
+== Installation
+After successful build, copy the compiler/target/wnf-compiler.jar to
+a directory, where a path in your $PATH variable shows to. Then
+create the following simple script like
+[source]
+#!/bin/bash
+SCRIPT=$(dirname $0)
+java -jar ${SCRIPT}/wnf-compiler.jar $@
+
+Rename this script to `wnfc` and give
+it execute flags like
+`chmod +x wnfc`. Now on console, call `wnfc`
+and you will get the usage information of the compiler.
+
+Here also a script exists. `./deploy.sh` but due to the fact that
+every user has a different environment, you shuld not use it.
+It is just for me to install this compiler on my Windows (mingw) PC
+and on my Linux PC. Maybe you find it useful.
+
+
+== Parameter
+Usage::
+wnfc [OPTIONS] [FILE]
+
+OPTIONS::
+
+-O level:: give the wished optimization level,
+0 for no optimization,
+1 for normal optimization,
+2 for also branch optimizations.
+
+-v level:: give the verbose level
+
+-I path:: path where to search for include files. The current path is default.
+
+-o path:: the output path, where to copy the generated ASM/INC files.
+
+FILE:: give one source file. Currently it is not possible to
+give more than one file.
+
+
+== PLAIN
+
+This is only the plain compiler to compile wnf-files to 6502-assembler.
+Currently you can only compile the Oxygene Be sources.
+
+More include files to build other things will follow soon.
+
+== Sorry
+This Java Application has been created very fast out of my original
+compiler written in Turbo-Basic-XL. See link:[turbobasic/README.adoc].
+Due to the fact it is a very old german project (over 30 years old), lot of comments
+also in the Java source are in german.
+
+You need this compiler named `wnfc` to build Oxygene Be from source.

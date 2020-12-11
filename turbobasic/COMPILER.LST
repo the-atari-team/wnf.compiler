@@ -1,0 +1,1955 @@
+REM WiNiFe Compiler
+REM based on Compiler version v1.352 23.4.90
+REM erste fixes 7.12.2019 LLA
+REM -------------------------------
+EXEC INIT
+TIME$= "000000"
+DEBUG=%0
+usehash=%1 :REM wir verkuerzen alle Variablen ab 16 Zeichen
+b$=""
+if len(b$)<>%0
+  exec compile
+else
+  line=%0
+  open #%3,k4,%0,"D:WNFFILES.TXT"
+  repeat
+    repeat:input #%3,b$:line=line+%1:until b$(%1,%1)<>"#"
+    if b$<>"stop"
+      note #%3,sector,byteposition:close #%3
+      exec compile
+      exec bufmax
+      open #%3,k4,%0,"D:WNFFILES.TXT"
+      point #%3,sector,byteposition
+    endif
+  until b$="stop"
+  close #%3
+endif
+? :? "Benoetigte Zeit ";TIME/50;" sec."
+? "variable_buf max: "; buffermax
+REM ? "     p_code(max): ";zmax
+REM ? "Parameter-status"
+REM for i=%0 to k15
+REM   ? count_procs(i);" ";
+REM next i:?
+? "Fertig."
+open #%3,k4,%0,"D:OS.TXT"
+input #%3,a$
+close #%3
+if a$="Linux" then pause 300*50:POKE $600,%2:dpoke $601,$6068:?usr($600):REM $02, PLA, RTS
+end
+REM -------------------------------
+proc pcodezmax
+  if z>zmax then zmax=z
+  REM in test-add-sub ist eine substraction sehr lang,
+  REM sonst brauchen wir fast immer deutlich weniger
+  if zmax>102 then stop
+endproc
+proc bufmax
+  if len(variable_buf$)>buffermax then buffermax=len(variable_buf$)
+endproc
+REM -------------------------------
+proc compile
+  exec clear_variables
+  A$="H2:"
+  A$(len(a$)+%1)=b$
+  ?:?"compile: ";a$:?
+  exec openwnffile
+  exec readwnfsectors
+  KAN=%1
+  EXEC PROGRAM_OR_INCLUDE
+  close #%2
+endproc
+REM -------------------------------
+PROC PROGRAM_OR_INCLUDE
+  EXEC GET_SYMBOL
+  if a$="PROGRAM"
+    programtype=%1
+    b$=".TXT"
+  else
+    if a$="INCLUDE"
+      prefix$="" :REM alten Prefix entfernen
+      programtype=%2
+      exec get_symbol :REM Prefix
+      prefix$=a$:exec get_symbol :REM ':'
+      if a$<>":" then e=18:exec fehler
+      b$=".INC"
+      i=line*200 :REM ein paar Variablen seltsam vordefinieren, um wiederholungen zu verhindern
+      rtscount=i:schleif_nr=i:nowinc=i:ct=i:stringcount=i
+    else
+      E=%1:EXEC FEHLER
+    endif
+  endif
+  EXEC GET_SYMBOL:REM File-Name
+  if programtype=%2 then a$=temp$
+  ? "Name => ";a$
+  DEST_FILENAME$="H2:"
+  DEST_FILENAME$(LEN(DEST_FILENAME$)+%1)=A$
+  FILENAME$=DEST_FILENAME$
+  DEST_FILENAME$(LEN(DEST_FILENAME$)+%1)=b$
+REM -------------------------------
+  IF KAN THEN OPEN #KAN,K8,%0,DEST_FILENAME$
+  ? #KAN;";Compiled with WiNiFe Compiler"
+  ? #KAN;";cdw by 'The Atari Team' 1990-2020"
+  ? #KAN;";LLA: make it work again"
+  if programtype=%2 then ? #KAN;" .LOCAL"
+  EXEC peek_symbol
+  if programtype=%1
+    IF A$="LOMEM"
+      exec get_symbol:REM LOMEM
+      EXEC GET_SYMBOL:REM =
+      EXEC GET_SYMBOL:REM adresse
+      IF ID<>number THEN E=%2:EXEC FEHLER
+      temp$=A$
+    ELSE
+      temp$="$4000"
+    ENDIF
+    REM ------
+    ? #KAN;" .OPT LIST"
+    ? #KAN;" .TITLE """;FILENAME$;""""
+    ? #KAN;";"
+    ? #KAN;" .INCLUDE VARIABLE.INC"
+    ? #KAN;" .INCLUDE MACROS.INC"
+    ? #KAN;" *=";temp$
+    ? #KAN;" JMP @MAIN"
+    ? #KAN;" JMP @BASIC_MAIN"
+    REM ------
+    EXEC BLOCK
+    REM ------
+    ? #KAN;" JMP @EXIT"
+    exec includes
+  else
+    IF A$="LOMEM" then e=22:exec fehler
+    EXEC BLOCK
+  endif
+  if kan then CLOSE #KAN
+ENDPROC
+REM -------------------------------
+proc includes
+  ?:?"includes"
+  EXEC GET_SYMBOL
+  WHILE A$="INCLUDE"
+    IF A$="INCLUDE"
+      EXEC GET_SYMBOL:REM Fname
+      ? #KAN;" .INCLUDE ";A$(%2,LEN(A$)-%1)
+    ENDIF
+    EXEC GET_SYMBOL
+  WEND
+  ? #KAN;" .INCLUDE RUNTIME.INC"
+endproc
+REM -------------------------------
+PROC BLOCK
+?"Block"
+REM  ? #KAN;"; Block"
+  EXEC GET_SYMBOL
+  EXEC PROCEDURE
+  if programtype=%1
+    ?:?"Hauptroutine"
+    ? #KAN;"; ----<<< Hauptroutine >>>----"
+    ? #KAN;"@MAIN"
+    ? #kan;" LDY #0" :REM Wichtig, wird auf den Heap-Pointer addiert (vom Basic fuer Parameter verwendet)
+    ? #KAN;"@MAIN_FROM_BASIC"
+    ? #kan;" TSX"    :REM Speichere den aktuellen Stackpointer, hinter evtl. Basic!
+    ? #KAN;" JSR @HEAP_INIT"
+    EXEC STATEMENT
+  endif
+ENDPROC
+REM -------------------------------
+PROC GLOBAL_VARIABLES
+?:?"Globale Variablen"
+  ? #KAN;"; Globale Variablen"
+  WHILE A$="BYTE" OR A$="WORD" or a$="STRING"
+    ARRAY=%0
+    IF A$="WORD"
+      TYP=WORD:VARLEN=%2:MNE$=".WORD"
+    ELSE
+      IF A$="BYTE"
+        TYP=BYTE:VARLEN=%1:MNE$=".BYTE"
+      ELSE
+        if a$="STRING"
+          TYP=BYTE+k32:ARRAY=%1:MNE$=".BYTE"
+        endif
+      ENDIF
+    ENDIF
+    EXEC GET_SYMBOL:REM Var or Array
+    IF A$="ARRAY"
+      if typ>90 then E=24:exec fehler :REM string array nicht moeglich
+      TYP=TYP+k32:ARRAY=%1
+      EXEC GET_SYMBOL:REM Var
+    ENDIF
+    REPEAT
+      IF A$="," THEN EXEC GET_SYMBOL
+      B$=A$
+      EXEC PUT_VAR:REM -> tab
+      if num<>%0 then e=13:exec fehler
+      EXEC GET_SYMBOL:REM .,=[
+      ANZ=%1
+      if a$="[" and array<>%1 then E=17:exec fehler :REM Es kam ein [ obwohl array nicht gesetzt
+      IF ARRAY AND A$="[":REM Array
+        EXEC GET_SYMBOL:REM Anzahl
+        ANZ=VAL(A$)
+        IF TYP=ARRAY_B AND ANZ<256
+          TYP=TYP+k128
+          c=len(variable_buf$):variable_buf$(c,c)=chr$(typ)
+          variable_buf$(c+%1)=chr$(anz)
+        ENDIF
+        EXEC GET_SYMBOL:REM ]
+        EXEC GET_SYMBOL:REM Trennz.
+      ELSE
+        IF ARRAY THEN ANZ=-%1:REM Keine Anzahl
+      ENDIF
+      ? #KAN;B$;" ";
+      IF A$="="
+        EXEC GET_SYMBOL:REM [ or =
+        IF A$="[":REM Direktbytes
+          EXEC DIREKTBYTE
+        ELSE
+          ? #KAN;"=";A$;:REM Adr/Var
+          ? #KAN
+        ENDIF
+        EXEC GET_SYMBOL:REM Trennz.
+      ELSE
+        ? #KAN;"*=*+";ANZ*VARLEN
+      ENDIF
+    UNTIL A$<>","
+  WEND
+ENDPROC
+REM -------------------------------
+proc checkIfAddress
+  AD=%0
+  IF A$="ADR"
+    b$=a$
+    exec peek_symbol
+    IF A$=":"
+      exec get_symbol:REM :
+      EXEC GET_SYMBOL
+      AD=%1
+    ELSE
+      a$=b$:REM keine Adresse
+    ENDIF
+  ENDIF
+endproc
+REM -------------------------------
+PROC DIREKTBYTE
+  B=%0 :REM ? #KAN;"; Direktbyte"
+  EXEC GET_SYMBOL:REM Wert
+  WHILE A$<>"]"
+    IF ID=string
+      exec direktstring:b=k9
+    ELSE
+      IF B=%0 THEN ? #KAN;" ";MNE$;" ";
+      IF ID=number or id=variable_name
+        if a$="ADR" then exec checkifaddress
+        ? #KAN;A$;
+      ELSE
+        if a$="-"
+          EXEC GET_SYMBOL:B$="-":B$(%2)=A$:A$=B$
+          if id<>number then e=12:exec fehler
+          ? #KAN;A$;
+        else
+          e=12:exec fehler
+        endif
+      ENDIF
+    ENDIF
+    B=B+%1
+    EXEC GET_SYMBOL:REM Wert or ]
+    IF A$<>"]"
+      IF B=k10
+        B=%0
+        ? #KAN
+      else
+        ? #KAN;",";
+      endif
+      exec get_symbol
+    endif
+  WEND
+  ? #KAN
+ENDPROC
+proc direktstring
+  if len(a$) < 60
+    ? #KAN;" .BYTE """;A$(%2,LEN(A$)-%1);""""
+  else
+    ? #KAN;" .BYTE """;A$(%2,60);""""
+    ? #KAN;" .BYTE """;A$(61,LEN(A$)-%1);""""
+  endif
+  ?#kan;" .BYTE $FF"
+endproc
+REM -------------------------------
+PROC PROCEDURE
+  WHILE A$="PROCEDURE" or a$="FUNCTION" OR A$="BYTE" OR A$="WORD" or a$="STRING"
+    EXEC GLOBAL_VARIABLES
+    if a$="PROCEDURE"
+      TYP=ASC("P")
+      EXEC ONE_PROCEDURE
+      EXEC GET_SYMBOL
+    else
+      if a$="FUNCTION"
+        TYP=function
+        EXEC ONE_PROCEDURE
+        EXEC GET_SYMBOL
+      endif
+    endif
+  WEND
+ENDPROC
+REM -------------------------------
+proc leaveprocedure
+  EXEC peek_symbol
+  if id=reserved_word then e=25: exec fehler
+  VERLANGT=WORD
+  EXEC EXPRESSION
+  IF ERGEBNIS=BYTE
+    ? #KAN;" LDX #0"
+  ENDIF
+  ? #KAN;" JMP @RETURN";rtscount
+endproc
+REM -------------------------------
+proc load_variable_from_heap
+  STACK=STACK-%1:num=ST(STACK)
+  exec get_var
+  regcount=regcount-%2
+  ? #KAN;" LDY #";REGCOUNT
+  ? #KAN;" LDA (@HEAP_PTR),Y"
+  ? #KAN;" STA ";A$
+  IF TYP=WORD
+    ? #KAN;" INY"
+    ? #KAN;" LDA (@HEAP_PTR),Y"
+    ? #KAN;" STA ";A$;"+1"
+  ENDIF
+endproc
+REM -------------------------------
+proc regcount_to_heap
+  if regcount > %1
+REM    ? #KAN;" LDA #";regcount
+REM    ? #KAN;" JSR @ADD_TO_HEAP_PTR"
+    ? #KAN;" ADD_TO_HEAP_PTR ";regcount
+    count_procs(regcount) = count_procs(regcount) + %1
+  endif
+  ST(STACK)=regcount:STACK=STACK+%1
+endproc
+REM -------------------------------
+PROC ONE_PROCEDURE
+    showcode=%1
+    typ_of_procedure = typ
+    EXEC GET_SYMBOL:REM Procname
+    ?"Procedure ";a$
+REM    ? #KAN;"; Procedure"
+    VARLEN=%0
+    exec check_var
+    if num<>%0 then e=14:exec fehler
+    EXEC PUT_VAR
+    ? #KAN;A$ :REM function/procedure name ausgeben
+    EXEC GET_SYMBOL:REM (
+    REGCOUNT=%1
+    rtscount=rtscount+%1
+    IF A$<>"(" THEN E=k15:EXEC FEHLER
+    WHILE A$<>")"
+      exec peek_symbol:REM var
+      IF A$<>")"
+        EXEC GET_SYMBOL
+REM -------------------------------
+REM Variable speichern UND mit Inhalt aus Parameter tauschen
+        EXEC CHECK_VAR
+        ? #KAN;" LDX ";A$ :REM " ;" ; variable holen"
+        ? #KAN;" LDY #";REGCOUNT
+        ? #KAN;" LDA (@HEAP_PTR),Y" :REM ; wert holen"
+        ? #KAN;" STA ";A$
+        ? #KAN;" TXA"
+        ? #KAN;" STA (@HEAP_PTR),Y" :REM ; variable sichern"
+        IF TYP=WORD
+          ? #KAN;" INY"
+          ? #KAN;" LDX ";A$;"+1"
+          ? #KAN;" LDA (@HEAP_PTR),Y"
+          ? #KAN;" STA ";A$;"+1"
+          ? #KAN;" TXA"
+          ? #KAN;" STA (@HEAP_PTR),Y"
+        ENDIF
+        REGCOUNT=REGCOUNT+%2
+        ST(STACK)=num:STACK=STACK+%1
+REM -------------------------------
+        EXEC GET_SYMBOL:REM ,)
+      else
+        exec get_symbol:REM )
+      ENDIF
+    WEND
+    exec regcount_to_heap
+    EXEC GET_SYMBOL
+REM -------------------------------
+REM Locale Variablen sind nur moeglich, wenn es ein globales Pedant gibt
+REM procedure procname(variable) local othervariable statement
+REM erstellt eine procedure mit namen procname,
+REM die Variablen variable und othervariable sind innerhalb von statement
+REM local.
+REM Locale Variablen sind nur byte oder word
+REM Bei locale Variablen wird dessen Globaler Pedant einfach auf den heap kopiert
+    regcount=%1
+    if a$="LOCAL"
+      repeat
+        exec get_symbol :REM variable name
+        exec check_var
+        if num=%0 then e=k16:exec fehler :REM Variable nicht definiert
+        REM typ must be byte or word, nothing else!
+        if typ<>byte and typ<>word then e=%3:exec fehler
+        REM move variable to heap_ptr
+        ? #KAN;" LDA ";A$ :REM " ;" ; variable holen"
+        ? #KAN;" LDY #";REGCOUNT
+        ? #KAN;" STA (@HEAP_PTR),Y" :REM ; variable sichern"
+        IF TYP=WORD
+          ? #KAN;" INY"
+          ? #KAN;" LDA ";A$;"+1"
+          ? #KAN;" STA (@HEAP_PTR),Y"
+        ENDIF
+        REGCOUNT=REGCOUNT+%2
+        ST(STACK)=num:STACK=STACK+%1
+        REM Vorausblick, ob noch mehr Variablen kommen
+        exec peek_symbol
+        if a$="," then exec get_symbol:REM ,
+      UNTIL A$<>","
+      exec get_symbol
+    endif
+    exec regcount_to_heap
+REM -------------------------------
+    ? #KAN;"; Procedure Rumpf"
+    EXEC STATEMENT
+    ? #KAN;"; Procedure ende"
+    ? #KAN;"@RETURN";rtscount
+REM -------------------------------
+    STACK=STACK-%1:regcount=ST(STACK)
+    yregistersafe = %0
+    if regcount > %1
+      REM locale Variablen wieder herstellen
+      if typ_of_procedure = function :REM Das Y-Register retten, wenn wir eine Funktion sind
+        ? #kan;" STY @REG+2"
+        yregistersafe = %1
+      endif
+REM      ? #KAN;" LDA #";regcount :REM ;" ; Variable restore"
+REM      ? #KAN;" JSR @SUB_FROM_HEAP_PTR"
+         ? #KAN;" SUB_FROM_HEAP_PTR ";regcount
+      while regcount>%1
+        exec load_variable_from_heap
+      wend
+    endif
+REM -------------------------------
+    STACK=STACK-%1:regcount=ST(STACK)
+    if regcount > %1
+      if typ_of_procedure = function and yregistersafe = %0
+        ? #kan;" STY @REG+2"
+        yregistersafe = %1
+      endif
+
+REM      ? #KAN;" LDA #";regcount :REM ;" ; heap wieder herstellen"
+REM      ? #KAN;" JSR @SUB_FROM_HEAP_PTR"
+      ? #KAN;" SUB_FROM_HEAP_PTR ";regcount
+      while regcount>%1
+        exec load_variable_from_heap
+      wend
+    endif
+    if yregistersafe = %1
+      ? #kan;" LDY @REG+2"
+    endif
+    ? #kan;" RTS"
+    ?
+ENDPROC
+REM -------------------------------
+PROC STATEMENT
+  ? ".";:poke 77,%0
+  showcode=%1
+  IF A$="BEGIN"
+    showcode=%0
+    EXEC BEGIN
+  ELSE
+    IF A$="IF"
+      EXEC IF
+    ELSE
+      IF A$="WHILE"
+        EXEC WHILE
+      ELSE
+        IF A$="REPEAT"
+          EXEC REPEAT
+        ELSE
+          IF A$="FOR"
+            EXEC FOR
+          ELSE
+            IF A$="ASSERT"
+              exec assert
+            ELSE
+              if a$="RETURN"
+                exec leaveprocedure
+              else
+                IF ID=variable_name
+                  EXEC CHECK_VAR
+                  IF TYP=ASC("P") OR typ=function OR fehler=k4
+                    if fehler=k4
+                      b$=a$:exec peek_symbol
+                      if a$ = "("
+                        a$=b$
+                      else
+                        a$=b$:e=k16:exec fehler
+                      endif
+                      typ=function
+                      exec put_var
+                      exec check_var
+                    endif
+                    EXEC funktioncall
+                  ELSE
+                    showcode=%0
+                    exec showcodeline
+                    EXEC VARIABLE
+                    EXEC WERTZUWEISUNG
+                  ENDIF
+                ENDIF
+              endif
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+ENDPROC
+REM -------------------------------
+PROC BEGIN
+  ? #KAN;"; Begin"
+  EXEC GET_SYMBOL
+  while a$<>"END"
+    EXEC STATEMENT
+    exec get_symbol
+  wend
+ENDPROC
+REM -------------------------------
+proc schleif_nr_to_stack
+  SCHLEIF_NR=SCHLEIF_NR+%1
+  SCHACHTELSTACK(TIEFE)=SCHLEIF_NR
+  TIEFE=TIEFE+%1
+endproc
+REM -------------------------------
+PROC IF
+  exec schleif_nr_to_stack
+REM  ? #KAN;"; If"
+  CONDI=SCHLEIF_NR
+  CONDI$="@THEN"
+  EXEC CONDITION
+  ? #KAN;" .IF .NOT .DEF @ELSE";CONDI
+  ? #KAN;" JMP @ENDIF";CONDI
+  ? #KAN;" .ELSE"
+  ? #KAN;" JMP @ELSE";CONDI
+  ? #KAN;" .ENDIF"
+  IF A$<>"THEN" THEN E=K4:EXEC FEHLER
+  exec get_symbol:REM then
+  ? #KAN;"@THEN";CONDI
+  EXEC GET_SYMBOL
+  EXEC STATEMENT
+  exec peek_symbol
+  IF A$="ELSE"
+    exec get_symbol:REM else
+    CONDI=SCHACHTELSTACK(TIEFE-%1)
+    ? #KAN;" JMP @ENDIF";CONDI
+    ? #KAN;"@ELSE";CONDI
+    EXEC GET_SYMBOL
+    EXEC STATEMENT
+  ENDIF
+  TIEFE=TIEFE-%1
+  ? #KAN;"@ENDIF";SCHACHTELSTACK(TIEFE)
+ENDPROC
+REM -------------------------------
+PROC WHILE
+  exec schleif_nr_to_stack
+  CONDI=SCHLEIF_NR
+  CONDI$="@THEN"
+REM  ? #KAN;"; While Schleife"
+  ? #KAN;"@WHILE";CONDI
+  EXEC CONDITION
+  ? #KAN;" JMP @WEND";CONDI
+  ? #KAN;"@THEN";CONDI
+  IF A$<>"DO" THEN E=K5:EXEC FEHLER
+  exec get_symbol:REM do
+  EXEC GET_SYMBOL
+  EXEC STATEMENT
+  TIEFE=TIEFE-%1
+  CONDI=SCHACHTELSTACK(TIEFE)
+  ? #KAN;" JMP @WHILE";condi
+REM  ? #KAN;"; While ende"
+  ? #KAN;"@WEND";CONDI
+ENDPROC
+REM -------------------------------
+PROC REPEAT
+  exec schleif_nr_to_stack
+REM  ? #KAN;"; Repeat Schleife"
+  ? #KAN;"@REPEAT";SCHLEIF_NR
+  REPEAT
+    EXEC GET_SYMBOL
+    if a$<>"UNTIL"
+      EXEC STATEMENT
+    endif
+  UNTIL A$="UNTIL"
+REM -------------------------------
+  exec peek_symbol
+  if a$="UNTIL"
+    exec get_symbol
+  endif
+REM -------------------------------
+  TIEFE=TIEFE-%1
+  CONDI=SCHACHTELSTACK(TIEFE)
+  CONDI$="@RPTEXIT"
+  EXEC CONDITION
+  ? #KAN;" JMP @REPEAT";CONDI
+REM  ? #KAN;"; Repeat ende"
+  ? #KAN;"@RPTEXIT";CONDI
+ENDPROC
+REM -------------------------------
+PROC FOR
+REM  ? #KAN;"; For-Schleife"
+  exec schleif_nr_to_stack
+  EXEC GET_SYMBOL:REM Var
+  EXEC CHECK_VAR
+  if fehler=k4 then e=k16:exec fehler
+  IF TYP<>BYTE AND TYP<>WORD THEN E=%3:EXEC FEHLER
+  ST(STACK)=NUM:STACK=STACK+%1
+  EXEC GET_SYMBOL:REM :=
+  IF A$<>":=" THEN E=K6:EXEC FEHLER
+  VERLANGT=TYP
+  EXEC EXPRESSION
+  NUM=ST(STACK-%1)
+  EXEC GET_VAR
+  ? #KAN;" STY ";A$
+  IF TYP=WORD
+    IF ERGEBNIS=BYTE
+      ? #KAN;" LDX #0"
+    ENDIF
+    ? #KAN;" STX ";A$;"+1"
+  ENDIF
+  EXEC GET_SYMBOL:REM to/downto
+  IF A$="TO"
+    STEP=%1
+  ELSE
+    IF A$="DOWNTO"
+      STEP=-%1
+    ELSE
+      E=K7:EXEC FEHLER
+    ENDIF
+  ENDIF
+  EXEC EXPRESSION
+  NUM=ST(STACK-%1)
+  EXEC GET_VAR
+  CONDI=SCHACHTELSTACK(TIEFE-%1)
+  ? #KAN;" STY @FOR";CONDI
+  IF TYP=WORD
+    IF ERGEBNIS=BYTE
+      ? #KAN;" LDX #0"
+    ENDIF
+    ? #KAN;" STX @FOR";CONDI;"+1"
+  ENDIF
+REM  ? #KAN;"; am Anfang schon ende?"
+  IF STEP=%1
+    ? #KAN;" LDA @FOR";CONDI
+    ? #KAN;" CMP ";A$
+    IF TYP=BYTE
+      ? #KAN;" BCS @GO";CONDI
+    ELSE
+      ? #KAN;" LDA @FOR";CONDI;"+1"
+      ? #KAN;" SBC ";A$;"+1"
+      ? #KAN;" BCS @GO";CONDI
+    ENDIF
+  ELSE
+    ? #KAN;" LDA ";A$
+    ? #KAN;" CMP @FOR";CONDI
+    IF TYP=BYTE
+      ? #KAN;" BCS @GO";CONDI
+    ELSE
+      ? #KAN;" LDA ";A$;"+1"
+      ? #KAN;" SBC @FOR";CONDI;"+1"
+      ? #KAN;" BCS @GO";CONDI
+    ENDIF
+  ENDIF
+  ? #KAN;" JMP @EXIT";CONDI
+  ? #KAN;"@FOR";CONDI;" .WORD 0"
+REM  ? #KAN;"; Schleifeninhalt"
+  ? #KAN;"@GO";CONDI
+  ST(STACK)=STEP:STACK=STACK+%1
+  EXEC GET_SYMBOL:REM do
+  IF A$<>"DO" THEN E=K5:EXEC FEHLER
+  EXEC GET_SYMBOL
+  EXEC STATEMENT
+  STACK=STACK-%2
+  STEP=ST(STACK+%1)
+  NUM=ST(STACK)
+  EXEC GET_VAR
+  TIEFE=TIEFE-%1
+  CONDI=SCHACHTELSTACK(TIEFE)
+  if typ=word
+    ? #KAN;" LDA ";A$;"+1"
+    ? #KAN;" CMP @FOR";CONDI;"+1"
+    ? #KAN;" BNE @NEXT";CONDI
+  endif
+  if step=%1
+    ? #KAN;" LDA ";A$
+    ? #KAN;" CMP @FOR";CONDI
+  else
+    ? #KAN;" LDA @FOR";CONDI
+    ? #KAN;" CMP ";A$
+  endif
+  ? #KAN;" BCS @EXIT";CONDI
+  ? #KAN;"@NEXT";CONDI
+REM  ? #KAN;"; Richtung der Schleife ";STEP
+  IF STEP=%1
+    ? #KAN;" INC ";A$
+    IF TYP=WORD
+      ? #KAN;" BNE @LOOP";CONDI
+      ? #KAN;" INC ";A$;"+1"
+      ? #KAN;"@LOOP";CONDI
+    ENDIF
+  ELSE
+    IF TYP=WORD
+      ? #KAN;" LDA ";A$
+      ? #KAN;" BNE @LOOP";CONDI
+      ? #KAN;" DEC ";A$;"+1"
+      ? #KAN;"@LOOP";CONDI
+    ENDIF
+    ? #KAN;" DEC ";A$
+  ENDIF
+  ? #KAN;" JMP @GO";CONDI
+REM  ? #KAN;"; For ende"
+  ? #KAN;"@EXIT";CONDI
+ENDPROC
+REM -------------------------------
+PROC VARIABLE
+  ST(STACK)=NUM:STACK=STACK+%1
+REM  ? #KAN;"; Hole Variable"
+  ARRAY=%0:HASFUNKTION=%0
+  exec peek_symbol
+  IF A$="["
+    exec get_symbol:REM [
+    IF TYP>90 then array=%1
+    IF TYP>k128
+      verlangt=byte
+    endif
+    EXEC EXPRESSION
+    NUM=ST(STACK-%1)
+    EXEC GET_VAR
+    IF ERGEBNIS=BYTE AND TYP<k128
+      ? #KAN;" LDX #0"
+    ENDIF
+    IF TYP=ARRAY_W
+      ? #KAN;" PUTARRAYW ";A$
+    ENDIF
+    IF TYP=ARRAY_B
+      ? #KAN;" PUTARRAYB ";A$
+    ENDIF
+    IF TYP>k128
+      ? #KAN;" STY @PUTARRAY"
+    ENDIF
+    EXEC GET_SYMBOL:REM ]
+  ENDIF
+  STACK=STACK-%1:NUM=ST(STACK)
+ENDPROC
+REM -------------------------------
+PROC WERTZUWEISUNG
+  EXEC GET_SYMBOL:REM :=
+  IF A$=":="
+    ST(STACK)=NUM:STACK=STACK+%1
+    IF TYP<k128
+      VERLANGT=TYP-k32*ARRAY
+    ELSE
+      VERLANGT=BYTE
+    ENDIF
+    EXEC EXPRESSION
+    b$=a$
+    STACK=STACK-%1:NUM=ST(STACK)
+REM    ? #KAN;"; Zuweisung"      :REM Set Variable
+    EXEC GET_VAR
+    IF NOT ARRAY
+      ? #KAN;" STY ";A$
+      IF VERLANGT=WORD
+        IF ERGEBNIS=BYTE
+          ? #KAN;" LDX #0"
+        endif
+        ? #KAN;" STX ";A$;"+1"
+      ENDIF
+    ELSE
+      IF TYP>k128
+        ? #KAN;" TYA"
+        ? #KAN;" LDX @PUTARRAY"
+        ? #KAN;" STA ";A$;",X"
+      ELSE
+        ? #KAN;" TYA"   :REM Array:=(x,y)
+        ? #KAN;" LDY #0"
+        ? #KAN;" STA (@PUTARRAY),Y"
+        IF VERLANGT=WORD
+          ? #KAN;" INY"
+          IF ERGEBNIS=WORD
+            ? #KAN;" TXA"
+          ELSE
+            ? #KAN;" LDA #0"
+          ENDIF
+          ? #KAN;" STA (@PUTARRAY),Y"
+        ENDIF
+      ENDIF
+    ENDIF
+    a$=b$
+  ELSE
+    E=K6:EXEC FEHLER
+  ENDIF
+ENDPROC
+REM -------------------------------
+PROC INIT
+  TRUE=%1:FALSE=%0 :REM Konstanten
+  WORD=ASC("W"):BYTE=ASC("B")
+  ARRAY_W=ASC("w"):ARRAY_B=ASC("b"):function=ASC("f")
+  K4=%3+%1:k5=k4+%1:K6=K5+%1:K7=K6+%1:K8=K7+%1:k9=k8+%1:k10=k9+%1:K128=128:k125=K128-%3:k15=k8+k7:k16=k15+%1:k32=k16*%2
+  reserved_word=%1
+  variable_name=%2
+  number=%3
+  symbol=K4
+  condition_symbol=K5
+  string=K6
+REM -------------------------------
+  p_zahl=160
+  p_push=162
+  p_pull=163
+  p_int_zahl=167
+  p_word=168
+  p_word_array=169
+  p_byte_array=170
+  p_address=171
+  p_nop=254
+  p_end=255
+  p_function=64
+  p_imult=18
+  p_idiv=19
+  p_imod=23
+REM -------------------------------
+  DIM A$(k125),B$(k32+%3)
+  dim temp$(k32+%3)
+  dim prefix$(8)
+  DIM OP$(%3),BD$(%2),DEST_FILENAME$(k15),FILENAME$(k15)
+  DIM P_CODE(104)
+  DIM count_procs(k16)
+  DIM ST(k32),MNE$(k5)
+  DIM SCHACHTELSTACK(%3*k5),CONDI$(%3*K6)
+  DIM RESERVED_WORD$(167)
+  DIM PRG$(k5*k125+%1)
+  C=FRE(%0)-k125*%3
+  DIM variable_buf$(c)
+REM  ?"Free: ";c
+REM  stop
+REM -------------------------------
+  GRAPHICS %0:POKE 710,176:POKE 709,k15
+  RESTORE #RESERVED_WORDS
+  RESERVED_WORD$="#"
+  REPEAT
+    READ A$
+    IF A$<>"_"
+      RESERVED_WORD$(LEN(RESERVED_WORD$)+%1)=A$
+      RESERVED_WORD$(LEN(RESERVED_WORD$)+%1)="#"
+    ENDIF
+  UNTIL A$="_"
+# RESERVED_WORDS
+  DATA begin,end
+  DATA if,then,else
+  DATA repeat,until
+  DATA for,to,downto,do
+  DATA while
+  DATA or,xor,and,adr,mod,div
+  DATA byte,word,array,string
+  DATA procedure,function,local,return
+  DATA lomem,include,program,assert
+  DATA _
+endproc
+REM -------------------------------
+proc clear_variables
+  bytesnext=%0
+  preloaded=%0
+  preloadbytes=%3*K125
+REM -------------------------------
+  variable_buf$=""
+  a$="@REG":typ=WORD:exec put_var
+  a$="@RETURN":typ=WORD:exec put_var
+  PRG$=""
+REM -------------------------------
+  zeiger=%1
+  zeiger_old=zeiger
+REM -------------------------------
+  tiefe=%0
+  stack=%0
+ENDPROC
+REM -------------------------------
+proc peek_symbol
+  if debug=%1
+    trace-
+    ?:?"peek";
+  endif
+  peek_zeiger = zeiger
+  exec get_symbol
+  zeiger = peek_zeiger
+  peek_zeiger=%0
+endproc
+REM -------------------------------
+proc endofline
+  repeat
+    zeiger = zeiger + %1
+  until prg$(zeiger, zeiger) = chr$($9B) or prg$(zeiger, zeiger) = chr$($0A)
+endproc
+REM -------------------------------
+proc showcodeline
+    showcode_z=zeiger
+    exec endofline
+    ?#kan;";"
+    ?#kan;"; ";a$;" ";prg$(showcode_z, zeiger-%1)
+    ?#kan;";"
+    zeiger=showcode_z
+endproc
+REM -------------------------------
+PROC GET_SYMBOL :REM Hole Befehl, das Symbol landet in A$, nur hier wird der zeiger manipuliert
+  if debug=%1
+  trace-
+    ?:?" get";
+  endif
+  # REPEAT_GETSYM
+  if zeiger > 251 and bytesnext >= %0 and peek_zeiger=%0 and inexpression=%0
+    move adr(prg$)+zeiger-%1, adr(prg$), len(prg$)-zeiger+%1
+    bytesnext=len(prg$)-zeiger+%1
+    preloadbytes=int((k5*k125-bytesnext)/k125)*k125
+    exec readwnfsectors
+    zeiger=%1
+  endif
+REM -------------------------------
+  IDNUM=%0
+  id=%0
+  trap #getsymbol_error
+  exec overread_whitespace
+REM -------------------------------
+  if zeiger+%1<len(prg$)
+    IF PRG$(ZEIGER,ZEIGER+%1)="//" :REM Kommentarzeichen?
+    exec endofline
+      GO# REPEAT_GETSYM
+    ENDIF
+  else
+    a$="":go#getsym_end
+  endif
+REM -------------------------------
+  if showcode=%1 and peek_zeiger=%0
+    exec showcodeline
+    showcode=%0
+  endif
+REM -------------------------------
+  A$=PRG$(ZEIGER,ZEIGER)
+  IF (A$>="A" AND A$<="Z") OR (A$>="a" AND A$<="z") or a$="@" :REM Variable?
+    P1=ZEIGER:REM Variable
+    WHILE (A$>="A" AND A$<="Z") OR (A$>="a" AND A$<="z") OR (A$>="0" AND A$<="9") OR A$="_" or a$="@"
+      ZEIGER=ZEIGER+%1
+      A$=PRG$(ZEIGER,ZEIGER)
+    WEND
+    A$=PRG$(P1,ZEIGER-%1)
+    ID=variable_name
+REM -------------------------------
+    trap #reserved_trap   :REM Suche Reservierte Befehle
+    temp$="#"
+    temp$(%2)=a$
+    temp$(len(temp$)+%1)="#"
+    a = uinstr(reserved_word$, temp$)
+    if a <> %0
+      id=reserved_word
+      IDNUM=A+%1
+    endif
+    # reserved_trap
+  ELSE
+    trap #getsymbol_error
+    IF A$>="0" AND A$<="9" OR A$="$" or a$="%" :REM Vielleicht Zahl
+      temp$=a$
+      P1=ZEIGER :REM Zusammenbasteln der Zahlen-Konst.
+      REPEAT
+        ZEIGER=ZEIGER+%1
+        A$=PRG$(ZEIGER,ZEIGER)
+      UNTIL NOT ((A$>="0" AND A$<="9") OR (A$>="A" AND A$<="F") OR (A$>="a" AND A$<="f") or A$=".")
+      A$=PRG$(P1,ZEIGER-%1)
+      ID=number
+      if temp$="%" :REM Binaer to hex
+        value=%0
+        bit=%1
+        if len(a$) <> 9 then e=19:exec fehler
+        FOR A=LEN(a$) to %2 step -%1
+          if a$(a,a)="1"
+            value=value+bit
+          endif
+          bit=bit*%2
+        next a
+        a$="$":a$(%2)=hex$(value)
+      endif
+    ELSE
+      IF INSTR("+-*/=^<>()[].,:;#&!",A$) :REM Zeichen!
+        P1=ZEIGER
+        IF INSTR(";.+-*/()[],",A$) :REM these are single chars
+          ZEIGER=ZEIGER+%1
+        ELSE
+          REPEAT :REM <= => <> != == zu finden
+            ZEIGER=ZEIGER+%1
+            A$=PRG$(ZEIGER,ZEIGER)
+          UNTIL NOT INSTR("<>=",A$)
+          A$=PRG$(P1,ZEIGER-%1)
+        ENDIF
+        ID=symbol
+        IF A$="=" OR A$="<>" OR A$="<" OR A$="<=" OR A$=">" OR A$=">=" or a$="!=" or a$="=="
+          ID=condition_symbol :REM TODO: else: unsiniges Symbol erkannt?
+        ENDIF
+      ELSE
+        IF A$="'"   :REM Zeichenkette (String)
+          P1=ZEIGER
+          ZEIGER=INSTR(PRG$,"'",ZEIGER+%1)
+          A$=PRG$(P1,ZEIGER)
+          ID=string
+          ZEIGER=ZEIGER+%1
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+REM -------------------------------
+  IF ID=reserved_word OR ID=variable_name or id=number :REM Reservierte Worte und Variablen in Grossbuchstaben setzen!
+    FOR A=%1 TO LEN(A$)
+      C=ASC(A$(A))
+      IF C>=97 AND C<=122 THEN C=C-k32
+      A$(A,A)=CHR$(C)
+    NEXT A
+    if id=variable_name and a$="A"
+      a$="A__"
+    endif
+    if id=variable_name
+      if a$(%1,%1) <> "@" :REM Variablen mit '@' sind per Definition global eindeutig
+        if usehash=%1 and len(a$) > k16 :REM Hashnamen bilden wenn mehr als 16 Zeichen
+          exec hash_variable
+          a$=temp$
+        endif
+        if programtype=%2
+          temp$=a$:a$=prefix$:a$(len(a$)+%1)=temp$
+        endif
+      endif
+    endif
+    REM ADR ist eigentlich ein reserviertes Word, wird hier aber als variablen_name behandelt
+    if id=reserved_word and a$="ADR" then id=variable_name
+  ENDIF
+REM -------------------------------
+  if id=%0 and zeiger<len(prg$)
+    e=18:exec fehler
+  endif
+REM -------------------------------
+  go#getsym_end
+  #getsymbol_error :REM Fehlerbehandlung
+  ?"Getsymbol fehler"
+  exec show_fail
+REM -------------------------------
+  #getsym_end
+  trap 40000
+  zeiger_old = zeiger
+  if debug=%1
+    ?"symbol(";id;", ";zeiger;"): ";a$
+    get key:if key=43 then trace+
+  endif
+ENDPROC
+REM -------------------------------
+proc show_fail
+  ? " begin: ",zeiger_start
+  ? "result: ",a$
+  ? "    id: ",id
+  ? "   end: ",zeiger
+  ? " zeile: ",erl
+  if peek_zeiger<>%0 then ?"peek_zeiger ist gesetzt, // zu lang?"
+  stop
+endproc
+REM -------------------------------
+proc overread_whitespace
+  WHILE zeiger < len(prg$) and (PRG$(ZEIGER,ZEIGER)=" " OR PRG$(ZEIGER,ZEIGER)=CHR$($9B) OR PRG$(ZEIGER,ZEIGER)=CHR$($0A))
+    ZEIGER=ZEIGER+%1
+  WEND
+endproc
+REM -------------------------------
+proc hash_variable
+    temp$=a$(%1,%1)
+    hash=%0
+    for p1=%2 to len(a$)-%1
+      p2=asc(a$(p1,p1))
+      if p2>=64 then p2=(p2-63)*p1
+      if p2>=48 then p2=(p2-47)*p1
+      hash=hash+p2
+    next p1
+    temp$(len(temp$)+%1)=str$(hash)
+    temp$(len(temp$)+%1)=a$(p1,p1)
+endproc
+REM -------------------------------
+PROC CONDITION
+REM  ? #KAN;"; Condition"
+  CONDI$(LEN(CONDI$)+%1)=STR$(CONDI)
+  CTF=CT
+  REPEAT
+    EXEC EXPRESSION
+    ? #KAN;" STY @ERG"
+    IF ERGEBNIS<>BYTE
+      ? #KAN;" STX @ERG+1"
+    ENDIF
+    ERGEBNIS1=ERGEBNIS
+    EXEC GET_SYMBOL:REM Bedingung
+    BD$=A$
+    EXEC EXPRESSION
+    ? #KAN;"; Bedingung (a";BD$;"b)"
+    IF ERGEBNIS1=BYTE AND ERGEBNIS<>BYTE
+      ? #KAN;" LDA #0"
+      ? #KAN;" STA @ERG+1"
+    ELSE
+      IF ERGEBNIS=BYTE AND ERGEBNIS1<>BYTE
+        ? #KAN;" LDX #0"
+      ENDIF
+    ENDIF
+    IF ERGEBNIS1=BYTE AND ERGEBNIS=BYTE:REM Vergleichsauswertung BYTE
+      ? #KAN;" CPY @ERG"
+      IF BD$="<>" or BD$="!="
+        ? #KAN;" BEQ @FA";CTF
+      ENDIF
+      IF BD$="=" or BD$="=="
+        ? #KAN;" BNE @FA";CTF
+      ENDIF
+      IF BD$="<"
+        ? #KAN;" BEQ @FA";CTF
+        ? #KAN;" BCC @FA";CTF
+      ENDIF
+      IF BD$=">="
+        ? #KAN;" BEQ @TR";CT
+        ? #KAN;" BCS @FA";CTF
+        ? #KAN;"@TR";CT
+      ENDIF
+      IF BD$=">"
+        ? #KAN;" BCS @FA";CTF
+      ENDIF
+      IF BD$="<="
+        ? #KAN;" BCC @FA";CTF
+      ENDIF
+    ELSE
+      IF BD$="=" or BD$="=="  :REM Vergleichsauswertung WORD
+        ? #KAN;" CPY @ERG"
+        ? #KAN;" BNE @FA";CTF
+        ? #KAN;" CPX @ERG+1"
+        ? #KAN;" BNE @FA";CTF
+      ENDIF
+      IF BD$="<>" or BD$="!="
+        ? #KAN;" CPY @ERG"
+        ? #KAN;" BNE @TR";CT
+        ? #KAN;" CPX @ERG+1"
+        ? #KAN;" BEQ @FA";CTF
+        ? #KAN;"@TR";CT
+      ENDIF
+      IF BD$="<="
+        ? #KAN;" CPY @ERG"
+        ? #KAN;" TXA"
+        ? #KAN;" SBC @ERG+1"
+        ? #KAN;" BVC @VC";CT
+        ? #KAN;" EOR #$80"
+        ? #KAN;"@VC";CT
+        ? #KAN;" BMI @FA";CTF
+      ENDIF
+      IF BD$=">"
+        ? #KAN;" CPY @ERG"
+        ? #KAN;" TXA"
+        ? #KAN;" SBC @ERG+1"
+        ? #KAN;" BVC @VC";CT
+        ? #KAN;" EOR #$80"
+        ? #KAN;"@VC";CT
+        ? #KAN;" BPL @FA";CTF
+      ENDIF
+      IF BD$="<"
+        ? #KAN;" CPY @ERG"
+        ? #KAN;" BNE @NE";CT
+        ? #KAN;" CPX @ERG+1"
+        ? #KAN;" BEQ @FA";CTF
+        ? #KAN;"@NE";CT
+REM -------------------------------
+        ? #KAN;" CPY @ERG"
+        ? #KAN;" TXA"
+        ? #KAN;" SBC @ERG+1"
+        ? #KAN;" BVC @VC";CT
+        ? #KAN;" EOR #$80"
+        ? #KAN;"@VC";CT
+        ? #KAN;" BMI @FA";CTF
+      ENDIF
+      IF BD$=">="
+        ? #KAN;" CPY @ERG"
+        ? #KAN;" BNE @NE";CT
+        ? #KAN;" CPX @ERG+1"
+        ? #KAN;" BEQ @TR";CT
+        ? #KAN;"@NE";CT
+REM -------------------------------
+        ? #KAN;" CPY @ERG"
+        ? #KAN;" TXA"
+        ? #KAN;" SBC @ERG+1"
+        ? #KAN;" BVC @VC";CT
+        ? #KAN;" EOR #$80"
+        ? #KAN;"@VC";CT
+        ? #KAN;" BPL @FA";CTF
+        ? #KAN;"@TR";CT
+      ENDIF
+    ENDIF
+    exec peek_symbol
+    IF A$="OR"
+      exec get_symbol:REM OR
+      ? #KAN;" JMP ";CONDI$;" ;fuer OR"
+      ? #KAN;"@FA";CTF
+      CT=CT+%1
+      CTF=CTF+%1
+    else
+      if A$="AND"
+        exec get_symbol
+        CT=CT+%1
+      ENDIF
+    endif
+  UNTIL A$<>"OR" AND A$<>"AND"
+  ? #KAN;" JMP ";CONDI$
+  ? #KAN;"@FA";CTF
+  CT=CT+%1
+ENDPROC
+REM -------------------------------
+ proc check_var
+   fehler=%0
+   temp$="#"
+   temp$(%2)=a$
+   temp$(len(temp$)+%1)="="
+   num = uinstr(variable_buf$, temp$)
+   if num = %0
+     fehler=K4
+   else
+     num=num+%1
+     typ=ASC(variable_buf$(num - %1 + len(temp$)))
+   endif
+ endproc
+REM -------------------------------
+ proc put_var
+   exec check_var
+   if fehler
+     variable_buf$(len(variable_buf$)+%1)="#"
+     variable_buf$(len(variable_buf$)+%1)=a$
+     variable_buf$(len(variable_buf$)+%1)="="
+     variable_buf$(len(variable_buf$)+%1)=chr$(typ)
+     fehler=%0
+   endif
+ endproc
+REM -------------------------------
+ proc get_var
+   p1=num
+   p2=instr(variable_buf$, "=", num)
+   TYP=ASC(variable_buf$(p2+%1))
+   A$=variable_buf$(P1,P2-%1)
+ endproc
+REM -------------------------------
+PROC FEHLER
+  ? "--> Fehler (";E;")"
+  p1=zeiger-k16
+  p2=zeiger+k16
+  if p1<%1 then p1=%1
+  if p2>len(prg$) then p2=len(prg$)
+  ?:? PRG$(p1,p2):?
+  for i=%0 to k16:?" ";:next i:?"^"
+  ? "in A$: ";a$
+  stop
+ENDPROC
+REM -------------------------------
+PROC EXPRESSION :REM berechnet eine Formel
+  EXEC GET_SYMBOL
+  if id=string and len(a$)>%3 :REM 1 Zeichen Strings werden anders gehandhabt
+    stringcount=stringcount+%1
+    ? #KAN;" LDY #<@STR_ADDR_";stringcount :REM ;" ; anonymer String"
+    ? #KAN;" LDX #>@STR_ADDR_";stringcount
+    ? #KAN;" JMP @STR_END_";stringcount
+    ? #KAN;"@STR_ADDR_";stringcount
+    exec direktstring
+    ? #kan
+    ? #KAN;"@STR_END_";stringcount
+    ERGEBNIS=word
+  else
+    Z=%0:ERGEBNIS=byte
+REM    ? #KAN;"; Ausdruck"
+    inexpression=%1
+    exec check_var
+    IF A$(%1,%1)="@" and ( fehler=K4 or typ=function )  :REM Funktion
+      if fehler=k4
+        typ=function
+        exec put_var
+        exec check_var
+      endif
+      exec funktioncall
+      ERGEBNIS=WORD
+      HASFUNKTION=%1
+    ELSE
+      EXEC EINF_AUSDRUCK
+      ZEIGER=B:REM <-----
+      HASFUNKTION=%0
+    ENDIF
+    inexpression=%0
+    exec optimierung
+    HASFUNKTION=%0
+  endif
+ENDPROC
+REM -------------------------------
+PROC EINF_AUSDRUCK
+  ST(STACK)=ASC(OP$):STACK=STACK+%1
+  EXEC TERM
+  WHILE A$="+" OR A$="-" OR A$="!" OR A$="XOR" OR A$="&"
+    IF A$="XOR" THEN A$="X"
+    OP$=A$
+    EXEC GET_SYMBOL
+    EXEC PUSH:EXEC TERM:EXEC PULL
+    IF OP$="+" THEN A=K8:REM add
+    IF OP$="-" THEN A=k9:REM sub
+    IF OP$="!" THEN A=12:REM or
+    IF OP$="X" THEN A=13:REM xor
+    IF OP$="&" THEN A=14:REM and
+    P_CODE(Z)=A:Z=Z+%1
+    exec pcodezmax
+  WEND
+  STACK=STACK-%1:OP$=CHR$(ST(STACK))
+ENDPROC
+REM -------------------------------
+PROC TERM
+  ST(STACK)=ASC(OP$):STACK=STACK+%1
+  EXEC FAKTOR
+  WHILE A$="*" OR A$="/" OR A$="DIV" OR A$="MOD"
+    OP$=A$
+    IF A$="MOD" THEN OP$="M"
+    IF A$="DIV" THEN OP$="/"
+    EXEC GET_SYMBOL
+    EXEC PUSH:EXEC FAKTOR:EXEC PULL
+    IF OP$="*" THEN A=k10:REM mul
+    IF OP$="/" THEN A=11:REM div
+    IF OP$="M" THEN A=k15:REM mod
+    P_CODE(Z)=A:Z=Z+%1
+    exec pcodezmax
+  WEND
+  STACK=STACK-%1:OP$=CHR$(ST(STACK))
+ENDPROC
+REM -------------------------------
+PROC FAKTOR
+  ST(STACK)=NUM:ST(STACK+%1)=ASC(OP$):STACK=STACK+%2
+  IF A$="-"
+    EXEC GET_SYMBOL:B$="-":B$(%2)=A$:A$=B$
+    if id<>number then e=k10:exec fehler
+  endif
+  if id=string :REM 1 Zeichen! Längere Strings werden vorn in expression entfernt.
+    id=number
+    a$=str$(asc(a$(%2,%2)))
+  endif
+  IF ID=number
+    IF A$(%1,%1)="$"
+      F=DEC(A$(%2))
+    ELSE
+      F=VAL(A$)
+    ENDIF
+    P_CODE(Z)=p_zahl
+    P_CODE(Z+%1)=INT(F)
+    Z=Z+%2
+    exec pcodezmax
+    IF ERGEBNIS<>WORD :REM lege Ergebnis fest
+      IF F>=-32768 AND F<=65535
+        ERGEBNIS=WORD
+      ELSE
+        E=K8:EXEC FEHLER
+      ENDIF
+    ENDIF
+  ELSE
+    if a$="[" :REM Erkennung fuer Arrayzugriff
+      exec get_symbol:REM [
+      exec einf_ausdruck
+      IF A$<>"]"
+        E=21:EXEC FEHLER
+      ENDIF
+    else
+    IF A$="("
+      EXEC GET_SYMBOL:REM (
+      IF A$<>")"
+        EXEC EINF_AUSDRUCK
+      endif
+      IF A$<>")"
+        E=k9:EXEC FEHLER
+      ENDIF
+    ELSE
+      IF ID=variable_name
+        exec checkIfAddress
+        EXEC CHECK_VAR
+        IF FEHLER=K4 or typ=function  :REM Funktion
+          if fehler=k4
+            typ=function
+            exec put_var
+            exec check_var
+          endif
+          EXEC GET_SYMBOL:REM (
+          EXEC FAKTOR
+          P_CODE(Z)=p_function
+          ERGEBNIS=WORD
+          ZEIGER=B :REM --
+        else
+          IF AD :REM adresse der Variable
+            P_CODE(Z)=p_nop:Z=Z+%1
+            P_CODE(Z)=p_address
+            ERGEBNIS=WORD
+          ELSE
+            IF TYP=ARRAY_W  :REM Welcher Var Typ
+              EXEC GET_SYMBOL:REM [
+REM -------------------------------
+              EXEC FAKTOR
+              P_CODE(Z)=p_word_array
+              ERGEBNIS=WORD
+              ZEIGER=B:REM --
+            ELSE
+              IF TYP=ARRAY_B OR TYP>k128
+                EXEC GET_SYMBOL:REM [
+REM -------------------------------
+                EXEC FAKTOR
+                P_CODE(Z)=p_byte_array
+                ZEIGER=B:REM --
+                IF ERGEBNIS<>WORD THEN ERGEBNIS=BYTE
+              ELSE
+                IF TYP=WORD OR TYP=BYTE  :REM einfache Variable
+                  P_CODE(Z)=p_word
+                  IF ERGEBNIS<>WORD
+                    ERGEBNIS=TYP
+                  ENDIF
+                ENDIF
+              ENDIF
+            ENDIF
+          ENDIF
+        endif
+        P_CODE(Z+%1)=NUM:Z=Z+%2
+    exec pcodezmax
+      ENDIF
+    ENDIF
+    endif
+  ENDIF
+  STACK=STACK-%2:NUM=ST(STACK):OP$=CHR$(ST(STACK+%1))
+  B=ZEIGER :REM --
+  EXEC GET_SYMBOL
+ENDPROC
+REM -------------------------------
+PROC PUSH
+  P_CODE(Z)=p_push:Z=Z+%1
+    exec pcodezmax
+ENDPROC
+REM -------------------------------
+PROC PULL
+  P_CODE(Z)=p_pull:Z=Z+%1
+    exec pcodezmax
+ENDPROC
+REM -------------------------------
+PROC OPTIMIERUNG
+  IF NOT HASFUNKTION
+REM    ? #kan;"; vor optimierung"
+REM    ? #kan;"; <P-Code> ";:F.A=%0TOZ:? #kan;P_CODE(A);" ";:N.A:?#kan
+REM
+    IF ERGEBNIS=WORD OR ERGEBNIS=BYTE :REM Wenn Ergebnis=Word Wandle Zahl(x) in Izahl(x)
+      FOR A=%0 TO Z
+        IF P_CODE(A)=p_zahl
+          P_CODE(A)=p_int_zahl
+          A=A+%1
+        ENDIF
+      NEXT A
+    ENDIF
+    P_CODE(Z)=p_end
+REM p_push (p_zahl|161|p_word|p_int_zahl) <value> p_pull (+|-|*|/)
+REM dann push/pull entfernen
+    FOR A=%0 TO Z
+      IF P_CODE(A)=p_push
+        P1=P_CODE(A+%1)
+        IF P1=p_zahl OR P1=161 OR P1=p_word OR P1=p_int_zahl:REM zahl/var/Ivar/Izahl
+          IF P_CODE(A+%3)=p_pull
+            IF P_CODE(A+K4)&$F8=K8:REM arithmetik
+              P_CODE(A)=P_CODE(A+K4)&K7!k16
+              P1=%3:P2=%2
+              EXEC Z_ANPASS
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    NEXT A
+    if z=%2 and p_code(%0)=p_int_zahl and ergebnis=word and p_code(%1) >=0 and p_code(%1) < 256
+      ergebnis=byte
+    endif
+REM    ? #kan;"; <P-Code> ";:F.A=%0TOZ:? #kan;P_CODE(A);" ";:N.A:?#kan
+    EXEC P_CODE_TO_ASSEMBLER
+  ENDIF
+ENDPROC
+REM -------------------------------
+PROC Z_ANPASS :REM Z fuer Optimierung anpassen
+  FOR C=A+P1 TO Z
+    P_CODE(C)=P_CODE(C+P2)
+  NEXT C:Z=Z-P2
+ENDPROC
+REM -------------------------------
+PROC P_CODE_TO_ASSEMBLER
+  A=%0
+  REPEAT
+    B=P_CODE(A+%1):REM wert
+    IF P_CODE(A)=p_int_zahl AND P_CODE(A+%2)=p_push
+      ? #KAN;" LDA #<";B :REM ;" ;Push Zahl"
+      ? #KAN;" PHA"
+      IF ERGEBNIS<>BYTE
+        ? #KAN;" LDA #>";B
+        ? #KAN;" PHA"
+      ENDIF :A=A+%3
+REM -------------------------------
+    ELSE
+      IF P_CODE(A)=p_word AND P_CODE(A+%2)=p_push
+        NUM=B:EXEC GET_VAR
+        ? #KAN;" LDA ";A$ :REM ;" ;Push Var"
+        ? #KAN;" PHA"
+        IF ERGEBNIS<>BYTE
+          MNE$="LDA"
+          EXEC GET_TYP
+          ? #KAN;" PHA"
+        ENDIF :A=A+%3
+REM -------------------------------
+      ELSE
+        X=P_CODE(A+%2)
+        IF (P_CODE(A)=p_int_zahl OR P_CODE(A)=p_word) AND (X=k16 OR X=17 OR X=20 OR X=21 OR X=22):REM add/sub/or/xor/and
+          C=P_CODE(A+K4)
+          EXEC CLC_SEC
+          IF P_CODE(A)=p_int_zahl :REM Low byte
+            ? #KAN;" LDA #<";B :REM ;" ;Izahl"
+          ELSE
+            NUM=B:EXEC GET_VAR:B$=A$:TYP2=TYP
+            ? #KAN;" LDA ";B$
+          ENDIF
+          EXEC mne_is_add_sub_or_eor_and
+          IF P_CODE(A+%3)=p_int_zahl
+            ? #KAN;" ";MNE$;" #<";C
+          ELSE
+            NUM=C:EXEC GET_VAR
+            ? #KAN;" ";MNE$;" ";A$
+          ENDIF
+          ? #KAN;" TAY"
+          IF ERGEBNIS<>BYTE
+            IF P_CODE(A)=p_int_zahl :REM High byte
+              ? #KAN;" LDA #>";B
+            ELSE
+              IF TYP2=BYTE
+                ? #KAN;" LDA #0"
+              ELSE
+                ? #KAN;" LDA ";B$;"+1"
+              ENDIF
+            ENDIF
+            IF P_CODE(A+%3)=p_int_zahl
+              ? #KAN;" ";MNE$;" #>";C
+            ELSE
+              EXEC GET_TYP
+            ENDIF
+            ? #KAN;" TAX"
+          ENDIF :A=A+k5
+REM -------------------------------
+        ELSE
+          IF (P_CODE(A)=p_int_zahl OR P_CODE(A)=p_word) AND (P_CODE(A+%2)=p_imult OR P_CODE(A+%2)=p_idiv OR P_CODE(A+%2)=p_imod)
+            C=P_CODE(A+K4):D=-%1
+            IF P_CODE(A)=p_int_zahl
+              ? #KAN;" LDY #<";B :REM ;" ;Izahl"
+              IF ERGEBNIS<>BYTE THEN ? #KAN;" LDX #>";B
+            ELSE :REM Ivar
+              NUM=B:EXEC GET_VAR
+              ? #KAN;" LDY ";A$  :REM ;" ;Ivar"
+              IF ERGEBNIS<>BYTE
+                MNE$="LDX"
+                EXEC GET_TYP
+              ENDIF
+            ENDIF
+            IF P_CODE(A+%3)=p_int_zahl
+                X=C:Y=P_CODE(A+%2)
+                EXEC mul_div_with_shift
+            ELSE :REM Ivar
+              NUM=C:EXEC GET_VAR
+              ? #KAN;" LDA ";A$
+              ? #KAN;" STA @OP"
+              IF ERGEBNIS<>BYTE
+                MNE$="LDA"
+                EXEC GET_TYP
+                ? #KAN;" STA @OP+1"
+              ENDIF
+            ENDIF
+            X=P_CODE(A+%2)
+            EXEC mul_div_or_mod
+            A=A+k5
+REM -------------------------------
+          ELSE
+            IF P_CODE(A)=p_int_zahl
+              ? #KAN;" LDY #<";B :REM ;" ;Izahl"
+              IF ERGEBNIS<>BYTE
+                ? #KAN;" LDX #>";B
+              ENDIF :A=A+%2
+REM -------------------------------
+            ELSE :REM Ivar
+              IF P_CODE(A)=p_word
+                NUM=B:EXEC GET_VAR
+                ? #KAN;" LDY ";A$ :REM ;" ;Ivar"
+                IF ERGEBNIS<>BYTE
+                  MNE$="LDX"
+                  EXEC GET_TYP
+                ENDIF :A=A+%2
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDIF
+REM -------------------------------
+    IF P_CODE(A)=p_pull
+      ? #KAN;" STY @OP" :REM  ;Movepull"
+      IF ERGEBNIS<>BYTE
+        ? #KAN;" STX @OP+1"
+        ? #KAN;" PLA"
+        ? #KAN;" TAX"
+      ENDIF
+      ? #KAN;" PLA"
+      ? #KAN;" TAY"
+    REM -------------------------------
+      X=P_CODE(A+%1):D=-%1
+      IF X=K8 OR X=k9 OR X=12 OR X=13 OR X=14
+        EXEC CLC_SEC
+        EXEC mne_is_add_sub_or_eor_and
+        EXEC ADD_SUB
+      ELSE :REM -------------------------------
+        IF X=k10 OR X=11 OR X=k15:REM mult or div
+          X=X+K8
+          EXEC mul_div_or_mod
+        ENDIF
+      ENDIF :A=A+%2
+    ENDIF
+REM -------------------------------
+    X=P_CODE(A):Y=P_CODE(A+%1)
+    IF X=k16 OR X=17 OR X=20 OR X=21 OR X=22:REM add/sub/or/xor/and
+      B=P_CODE(A+%2)
+      if x=k16 and b=%1 and y=p_int_zahl
+        if x=k16
+          ? #kan;" INY"
+          IF ERGEBNIS<>BYTE
+            ? #kan;" BNE @NOWINC";nowinc
+            ? #kan;" INX"
+            ? #kan;"@NOWINC";nowinc:nowinc=nowinc+%1
+          endif
+        endif
+        REM if x=17 then ?#kan;" DEY":MNE$="SBC"
+      else
+        EXEC CLC_SEC
+        ? #KAN;" TYA"
+        EXEC mne_is_add_sub_or_eor_and
+        IF Y=p_int_zahl
+          ? #KAN;" ";MNE$;" #<";B
+        ELSE
+          NUM=B:EXEC GET_VAR
+          ? #KAN;" ";MNE$;" ";A$
+        ENDIF
+        ? #KAN;" TAY"
+        IF ERGEBNIS<>BYTE
+          ? #KAN;" TXA"
+          IF Y=p_int_zahl
+            ? #KAN;" ";MNE$;" #>";B
+          ELSE
+            EXEC GET_TYP
+          ENDIF
+          ? #KAN;" TAX"
+        ENDIF
+      endif:A=A+%3
+REM -------------------------------
+    ELSE
+      IF P_CODE(A)=p_imult OR P_CODE(A)=p_idiv OR P_CODE(A)=p_imod
+        B=P_CODE(A+%2):D=-%1
+        IF P_CODE(A+%1)=p_int_zahl
+          X=B:Y=P_CODE(A)
+          EXEC mul_div_with_shift
+        ELSE
+          NUM=B:EXEC GET_VAR
+          ? #KAN;" LDA ";A$
+          ? #KAN;" STA @OP"
+          IF ERGEBNIS<>BYTE
+            MNE$="LDA"
+            EXEC GET_TYP
+            ? #KAN;" STA @OP+1"
+          ENDIF
+        ENDIF
+        X=P_CODE(A)
+        EXEC mul_div_or_mod
+        A=A+%3
+      ENDIF
+    ENDIF
+REM -------------------------------
+    IF P_CODE(A)=p_nop
+      A=A+%1
+    ENDIF
+REM -------------------------------
+    IF P_CODE(A)=p_push
+      ? #KAN;" TYA" :REM ;Push"
+      ? #KAN;" PHA"
+      IF ERGEBNIS<>BYTE
+        ? #KAN;" TXA"
+        ? #KAN;" PHA"
+      ENDIF :A=A+%1
+REM -------------------------------
+    ELSE
+      IF P_CODE(A)=p_word_array
+        NUM=P_CODE(A+%1)
+        EXEC GET_VAR
+        IF ERGEBNIS=BYTE THEN ? #KAN;" LDX #0"
+        ? #KAN;" GETARRAYW ";A$ :REM ;" ;Word-Array"
+        A=A+%2
+REM -------------------------------
+      ELSE
+        IF P_CODE(A)=p_byte_array
+          NUM=P_CODE(A+%1)
+          EXEC GET_VAR
+          IF TYP>k128
+            ? #KAN;" LDA ";A$;",Y" :REM ;B.Array short"
+            ? #KAN;" TAY"
+          ELSE
+            IF ERGEBNIS=BYTE
+              ? #KAN;" LDX #0"
+            ENDIF
+            ? #KAN;" TYA" :REM das gibt peephole optimizable
+            ? #KAN;" GETARRAYB ";A$ :REM ;" ;Byte-Array"
+          ENDIF
+REM in Macros.inc, getarrayb liefert x=0
+REM          IF ERGEBNIS=WORD
+REM            ? #KAN;" LDX #0"
+REM          ENDIF
+          A=A+%2
+REM -------------------------------
+        ELSE
+          IF P_CODE(A)=p_address
+            NUM=P_CODE(A+%1)
+            EXEC GET_VAR
+            ? #KAN;" LDY #<";A$ :REM ;" ;Adresse"
+            ? #KAN;" LDX #>";A$
+            A=A+%2
+REM -------------------------------
+          else
+            IF P_CODE(A)=p_function
+               NUM=P_CODE(A+%1):REM TODO: was enthaelt NUM, wenn es keinen Parameter gibt?
+               EXEC GET_VAR
+                 ? #KAN;" TYA" :REM ; Ummodeln x,y in Parameter->Heap"
+                 ? #KAN;" LDY #1"
+                 ? #KAN;" STA (@HEAP_PTR),Y"
+                 IF ERGEBNIS=WORD
+                   ? #KAN;" TXA"
+                 ELSE
+                   ? #KAN;" LDA #0"
+                 ENDIF
+                 ? #KAN;" INY"
+                 ? #KAN;" STA (@HEAP_PTR),Y"
+                 ? #KAN;" JSR ";A$ :REM ;" ; -->func"
+               A=A+%2
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDIF
+REM -------------------------------
+  UNTIL P_CODE(A)=p_end
+ENDPROC
+REM -------------------------------
+PROC ADD_SUB
+  ? #KAN;" TYA" :REM ;Add/Sub"
+  ? #KAN;" ";MNE$;" @OP"
+  ? #KAN;" TAY"
+  IF ERGEBNIS<>BYTE
+    ? #KAN;" TXA"
+    ? #KAN;" ";MNE$;" @OP+1"
+    ? #KAN;" TAX"
+  ENDIF
+ENDPROC
+REM -------------------------------
+PROC mul_div_with_shift
+  if x>%1
+    D=INT(LOG(X)/0.69314718+1.0E-05):REM log(x)/log(2)
+  else
+    d=-%1
+  endif
+  IF d>%0 and %2^D=X and y<>23 :REM nicht modulo
+REM    ? #KAN;"; shiften um ";D;" bits"
+    IF D>7
+      if y=p_idiv
+        ? #KAN;" TXA" :REM ;hohe Zahl in kleine Zahl"
+        ? #KAN;" TAY"
+        ? #KAN;" LDX #0"
+      endif
+      if y=p_imult
+        ? #KAN;" TYA" :REM ;kleine Zahl in hohe Zahl"
+        ? #KAN;" TAX"
+        ? #KAN;" LDY #0"
+      endif
+      D=D-K8
+    ENDIF
+    ? #KAN;" TYA" :REM ;Mul/Div shiften"
+    IF ERGEBNIS<>BYTE THEN ? #KAN;" STX @OP"
+    if d>%0
+    FOR Z=%1 TO D
+      IF Y=p_imult
+        ? #KAN;" ASL A"
+        IF ERGEBNIS<>BYTE THEN ? #KAN;" ROL @OP"
+      ELSE :REM Idiv
+        IF ERGEBNIS=BYTE
+          ? #KAN;" LSR A"
+        ELSE
+          ? #KAN;" LSR @OP"
+          ? #KAN;" ROR A"
+        ENDIF
+      ENDIF
+    NEXT Z
+    ENDIF
+    ? #KAN;" TAY"
+    IF ERGEBNIS<>BYTE THEN ? #KAN;" LDX @OP"
+  ELSE
+    D=-%1:REM Keine Rotation
+    ? #KAN;" LDA #<";X :REM ;" ;Mul/Div/Modulo"
+    ? #KAN;" STA @OP"
+    IF ERGEBNIS<>BYTE
+      ? #KAN;" LDA #>";X
+      ? #KAN;" STA @OP+1"
+    ENDIF
+  ENDIF
+ENDPROC
+REM -------------------------------
+PROC mul_div_or_mod
+  IF D < %0:REM Rotation?
+    IF ERGEBNIS=BYTE
+      ? #KAN;" LDX #0"
+      ? #KAN;" STX @OP+1"
+    ENDIF
+    IF X=p_imult
+      ? #KAN;" JSR @IMULT"
+    ELSE
+      IF X=p_idiv
+        ? #KAN;" JSR @IDIV"
+      ELSE :REM Imod
+        ? #KAN;" JSR @IMOD"
+      ENDIF
+    ENDIF
+  ENDIF
+ENDPROC
+REM -------------------------------
+PROC GET_TYP
+  IF TYP=BYTE
+    ? #KAN;" ";MNE$;" #0"
+  ELSE
+    ? #KAN;" ";MNE$;" ";A$;"+1"
+  ENDIF
+ENDPROC
+REM -------------------------------
+PROC mne_is_add_sub_or_eor_and
+  CASE=X&K7
+  IF CASE=%0 THEN MNE$="ADC"
+  IF CASE=%1 THEN MNE$="SBC"
+  IF CASE=K4 THEN MNE$="ORA"
+  IF CASE=K5 THEN MNE$="EOR"
+  IF CASE=K6 THEN MNE$="AND"
+ENDPROC
+REM -------------------------------
+PROC CLC_SEC    :REM Carry
+  CASE=X&K7
+  IF CASE=%0
+    ? #KAN;" CLC" :REM ;Addition"
+  ENDIF
+  IF CASE=%1
+    ? #KAN;" SEC" :REM ;Subtraktion"
+  ENDIF
+ENDPROC
+REM -------------------------------
+PROC FUNKTIONCALL :REM Funktionsaufrufe
+  ST(STACK)=NUM:STACK=STACK+%1
+  HEAP_PTR=REGCOUNT
+  FKTCALL_TYP=TYP
+  if HEAP_PTR > %1 and FKTCALL_TYP<>ASC("P") :REM Nur in @funktion() noetig, in proceduren machen wir es anders
+REM    ? #KAN;" LDA #";HEAP_PTR;"   ; prepare function call to ";a$
+REM    ? #KAN;" JSR @ADD_TO_HEAP_PTR"
+    ? #KAN;" ADD_TO_HEAP_PTR ";heap_ptr
+    count_procs(HEAP_PTR)=count_procs(HEAP_PTR)+%1
+  endif
+  ST(STACK)=HEAP_PTR:STACK=STACK+%1
+  ST(STACK)=FKTCALL_TYP:STACK=STACK+%1
+  EXEC GET_PARAMETER
+  STACK=STACK-%1:FKTCALL_TYP=ST(STACK)
+  STACK=STACK-%1:HEAP_PTR=ST(STACK)
+  STACK=STACK-%1:NUM=ST(STACK)
+  exec get_var
+  ? #KAN;" JSR ";A$ :REM ;" ; --> function call"
+  if HEAP_PTR > %1 and FKTCALL_TYP<>ASC("P")
+REM    ? #KAN;" LDA #";HEAP_PTR
+REM    ? #KAN;" JSR @SUB_FROM_HEAP_PTR"
+  ? #KAN;" SUB_FROM_HEAP_PTR ";heap_ptr
+  endif
+ENDPROC
+REM -------------------------------
+PROC GET_PARAMETER
+  EXEC GET_SYMBOL:REM (
+  REGCOUNT=%1
+  WHILE A$<>")"
+    exec peek_symbol
+    IF A$<>")"
+      ST(STACK)=REGCOUNT:STACK=STACK+%1
+      EXEC EXPRESSION
+      STACK=STACK-%1:REGCOUNT=ST(STACK)
+      ? #KAN;" TYA"
+      ? #KAN;" LDY #";REGCOUNT
+      ? #KAN;" STA (@HEAP_PTR),Y"
+      IF ERGEBNIS=WORD
+        ? #KAN;" TXA"
+      ELSE
+        ? #KAN;" LDA #0"
+      ENDIF
+      ? #KAN;" INY"
+      ? #KAN;" STA (@HEAP_PTR),Y"
+REM -------------------------------
+      REGCOUNT=REGCOUNT+%2
+      EXEC GET_SYMBOL:REM , or )
+    else
+      exec get_symbol
+    ENDIF
+  WEND
+  REGCOUNT=%1
+REM  ? #KAN;" LDY #0"    :REM TODO: wollen wir das? Anzahl der Parameter im Heap (teuer)
+REM  ? #KAN;" LDA #";regcount;" ;Anzahl Bytes im Heap"
+REM  ? #KAN;" STA (@HEAP_PTR),Y"
+ENDPROC
+REM -------------------------------
+proc openwnffile
+  a$(len(a$)+%1)=".WNF"
+  open #%2,k4,%0,a$
+endproc
+REM -------------------------------
+proc readwnfsectors
+  TRAP #LOAD_ERR
+  bget #%2,adr(prg$)+bytesnext,preloadbytes
+  prg$(bytesnext + preloadbytes+%1)=""
+REM -------------------------------
+  go# no_problems
+REM -------------------------------
+  # load_err
+  trap 40000
+  prg$(bytesnext+dpeek(872)+%1)=""
+  bytesnext=-%1
+  # no_problems
+  preloaded=len(prg$)
+endproc
+REM -------------------------------
+PROC ASSERT
+  SCHLEIF_NR=SCHLEIF_NR+%1
+REM  ? #KAN;"; Assert"
+  EXEC GET_SYMBOL:REM (
+  IF A$="("
+    CONDI=SCHLEIF_NR
+    CONDI$="@ASSRTTRUE"
+    EXEC CONDITION
+    IF A$<>"," and A$<>")" THEN E=K4:EXEC FEHLER
+    exec get_symbol:REM , or )
+    if a$=","
+      exec peek_symbol
+      IF ID<>string THEN E=12:exec fehler
+      exec get_symbol
+      ? #KAN;" JSR @PRINT_STRING"
+      ? #KAN;" .BYTE """;A$(%2,LEN(A$)-%1);""",$FF"
+      ? #KAN;" JSR @EOLOUT"
+      EXEC GET_SYMBOL:REM )
+      IF A$<>")" THEN E=K9:EXEC FEHLER
+    endif
+    ? #KAN;" WINC @ASSERT_FEHLER"
+  ELSE
+    e=k15:exec fehler
+  ENDIF
+  ? #KAN;"@ASSRTTRUE";CONDI
+ENDPROC
+
+REM !. Das bewirkt, das die Zeilennummern dieser Datei mit dem im Atari uebereinstimmen
+REM !renum 0,1,1
+!run

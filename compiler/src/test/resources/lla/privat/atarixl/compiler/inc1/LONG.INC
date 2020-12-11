@@ -1,0 +1,4 @@
+; -*- text -*-
+; sample
+@LONG
+  RTS

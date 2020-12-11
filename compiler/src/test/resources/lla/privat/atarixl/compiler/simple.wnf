@@ -1,0 +1,36 @@
+// This is a simple WNF-Compileable file
+
+program simple
+
+byte value
+byte array anArray[4]
+byte array HPOS[4]=53248
+byte array colors[5] = [0,2,4,6,8,10,12,14]
+string str1 = ['Ein String']
+string str2 = ['noch ein String']
+
+word wordValue
+word dlist=560
+word array aWordArray[4]
+word array aWordArrayAddress[1]=$4000
+word array stringlist[1]=[str1, str2]
+word array stringlist2[1] = ['anonymer String 1', 'anonymer String 2']
+
+byte i
+byte COL=710
+byte newColor
+
+procedure changeColor(newColor)
+begin
+  col := newColor
+end
+
+begin
+  COL := 10
+  value := 2
+
+  for i:=0 to 7 do
+  begin
+    changeColor(colors[i])
+  end
+end

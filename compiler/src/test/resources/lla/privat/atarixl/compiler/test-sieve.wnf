@@ -1,0 +1,117 @@
+// https://atariage.com/forums/topic/306936-fastbasic-vs-assembly/
+//
+// MADS 2.1.0 (opt)       SIEVE:    440 ticks in 10 iterations
+// CC65 2.1.8 (opt)       SIEVE:    602 ticks in 10 iterations
+// Mad Pascal 1.6.4 (opt) SIEVE:    609 ticks in 10 iterations
+// Millfork 0.3.14 (opt)  SIEVE:    701 ticks in 10 iterations
+// Action! 3.6 (opt)      SIEVE:    746 ticks in 10 iterations
+// FastBasic 4.0 FBI      SIEVE:   6312 ticks in 10 iterations
+
+// TurboBasic             SIEVE:  52734 pal  ticks in 10 iterations
+//                                67955 ntsc ticks
+// WNF-Compiler (in TBasic)        1007 ticks in 10 iterations
+// WNF-Compiler (in Java + -O 1)    792 ticks in 10 iterations
+// WNF-Compiler (in Java + -O 2)    774 ticks in 10 iterations
+
+program tstsieve
+
+// Global Variablen
+
+BYTE ARRAY FLAGS[8192]
+
+word COUNT=204, PRIME=206
+word I=208, K=210
+// Die Primzahlen werden im Array etwas seltsam abgelegt
+// Eine Zahl im Array entspricht der Zahl I*2 + 3
+
+procedure showPrimeValues()
+begin
+  // The first prime value we show in a hard way
+  @printf('\nPrime: 2 ')
+
+  for i:=0 to 200 do
+  begin
+    if flags[i] == 'T' then
+    begin
+      PRIME := I + I + 3
+      @printf('%d ', prime)
+    end
+  end
+  @printf('\n')
+end
+
+
+procedure sieve()
+begin
+
+  PRIME := 0
+  COUNT := 0         // init count
+
+  FLAGS[0] := 'T'
+  @move(adr:FLAGS, adr:FLAGS + 1, 8189)
+
+  FOR I:=0 TO 8190 DO // and flags
+  begin
+    IF FLAGS[I] == 'T' THEN
+    begin
+      PRIME := I * 2 + 3
+      K:=I + PRIME
+
+      WHILE K <= 8190 DO
+      begin
+        FLAGS[K] := 'F'
+        K:= K + PRIME
+      end
+      COUNT := COUNT + 1
+    end
+  end
+end
+
+
+byte j
+word time
+word hash
+
+// Hauptprogramm
+begin
+  j := 0
+  @printf('Wait a moment...')
+  @starttime()
+
+  while j < 10 do
+  begin
+    sieve()
+    j := j + 1
+  end
+
+  time := @stoptime()
+
+  @printf('count: %d\n', count)
+
+  showPrimeValues()
+
+  @printf('\n\n')
+  @SHOWGIVENTIME(time)
+
+  assert(time > 773, 'Wir werden schneller')
+  assert(time < 1015, 'Wir werden langsamer')
+
+
+  // Wir wollen prüfen, ob Primes richtig ist und bilden einfach eine Hashsumme über die 7 Zeilen des Outputs
+  hash := @createHashOfLines($bc40 + 3*40, 8, 1)
+
+  @printf('Hashwert:%D\n', hash)
+  assert(hash == 6278, 'Hash not correct')
+
+  @exit(@getAsserts())
+end
+
+include 'SCREEN_OUTPUT.INC'
+include 'PRINTF.INC'
+include 'MATH.INC'
+include 'TIME.INC'
+include 'BASIC.INC'
+include 'ARRAY.INC'
+include 'TESTCRC.INC' // Diese Datei wird vom Compiler erstellt
+include 'GETCHAR.INC'
+// RUNTIME.INC wird automatisch angehaengt

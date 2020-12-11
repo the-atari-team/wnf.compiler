@@ -1,0 +1,9 @@
+= WNF-Compiler
+
+This is the original source of my compiler written in Turbo-Basic-XL
+last changes has been done in October, 11 2020.
+
+This version has build the Oxygene Be Game published at Atari bit byter user club abbuc in 2020.
+
+After that, I converted the compiler to Java and fixed some bugs.
+

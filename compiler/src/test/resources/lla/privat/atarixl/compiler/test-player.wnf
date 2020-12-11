@@ -1,0 +1,225 @@
+program testpm1
+
+// DEMO of air bubbles in water
+// very simple
+// no animation
+
+// --- GTIA ---
+byte array HPOSP[4]=53248
+
+byte array HPOSM[4]=53252
+
+byte array SIZEP[4]=53256
+
+byte PAL=53268 // 1=PAL, $E=NTSC
+
+byte array COLPM[4]=53266
+byte array COLPF[4]=53270
+byte COLBK=53274
+
+byte array PCOLR[4]=704 // Schatten von 53266-9
+byte array COLOR[5]=708 // Schatten von 53270-4
+
+byte GRACTL=53277 // 2:Player an 1: Missiles an
+
+byte HITCLR=53278 // loeschen der Kollisionsregister
+
+// --- POKEY ---
+
+byte RANDOM=53770 // $d20a
+
+// --- ANTIC ---
+
+byte DMACTL=54272
+byte SDMCTL=559 // Schatten von 54272 DMACTL
+
+byte CHACTL=54273
+byte CHACT=755
+
+word DLIST=54274
+
+byte PMBASE=54279 // 2kb Grenze ($800)
+
+byte CHBASE=54281
+byte CHBAS=756 // Schatten von 54281 (Zeichensatz) 1k Grenze ($400)
+
+byte WSYNC=54282 // wert hineinschreiben haelt die CPU an
+
+byte VCOUNT=54283 // vertikale Bildschirmzeile / 2 bei PAL 0-155
+
+byte GPRIOR=623
+
+
+// byte array PD0[1] = $9800
+byte array PMM[1] = $9B00
+byte array PM0[1] = $9C00
+byte array PM1[1] = $9D00
+byte array PM2[1] = $9E00
+byte array PM3[1] = $9F00
+
+word array pmadr[4] = [
+$9C00,
+$9D00,
+$9E00,
+$9F00
+]
+
+byte i
+
+procedure initPlayerMissile()
+begin
+  PCOLR[0]:=$00
+  PCOLR[1]:=$00
+  PCOLR[2]:=$00
+  PCOLR[3]:=$00
+
+  GPRIOR:=1
+  SDMCTL:=$20 + $10 + $08 + $04 + $02 // 32+16+8+4+2
+  GRACTL:=3
+  PMBASE:=$98 // Graphics 15 startet bei $A0
+
+  for i:=0 to $ff do
+  begin
+    pmm[i] := 0
+    pm0[i] := 0
+    pm1[i] := 0
+    pm2[i] := 0
+    pm3[i] := 0
+  end
+end
+
+byte array ball[1] = [
+%........,
+%..1111..,
+%.11..11.,
+%.1....1.,
+%.1.1..1.,
+%1.1....1,
+%1.1....1,
+%1......1,
+%1......1,
+%1......1,
+%1......1,
+%.1....1.,
+%.1....1.,
+%.11..11.,
+%..1111..,
+%........,
+%........,
+%........
+]
+
+byte x,y
+byte j
+byte n
+
+procedure copyball(n, x, y)
+begin
+  j := 0
+//  x:=x+48
+//  y:=y+32
+
+  hposp[n] := x
+
+  @move(adr:ball, pmadr[n] + y, 18)
+//  for i:=y to y+15 do
+//  begin
+//    pm0[i] := ball[j]
+//    j:=j + 1
+//  end
+end
+
+procedure clearball(n, y)
+local i
+begin
+  for i:=y to y+17 do
+  begin
+    @setbytearray(pmadr[n] + i, 0)
+  end
+end
+
+byte array bally[4]
+byte array ballx[4]
+byte array ballystep[4]
+byte line
+
+word ww
+
+begin
+  initPlayerMissile()
+
+  for i:=0 to 3 do
+  begin
+    ballx[i] := 0
+    ballystep[i] := 1
+  end
+
+  bally[0] := 2
+  bally[1] := 62
+  bally[2] := 122
+  bally[3] := 182
+
+  for ww:=0 to 15*50*4 do
+  begin
+
+    i := 2
+    while i < 16 do
+    begin
+      @waitline(i + 3)
+      COLPM[0] := i
+      COLPM[1] := i
+      COLPM[2] := i
+      COLPM[3] := i
+      i := i + 2
+    end
+
+//    @waitline(21)
+//    colbk := $82
+
+    for i:=0 to 3 do
+    begin
+      bally[i] := bally[i] - ballystep[i]
+
+      if bally[i] < 3 then
+      begin
+        clearball(i, bally[i])
+        ballx[i] := 48 + @random(151)
+        bally[i] := $ff - 16
+//        ballystep[i] := 1 + @random(3)
+      end
+
+      copyball(i, ballx[i], bally[i])
+    end
+//    colbk := 0
+
+    i := 15
+    line := 110
+    while i > 1 do
+    begin
+      @waitline(line)
+      COLPM[0] := i
+      COLPM[1] := i
+      COLPM[2] := i
+      COLPM[3] := i
+      i := i - 2
+      line := line + 2
+    end
+
+//    @printf('y0:%d y1:%d y2:%d y3:%d\n', bally[0],bally[1],bally[2],bally[3])
+//    @pause(1)
+  end
+
+  for i:=0 to 3 do
+    hposp[i] := 0
+
+  @exit(@getAsserts())
+
+end
+
+include 'SCREEN_OUTPUT.INC'
+include 'PRINTF.INC'
+include 'TIME.INC'
+include 'MATH.INC'
+include 'BASIC.INC'
+include 'RANDOM.INC'
+include 'ARRAY.INC'

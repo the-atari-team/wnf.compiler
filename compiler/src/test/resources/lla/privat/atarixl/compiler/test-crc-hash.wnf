@@ -1,0 +1,43 @@
+// zu INCLUDE prefix:datei
+// erstellt eine includierbare Datei mit Namen 'TESTCRC.INC' '.INC' wird angehaengt
+// * alle Variablen werden mit 'CRC' geprefixed
+// * alle reservierten Woerter werden nicht geprefixed
+// * alle Variablen die mit @ anfangen, werden nicht geprefixed sind also global(!) verwendbar
+// Die erstellte Datei kann in anderen PROGRAM Dateien mit INCLUDE 'DATEI.INC' eingebunden werden
+
+INCLUDE crc:testcrc
+
+// primitive Hash Funktion
+// braucht MATH.INC & ARRAY.INC
+
+byte counter
+byte line, lines
+word address
+word value
+word hashvalue
+byte mark
+
+// berechnet aus der Adresse und der Anzahl der Zeilen einen Hash
+// markiert die Zeile mit bit 8
+function @createHashOfLines(address, lines, mark)
+begin
+  hashvalue := 0
+  for line:=1 to lines do
+  begin
+    for counter:=0 to 39 do
+    begin
+      value := @getByteArray(address, counter)
+      if value != 0 then
+        hashValue := hashValue * value + value + counter
+      else
+        hashValue := hashValue + counter
+
+      if mark != 0 then
+        @setByteArray(address, counter, value ! $80)
+    end
+
+    address := address + 40
+  end
+
+  return hashValue
+end

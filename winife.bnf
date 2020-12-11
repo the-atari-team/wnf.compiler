@@ -1,0 +1,81 @@
+// grammar-kit plugin
+
+// Die WNF Grammatik lässt sich nicht gut hiermit abbilden.
+// Es werden sehr viele space(s) verwendet, um die Tokens zu trennen und das ist hiermit nur sehr kompliziert nachzubilden.
+// Des weiteren kann man überall Kommentare unterbringen, diese werden einfach beim Parsen heraus gefiltert.
+
+{
+tokens=[
+    space='regexp:\s+'
+    comment='regexp://.*'
+    number='regexp:\d+(\.\d*)?'
+    hexnumber='$regexp:(\d|[a-f]|[A-F])+?'
+    variable='regexp:(@|[a-z]|[A-Z]|_)+'
+    string="regexp:'([^'\\]|\\.)*'"
+    singlestring="regexp:'\\.'"
+ ]
+}
+
+root ::= program_start [ global_variable_or_procedure * ] statement
+
+program_start ::= ('program' variable [ lomem ] | 'include' suffix:variable)
+
+lomem ::= '=' (number | hexnumber )
+
+global_variable_or_procedure ::= [global_variable * ] [ procedure_or_function ]
+
+global_variable ::= ( 'byte' | 'word' | 'string' ) ( array | variable ) [ '=' ( address | hex_address | '[' string | id [ next_id* ] ']' ) ]
+next_id ::= ',' id
+
+address ::= number
+hex_address ::= hexnumber
+
+array ::= 'array' variable '[' number ']'
+
+procedure_or_function ::= ('procedure'|function) variable '(' [ parameter ] ')' ('local' variable [ next_variable ] ) statement
+
+next_variable ::= ',' variable
+
+parameter ::= next_variable *
+
+statement ::= ( value_assign | begin | function  | if_then_else | for | while | repeat | return )
+
+value_assign ::= variable ':=' ( expression | function )
+
+function ::= '@' function_name '(' [ parameter ] ')'
+
+function_name ::= variable
+
+for ::= 'for' variable ':=' expression ( 'to'|'downto' ) expression 'do' statement
+
+if_then_else ::= 'if' condition 'then' statement [ 'else' statement ]
+
+while ::= 'while' condition 'do' statement
+
+repeat ::= 'repeat' statement 'until' condition
+
+begin ::= 'begin' statement * 'end'
+
+return ::= 'return' expression
+
+condition ::= expression condition_item expression [ next_condition * ]
+
+next_condition ::= ('and'|'or') condition
+
+condition_item ::= ('='|'=='|'<>'|'!='|'<'|'<='|'>'|'>=')
+
+// TODO: Richtigkeit prüfen
+
+expression ::= factor plus_expr *
+plus_expr ::= plus_op factor
+plus_op ::= '+'|'-'|'&'|'!'
+factor ::= primary mul_expr *
+mul_expr  ::= mul_op primary
+mul_op ::= '*'|'/'|'mod'
+primary ::= primary_inner
+primary_inner ::= literal_expr | ref_expr | paren_expr | literal_array | function_call
+paren_expr ::= '(' expression ')'
+ref_expr ::= [ 'adr:' ] variable
+literal_expr ::= ( number | hexnumber | singlestring )
+literal_array ::= variable '[' expression ']'
+function_call ::= '@' function_name '(' expression ')'
