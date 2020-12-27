@@ -205,6 +205,9 @@ public class Expression extends Code {
     else if (id == SymbolEnum.string && symbol.get().length() == 3) {
       nextSymbol = numberFromString(symbol);
     }
+    else if (id == SymbolEnum.symbol && symbol.get().equals("@(")) {
+      nextSymbol = identifier(symbol);      
+    }
     else if (id == SymbolEnum.variable_name) {
       nextSymbol = identifier(symbol);
     }
@@ -274,99 +277,22 @@ public class Expression extends Code {
 
     String name = symbol.get();
     Symbol peekSymbol = source.peekSymbol();
-
-    if (peekSymbol.get().equals("(")) {
-      // we are a function call
-      Symbol nextSymbol = source.nextElement(); // "("
-      source.match(nextSymbol, "(");
-      ergebnis = Type.WORD; // Funktionen geben IMMER ein Word zurück
-
-      // make unknown function start with '@' possible
-      if (name.startsWith("@")) {
-        source.addVariable(name, Type.FUNCTION);
-      }
-      nextSymbol = source.nextElement();
-      int localParameterCount = 0;
-
-      p_code.add(PCode.PARAMETER_START_ADD_TO_HEAP_PTR.getValue());
-      p_code.add(parameterCount);
-
-      boolean isMoreParameter = true;
-      while (isMoreParameter) {
-        String mnemonic = nextSymbol.get();
-        if (!mnemonic.equals(")")) {
-          // Wir sind ein Parameter
-          // Wir setzen eine Parameter-Start-Marke, wenn dessen Wert != 0 ist,
-          // addieren wir etwas auf den HeapPointer, so überschreiben wir keine schon
-          // gesetzten Parameter
-
-          int oldParameterCount = parameterCount;
-          parameterCount = localParameterCount;
-
-          // Für den eigentlichen Parameter durchlaufen wir die expression rekursiv
-          // nochmal
-          nextSymbol = expression(nextSymbol).getLastSymbol();
-
-          parameterCount = oldParameterCount;
-
-          // Push Marke, damit schreiben wir (y,x) in den HeapPointer
-          p_code.add(PCode.PARAMETER_PUSH.getValue());
-          p_code.add(localParameterCount);
-          localParameterCount += 1; // next word!
-        }
-
-        mnemonic = nextSymbol.get();
-        if (mnemonic.equals(",")) {
-          nextSymbol = source.nextElement();
-        }
-        else {
-          source.match(nextSymbol, ")");
-          isMoreParameter = false;
-        }
-      }
-      // Endlich der Funktionsaufruf
-      p_code.add(PCode.FUNCTION.getValue());
-      p_code.add(source.getVariablePosition(name));
-      source.getVariable(name).setRead();
-      if (parameterCount > 0) {
-        // sollte es Parameter geben und wir haben den HeapPointer manipuliert, hier
-        // wieder zurücksetzen
-        // das passiert über ein Macro, das die y,x Register nicht manipuliert, da drin
-        // steht der alte Wert.
-        p_code.add(PCode.PARAMETER_END_SUB_FROM_HEAP_PTR.getValue());
-        p_code.add(parameterCount);
-      }
+    if (name.equals("@(")) {
+      Symbol namePtr = source.nextElement();
+      Symbol parentness = source.nextElement();
+      source.match(parentness, ")");
+      
+      peekSymbol = source.peekSymbol();
+      functionCallAccess(namePtr.get(), Type.FUNCTION_POINTER);      
+    }
+    else if (peekSymbol.get().equals("(")) {
+      functionCallAccess(name, Type.FUNCTION);
     }
     else if (peekSymbol.get().equals(":")) {
-      peekSymbol = source.nextElement(); // ":"
-      Symbol nameSymbol = source.nextElement(); // address of name
-      p_code.add(PCode.NOP.getValue());
-      p_code.add(PCode.ADDRESS.getValue());
-      ergebnis = Type.WORD; // Egal was es vorher war, wir sind jetzt word breit!
-      p_code.add(source.getVariablePosition(nameSymbol.get()));
-      source.getVariable(nameSymbol.get()).setRead();
+      addressAccess();
     }
     else if (peekSymbol.get().equals("[")) {
-      // Array Access
-      Symbol squareBracketOpen = source.nextElement();
-      // "["
-      /* Symbol squareBrackedClose = */ factor(squareBracketOpen);
-
-      VariableDefinition variable = source.getVariable(name);
-      variable.setRead();
-      if (variable.getType() == Type.BYTE_ARRAY) {
-        p_code.add(PCode.BYTE_ARRAY.getValue());
-        p_code.add(source.getVariablePosition(name));
-      }
-      else if (variable.getType() == Type.FAT_BYTE_ARRAY) {
-        p_code.add(PCode.FAT_BYTE_ARRAY.getValue());
-        p_code.add(source.getVariablePosition(name));
-      }
-      else if (variable.getType() == Type.WORD_ARRAY) {
-        p_code.add(PCode.WORD_ARRAY.getValue());
-        p_code.add(source.getVariablePosition(name));
-        ergebnis = Type.WORD;
-      }
+      arrayAccess(name);
     }
     else {
       p_code.add(PCode.WORD.getValue());
@@ -379,6 +305,112 @@ public class Expression extends Code {
     return source.nextElement();
   }
 
+protected void functionCallAccess(String name, Type type) {
+  // we are a function call
+  Symbol nextSymbol = source.nextElement(); // "("
+  source.match(nextSymbol, "(");
+  ergebnis = Type.WORD; // Funktionen geben IMMER ein Word zurück
+
+  // make unknown function start with '@' possible
+  if (name.startsWith("@")) {
+    source.addVariable(name, Type.FUNCTION);
+  }
+  nextSymbol = source.nextElement();
+  int localParameterCount = 0;
+
+  p_code.add(PCode.PARAMETER_START_ADD_TO_HEAP_PTR.getValue());
+  p_code.add(parameterCount);
+
+  boolean isMoreParameter = true;
+  while (isMoreParameter) {
+    String mnemonic = nextSymbol.get();
+    if (!mnemonic.equals(")")) {
+      // Wir sind ein Parameter
+      // Wir setzen eine Parameter-Start-Marke, wenn dessen Wert != 0 ist,
+      // addieren wir etwas auf den HeapPointer, so überschreiben wir keine schon
+      // gesetzten Parameter
+
+      int oldParameterCount = parameterCount;
+      parameterCount = localParameterCount;
+
+      // Für den eigentlichen Parameter durchlaufen wir die expression rekursiv
+      // nochmal
+      nextSymbol = expression(nextSymbol).getLastSymbol();
+
+      parameterCount = oldParameterCount;
+
+      // Push Marke, damit schreiben wir (y,x) in den HeapPointer
+      p_code.add(PCode.PARAMETER_PUSH.getValue());
+      p_code.add(localParameterCount);
+      localParameterCount += 1; // next word!
+    }
+
+    mnemonic = nextSymbol.get();
+    if (mnemonic.equals(",")) {
+      nextSymbol = source.nextElement();
+    }
+    else {
+      source.match(nextSymbol, ")");
+      isMoreParameter = false;
+    }
+  }
+  if (type.equals(Type.FUNCTION)) {
+  // Endlich der Funktionsaufruf
+  p_code.add(PCode.FUNCTION.getValue());
+  p_code.add(source.getVariablePosition(name));
+  source.getVariable(name).setRead();
+  }
+  else if (type.equals(Type.FUNCTION_POINTER)) {
+    p_code.add(PCode.FUNCTION_POINTER.getValue());
+    p_code.add(source.getVariablePosition(name));
+    source.getVariable(name).setRead();    
+  }
+  else {
+    source.error(nextSymbol, "Unknown problem occur, nor function not function pointer call.");
+  }
+  if (parameterCount > 0) {
+    // sollte es Parameter geben und wir haben den HeapPointer manipuliert, hier
+    // wieder zurücksetzen
+    // das passiert über ein Macro, das die y,x Register nicht manipuliert, da drin
+    // steht der alte Wert.
+    p_code.add(PCode.PARAMETER_END_SUB_FROM_HEAP_PTR.getValue());
+    p_code.add(parameterCount);
+  }
+
+}
+  protected void addressAccess() {
+    Symbol peekSymbol = source.nextElement(); // ":"
+    Symbol nameSymbol = source.nextElement(); // address of name
+    p_code.add(PCode.NOP.getValue());
+    p_code.add(PCode.ADDRESS.getValue());
+    ergebnis = Type.WORD; // Egal was es vorher war, wir sind jetzt word breit!
+    p_code.add(source.getVariablePosition(nameSymbol.get()));
+    source.getVariable(nameSymbol.get()).setRead();
+  }
+  
+  protected void arrayAccess(String name) {
+    // Array Access
+    Symbol squareBracketOpen = source.nextElement();
+    // "["
+    /* Symbol squareBrackedClose = */ factor(squareBracketOpen);
+
+    VariableDefinition variable = source.getVariable(name);
+    variable.setRead();
+    if (variable.getType() == Type.BYTE_ARRAY) {
+      p_code.add(PCode.BYTE_ARRAY.getValue());
+      p_code.add(source.getVariablePosition(name));
+    }
+    else if (variable.getType() == Type.FAT_BYTE_ARRAY) {
+      p_code.add(PCode.FAT_BYTE_ARRAY.getValue());
+      p_code.add(source.getVariablePosition(name));
+    }
+    else if (variable.getType() == Type.WORD_ARRAY) {
+      p_code.add(PCode.WORD_ARRAY.getValue());
+      p_code.add(source.getVariablePosition(name));
+      ergebnis = Type.WORD;
+    }
+  }
+  
   private void match(Symbol symbol, String expectedSymbol) {
     if (!symbol.get().equals(expectedSymbol)) {
       source.error(symbol, expectedSymbol + " expected");

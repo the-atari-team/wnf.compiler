@@ -28,6 +28,7 @@ public enum PCode {
 
 //
   FUNCTION(64),
+  FUNCTION_POINTER(65),
 
   ZAHL(160), // zahl folgt
   PUSH(162),

@@ -111,12 +111,16 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
       sourceCodeLine = getCodeLine();
       showCode = false;
     }
-
+ 
     oldZeiger = zeiger;
-
+    if (ch == '@' && program.charAt(zeiger+1) == '(') {
+      String value = "@(";
+      symbol = new Symbol(value, SymbolEnum.symbol);
+      zeiger+=2;
+    }
     // Variable names start with a-z, A-Z or @
     // then a-z, A-Z, 0-9 _ @
-    if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '@') {
+    else if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '@') {
       int p1 = zeiger;
       while ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '_'
           || ch == '@') {

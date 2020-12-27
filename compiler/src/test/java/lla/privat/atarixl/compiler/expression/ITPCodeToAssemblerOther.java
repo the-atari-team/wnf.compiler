@@ -86,7 +86,7 @@ public class ITPCodeToAssemblerOther {
 
   @Test
   public void testExpressionWordFunctionMitZahlParameter() {
-    Source source = new Source("x(1) ");
+    Source source = new Source("x(42) ");
     source.addVariable("X", Type.FUNCTION);
     List<Integer> p_code = getPCodeOf(source);
 
@@ -98,8 +98,8 @@ public class ITPCodeToAssemblerOther {
 
     int n = -1;
     Assert.assertEquals("; (5)", code.get(++n));
-    Assert.assertEquals(" LDY #<1", code.get(++n));
-    Assert.assertEquals(" LDX #>1", code.get(++n));
+    Assert.assertEquals(" LDY #<42", code.get(++n));
+    Assert.assertEquals(" LDX #>42", code.get(++n));
 
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
@@ -348,7 +348,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" JSR @EXIT", code.get(++n));
   }
 
-
+  
   @Test
   public void testFunctionInFunctionInFunction() {
     Source source = new Source("@A(1,2,@B(3,@C(4)))");
@@ -365,7 +365,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (5)", code.get(++n));           // 1. parameter for @A
     Assert.assertEquals(" LDY #<1", code.get(++n));
     Assert.assertEquals(" LDX #>1", code.get(++n));
-
+    
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
@@ -377,7 +377,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (5)", code.get(++n));           // 2. parameter for @A
     Assert.assertEquals(" LDY #<2", code.get(++n));
     Assert.assertEquals(" LDX #>2", code.get(++n));
-
+    
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #3", code.get(++n));
@@ -392,7 +392,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (5)", code.get(++n));           // 1. parameter for @B
     Assert.assertEquals(" LDY #<3", code.get(++n));
     Assert.assertEquals(" LDX #>3", code.get(++n));
-
+    
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
@@ -407,7 +407,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (5)", code.get(++n));           // 1. parameter for @C
     Assert.assertEquals(" LDY #<4", code.get(++n));
     Assert.assertEquals(" LDX #>4", code.get(++n));
-
+    
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
@@ -429,7 +429,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" INY", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
-
+  
     Assert.assertEquals("; (14)", code.get(++n));         // call @B
     Assert.assertEquals(" JSR @B", code.get(++n));
 
@@ -443,9 +443,59 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" INY", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
-
+  
     Assert.assertEquals("; (14)", code.get(++n));         // call @A
     Assert.assertEquals(" JSR @A", code.get(++n));
+  }
+
+  @Test
+  public void testExpressionWordFunctionPtrOhneParameter() {
+    Source source = new Source("@(x)() ");
+    source.addVariable("X", Type.WORD);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (14 ptr)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" LDX X+1", code.get(++n));
+    Assert.assertEquals(" JSR @FUNCTION_POINTER", code.get(++n));
+  }
+
+  @Test
+  public void testExpressionWordFunctionPtrMitZahlParameter() {
+    Source source = new Source("@(x)(43) ");
+    source.addVariable("X", Type.FUNCTION);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<43", code.get(++n));
+    Assert.assertEquals(" LDX #>43", code.get(++n));
+
+    Assert.assertEquals("; (16)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" LDY #1", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+
+    Assert.assertEquals("; (14 ptr)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" LDX X+1", code.get(++n));
+    Assert.assertEquals(" JSR @FUNCTION_POINTER", code.get(++n));
   }
 
 }

@@ -11,6 +11,7 @@ public enum Type {
   FAT_BYTE_ARRAY(1),
   WORD_ARRAY(2),
   FUNCTION(2),
+  FUNCTION_POINTER(2),
   PROCEDURE(2),
   STRING(2);
 
@@ -22,6 +23,10 @@ public enum Type {
 
   public int getBytes() {
     return countOfBytes;
+  }
+  
+  public String getName() {
+    return name().toLowerCase();
   }
 }
 

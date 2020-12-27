@@ -420,6 +420,15 @@ public class PCodeToAssembler extends Code {
         code(" jsr " + a$); // ;" ; -->func"
         a = a + 2;
       }
+      else if (currentPCode == PCode.FUNCTION_POINTER.getValue()) {
+        code(";#2 (14 ptr)");
+        int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
+        a$ = source.getVariableAt(num);
+        code(" ldy " + a$); // ;" ;Inhalt der Variable nach y,x"
+        code(" ldx " + a$ + "+1");
+        code(" jsr @function_pointer"); // ;" ; --> func ptr"
+        a = a + 2;
+      }
       else if (currentPCode == PCode.STRING.getValue()) {
         code(";#2 (15)");
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?

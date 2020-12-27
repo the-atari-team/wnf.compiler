@@ -52,6 +52,10 @@ public class Statement {
     else if (mnemonic.equals("RETURN")) {
       nextSymbol = new Return(source).statement(symbol).build();
     }
+    else if (mnemonic.equals("@(") && symbol.getId() == SymbolEnum.symbol) {
+      LOGGER.debug("function pointer call");
+      nextSymbol = functionCall(symbol);
+    }
     else if (symbol.getId() == SymbolEnum.variable_name) {
       String name = symbol.get();
 

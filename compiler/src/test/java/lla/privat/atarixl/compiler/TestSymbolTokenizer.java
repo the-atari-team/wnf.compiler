@@ -313,4 +313,13 @@ public class TestSymbolTokenizer {
     Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
   }
 
+  @Test
+  public void testGetSymbolFunctionPointerCall() {
+    String functionPointerCall = "  @(fkt)()";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(functionPointerCall);
+
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("@(", symbol.get());
+    Assert.assertEquals(SymbolEnum.symbol, symbol.getId());
+  }
 }

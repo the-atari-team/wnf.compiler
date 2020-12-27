@@ -424,5 +424,19 @@ public class TestExpression {
     Assert.assertEquals("167 255 17 167 16 9999999", expressionSUT.joinedPCode());
   }
 
+  @Test
+  public void testFunctionPointerCallInExpression() {
+    Source source = new Source("@(x)()");
+    source.addVariable("X", Type.WORD);
+
+    setupExpression(source);
+
+    // zahl <value> push zahl <value> pull add
+    Assert.assertEquals("180 0 65 0", expressionSUT.joinedPCode());
+
+    expressionSUT.optimisation();
+    Assert.assertEquals("180 0 65 0 9999999", expressionSUT.joinedPCode());
+  }
+
 
 }
