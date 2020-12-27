@@ -422,9 +422,12 @@ public class Source implements Enumeration<Symbol> {
   public void generateEquatesVariable(VariableDefinition definition) {
     if (!definition.isGenerated()) {
       String name = definition.getName();
-
-      if (definition.getAddress() != null) {
-        code(name + " = " + definition.getAddress());
+      String address = definition.getAddress();
+      
+      if (address != null) {
+        if (!address.equals("@")) {
+          code(name + " = " + address);
+        }
         definition.setGenerated(true);
       }
     }

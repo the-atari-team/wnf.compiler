@@ -40,6 +40,18 @@ public class TestVariable {
   }
 
   @Test
+  public void testVariableByteWithUnknownAddress() {
+    Source source = new Source("byte x=@");
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("X"));
+    Assert.assertEquals("@", source.getVariableAddress("X"));
+  }
+
+  @Test
   public void testVariableByteWithAddress() {
     Source source = new Source("byte x=710");
     Symbol symbol = source.nextElement();

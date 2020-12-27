@@ -41,7 +41,7 @@ public class Procedure extends Code {
   public Procedure procedure(Symbol symbol, Type procedureType) {
     source.setShowCode(true);
     Symbol procedureName = source.nextElement(); // name
-    LOGGER.debug(procedureType.name() + " " + procedureName.get());
+    LOGGER.debug("{} {}",procedureType.name(), procedureName.get());
     source.throwIfVariableAlreadyDefined(procedureName.get());
 
     this.procedureType = procedureType;
@@ -63,11 +63,11 @@ public class Procedure extends Code {
       localVariableCount = 1;
       symbol = getLocalVariables(symbol);
     }
-    code(";#1 Procedure body");
+    code(";#1 " + procedureType.getName() + " body");
 
     nextSymbol = new Statement(source).statement(symbol).build();
 
-    code(";#1 Procedure end");
+    code(";#1 " + procedureType.getName() + " end");
     code("?RETURN"+source.getReturnCount());
 
     freeLocalVariables();

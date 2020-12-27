@@ -322,4 +322,13 @@ public class TestSymbolTokenizer {
     Assert.assertEquals("@(", symbol.get());
     Assert.assertEquals(SymbolEnum.symbol, symbol.getId());
   }
+
+  @Test
+  public void testGetSymbolQuestionmark() {
+    String program = "  @ ";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
+
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("@", symbol.get());
+  }
 }

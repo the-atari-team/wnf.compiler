@@ -98,7 +98,7 @@ public class Variable {
         name = null;
       }
 
-      LOGGER.debug(lastType.name() + " " + name);
+      LOGGER.debug("{} {}",lastType.name(), name);
 
       mnemonic = nextSymbol.get();
       if (mnemonic.equals("=")) {

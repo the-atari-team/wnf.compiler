@@ -31,8 +31,8 @@ public class TestProcedure {
     Assert.assertEquals(";", code.get(++n));
 
     Assert.assertEquals("NAME", code.get(++n));
-    Assert.assertEquals("; Procedure body", code.get(++n));
-    Assert.assertEquals("; Procedure end", code.get(++n));
+    Assert.assertEquals("; procedure body", code.get(++n));
+    Assert.assertEquals("; procedure end", code.get(++n));
     Assert.assertEquals("?RETURN1", code.get(++n));
     Assert.assertEquals(" RTS", code.get(++n));
   }
@@ -66,8 +66,8 @@ public class TestProcedure {
 
     Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
 
-    Assert.assertEquals("; Procedure body", code.get(++n));
-    Assert.assertEquals("; Procedure end", code.get(++n));
+    Assert.assertEquals("; procedure body", code.get(++n));
+    Assert.assertEquals("; procedure end", code.get(++n));
 
     Assert.assertEquals("?RETURN1", code.get(++n));
     Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
@@ -98,7 +98,7 @@ public class TestProcedure {
     Assert.assertEquals(";", code.get(++n));
     Assert.assertEquals("; procedure name(one, two) begin end", code.get(++n));
     Assert.assertEquals(";", code.get(++n));
-
+    
     Assert.assertEquals("NAME", code.get(++n));
     Assert.assertEquals(" LDX ONE", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
@@ -122,8 +122,8 @@ public class TestProcedure {
 
     Assert.assertEquals(" ADD_TO_HEAP_PTR 5", code.get(++n));
 
-    Assert.assertEquals("; Procedure body", code.get(++n));
-    Assert.assertEquals("; Procedure end", code.get(++n));
+    Assert.assertEquals("; procedure body", code.get(++n));
+    Assert.assertEquals("; procedure end", code.get(++n));
 
     Assert.assertEquals("?RETURN1", code.get(++n));
     Assert.assertEquals(" SUB_FROM_HEAP_PTR 5", code.get(++n));
@@ -181,8 +181,8 @@ public class TestProcedure {
 
     Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
 
-    Assert.assertEquals("; Procedure body", code.get(++n));
-    Assert.assertEquals("; Procedure end", code.get(++n));
+    Assert.assertEquals("; procedure body", code.get(++n));
+    Assert.assertEquals("; procedure end", code.get(++n));
 
     Assert.assertEquals("?RETURN1", code.get(++n));
     Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
