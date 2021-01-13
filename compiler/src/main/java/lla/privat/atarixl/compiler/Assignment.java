@@ -71,12 +71,14 @@ public class Assignment extends Code {
           if (source.getErgebnis().getBytes() == 1) {
             code(" ldx #0");
           }
+          code(" tya");
           code(" putarrayb " + name);
         }
         else if (source.getVariableType(name) == Type.WORD_ARRAY) {
           if (source.getErgebnis().getBytes() == 1) {
             code(" ldx #0");
           }
+          code(" tya");
           code(" putarrayw " + name);
         }
         else {

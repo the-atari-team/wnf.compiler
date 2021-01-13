@@ -14,7 +14,7 @@ public class TestAssignment {
   public void testAssignmentXisByte() {
     Source source = new Source("x:=1").setVerboseLevel(2);
     source.addVariable("X", Type.BYTE);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -30,12 +30,12 @@ public class TestAssignment {
     Assert.assertEquals(" LDY #<1", source.getCode().get(++n));
     Assert.assertEquals(" STY X", source.getCode().get(++n));
   }
-
+  
   @Test
   public void testAssignmentXisByteResultWord() {
     Source source = new Source("x:=256").setVerboseLevel(2);
     source.addVariable("X", Type.BYTE);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -57,7 +57,7 @@ public class TestAssignment {
     Source source = new Source("x:=y[1]").setVerboseLevel(2);
     source.addVariable("X", Type.BYTE);
     source.addVariable("Y", Type.BYTE_ARRAY);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -83,7 +83,7 @@ public class TestAssignment {
     Source source = new Source("x:=y[256]").setVerboseLevel(2);
     source.addVariable("X", Type.BYTE);
     source.addVariable("Y", Type.FAT_BYTE_ARRAY);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -102,6 +102,7 @@ public class TestAssignment {
     Assert.assertEquals("; (12.2)", source.getCode().get(++n));
     Assert.assertEquals(" TYA", source.getCode().get(++n));
     Assert.assertEquals(" GETARRAYB Y", source.getCode().get(++n));
+    Assert.assertEquals(" TAY", source.getCode().get(++n));
     Assert.assertEquals(" STY X", source.getCode().get(++n));
   }
 
@@ -110,7 +111,7 @@ public class TestAssignment {
     Source source = new Source("x:=y[1]").setVerboseLevel(2);
     source.addVariable("X", Type.BYTE);
     source.addVariable("Y", Type.WORD_ARRAY);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -127,16 +128,18 @@ public class TestAssignment {
     Assert.assertEquals(" LDX #>1", source.getCode().get(++n));
 
     Assert.assertEquals("; (11)", source.getCode().get(++n));
+    Assert.assertEquals(" TYA", source.getCode().get(++n));
     Assert.assertEquals(" GETARRAYW Y", source.getCode().get(++n));
+    Assert.assertEquals(" TAY", source.getCode().get(++n));    
     Assert.assertEquals(" STY X", source.getCode().get(++n));
   }
 
-
+  
   @Test
   public void testAssignmentXisWord() {
     Source source = new Source("x:=1").setVerboseLevel(2);
     source.addVariable("X", Type.WORD);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -157,7 +160,7 @@ public class TestAssignment {
   public void testAssignmentXisString() {
     Source source = new Source("x:='Hallo'").setVerboseLevel(2);
     source.addVariable("X", Type.WORD);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -180,7 +183,7 @@ public class TestAssignment {
     Source source = new Source("x:=y[1]").setVerboseLevel(2);
     source.addVariable("X", Type.WORD);
     source.addVariable("Y", Type.BYTE_ARRAY);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -207,7 +210,7 @@ public class TestAssignment {
     Source source = new Source("y[1]:=x").setVerboseLevel(2);
     source.addVariable("X", Type.WORD);
     source.addVariable("Y", Type.BYTE_ARRAY);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -235,7 +238,7 @@ public class TestAssignment {
     Source source = new Source("big[1]:=x").setVerboseLevel(2);
     source.addVariable("X", Type.WORD);
     source.addVariable("BIG", Type.FAT_BYTE_ARRAY);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -249,12 +252,13 @@ public class TestAssignment {
     Assert.assertEquals("; (5)", source.getCode().get(++n));
     Assert.assertEquals(" LDY #<1", source.getCode().get(++n));
     Assert.assertEquals(" LDX #0", source.getCode().get(++n));
+    Assert.assertEquals(" TYA", source.getCode().get(++n));
     Assert.assertEquals(" PUTARRAYB BIG", source.getCode().get(++n));
 
     Assert.assertEquals("; (6)", source.getCode().get(++n));
     Assert.assertEquals(" LDY X", source.getCode().get(++n));
     Assert.assertEquals(" LDX X+1", source.getCode().get(++n));
-
+    
     Assert.assertEquals(" TYA", source.getCode().get(++n));
     Assert.assertEquals(" LDY #0", source.getCode().get(++n));
     Assert.assertEquals(" STA (@PUTARRAY),Y", source.getCode().get(++n));
@@ -266,7 +270,7 @@ public class TestAssignment {
     Source source = new Source("y[1]:=x").setVerboseLevel(2);
     source.addVariable("X", Type.WORD);
     source.addVariable("Y", Type.WORD_ARRAY);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -280,6 +284,7 @@ public class TestAssignment {
     Assert.assertEquals("; (5)", source.getCode().get(++n));
     Assert.assertEquals(" LDY #<1", source.getCode().get(++n));
     Assert.assertEquals(" LDX #0", source.getCode().get(++n));
+    Assert.assertEquals(" TYA", source.getCode().get(++n));
     Assert.assertEquals(" PUTARRAYW Y", source.getCode().get(++n));
 
     Assert.assertEquals("; (6)", source.getCode().get(++n));
@@ -297,7 +302,7 @@ public class TestAssignment {
     Source source = new Source("n := @something()").setVerboseLevel(2);
     source.addVariable("N", Type.BYTE);
     source.addVariable("@SOMETHING", Type.FUNCTION);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();
@@ -312,7 +317,7 @@ public class TestAssignment {
     Assert.assertEquals(" JSR @SOMETHING", source.getCode().get(++n));
     Assert.assertEquals(" STY N", source.getCode().get(++n));
   }
-
+  
   @Test
   public void testAssignmentToByteWithFunctionCall() {
     Source source = new Source("n := @strcmp(adr:men, 'John Doe')").setVerboseLevel(2);
@@ -320,7 +325,7 @@ public class TestAssignment {
     source.addVariable("MEN", Type.WORD);
     source.addVariable("'John Doe'", Type.STRING);
     source.addVariable("@STRCMP", Type.FUNCTION);
-
+    
     Symbol symbol = source.nextElement();
 
     Symbol nextSymbol = new Assignment(source).assign(symbol).build();

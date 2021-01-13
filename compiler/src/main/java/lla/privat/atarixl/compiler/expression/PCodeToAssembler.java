@@ -366,7 +366,10 @@ public class PCodeToAssembler extends Code {
         if (ergebnis == Type.BYTE) {
           code(" ldx #0");
         }
+        code(" tya");
         code(" getarrayw " + a$); // ;" ;word-array"
+        code(" tay");
+        // y+256+x are set with a value out of getarrayw
         a = a + 2;
       }
       else if (currentPCode == PCode.FAT_BYTE_ARRAY.getValue()) {
@@ -378,7 +381,9 @@ public class PCodeToAssembler extends Code {
         }
         code(" tya");
         code(" getarrayb " + a$); // ;" ;fat-byte-array"
+        code(" tay");
         sonderlocke_fat_byte_array = false;
+        // y (x:=0) are set with a value out of getarrayb
         a = a + 2;
       }
 // -------------------------------

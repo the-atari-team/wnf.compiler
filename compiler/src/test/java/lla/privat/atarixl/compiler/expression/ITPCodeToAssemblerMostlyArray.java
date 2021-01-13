@@ -69,6 +69,7 @@ public class ITPCodeToAssemblerMostlyArray {
     Assert.assertEquals(" LDY #<1", code.get(++n));
     Assert.assertEquals(" LDX #>1", code.get(++n));
     Assert.assertEquals("; (11)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" GETARRAYW X", code.get(++n));
   }
 

@@ -217,6 +217,7 @@ public class TestCondition {
     Assert.assertEquals("; (12.2)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" GETARRAYB FAT", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" STY @ERG", code.get(++n));
 //    Assert.assertEquals(" STX @ERG+1", code.get(++n));
     Assert.assertEquals("; (5)", code.get(++n));

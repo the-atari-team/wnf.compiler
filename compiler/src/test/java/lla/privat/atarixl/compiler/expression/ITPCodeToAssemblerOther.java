@@ -164,7 +164,9 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" LDX #>2", code.get(++n));
 
     Assert.assertEquals("; (11)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" GETARRAYW N", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
 
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
