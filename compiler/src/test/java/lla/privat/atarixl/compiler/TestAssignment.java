@@ -362,4 +362,14 @@ public class TestAssignment {
     Assert.assertEquals(" STY N", source.getCode().get(++n));
   }
 
+  @Test(expected = IllegalStateException.class)
+  public void testAssignmentXisByteYisUnknown() {
+    Source source = new Source("x:=y[1]+y[2]").setVerboseLevel(2);
+    source.addVariable("X", Type.BYTE);
+//    source.addVariable("Y", Type.BYTE_ARRAY);
+    
+    Symbol symbol = source.nextElement();
+
+    /* Symbol nextSymbol = */ new Assignment(source).assign(symbol).build();
+  }
 }

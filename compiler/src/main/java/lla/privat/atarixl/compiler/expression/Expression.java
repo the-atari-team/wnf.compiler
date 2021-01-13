@@ -296,7 +296,11 @@ public class Expression extends Code {
     }
     else {
       p_code.add(PCode.WORD.getValue());
-      p_code.add(source.getVariablePosition(name));
+      int variablePosition = source.getVariablePosition(name);
+      if (variablePosition==-1) {
+        source.throwIfVariableUndefined(name);
+      }
+      p_code.add(variablePosition);
       source.getVariable(name).setRead();
       if (source.getVariableSize(name) == 2 && ergebnis == Type.BYTE) {
         ergebnis = Type.WORD;
