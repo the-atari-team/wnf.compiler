@@ -167,29 +167,12 @@ public class TestPeepholeOptimizer {
   }
 
   @Test
-  public void testGetarraybCompare() {
-    List<String> list = new ArrayList<>();
-    list.add(" GETARRAYB");
-    list.add(" STY @ERG");
-    list.add(" LDY ");
-    list.add(" CPY @ERG");
-    list.add(" BNE ?FA");
-    list.add(" ...");
-    source.resetCode(list);
-
-    peepholeOptimizerSUT.optimize().build();
-    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
-
-    Assert.assertEquals(4, source.getCode().size());
-  }
-
-  @Test
   public void testWinc() {
     List<String> list = new ArrayList<>();
     list.add(" CLC");
     list.add(" LDA A");
     list.add(" ADC #<1");
-    list.add(" STA A");
+    list.add(" STA A ; (123)");
     list.add(" LDA A+1");
     list.add(" ADC #>1");
     list.add(" STA A+1");
@@ -208,6 +191,41 @@ public class TestPeepholeOptimizer {
     list.add(" CLC");
     list.add(" LDA A");
     list.add(" ADC #<1");
+    list.add(" STA A");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(2, source.getCode().size());
+  }
+
+  @Test
+  public void testWDec() {
+    List<String> list = new ArrayList<>();
+    list.add(" SEC");
+    list.add(" LDA A");
+    list.add(" SBC #<1");
+    list.add(" STA A");
+    list.add(" LDA A+1");
+    list.add(" SBC #>1");
+    list.add(" STA A+1");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(2, source.getCode().size());
+  }
+
+  @Test
+  public void testDec() {
+    List<String> list = new ArrayList<>();
+    list.add(" SEC");
+    list.add(" LDA A");
+    list.add(" SBC #<1");
     list.add(" STA A");
     list.add(" ...");
     source.resetCode(list);
@@ -429,4 +447,312 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(2, source.getCode().size());
   }
 
+  @Test
+  public void teststy_ldy() {
+    List<String> list = new ArrayList<>();
+    list.add(" STY ?FOR");
+    list.add(" LDY ?FOR");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(2, source.getCode().size());
+  }
+  
+  @Test
+  public void testword_index_sub() {
+    List<String> list = new ArrayList<>();
+    list.add(" SEC");
+    list.add(" LDA ");
+    list.add(" SBC #<1");
+    list.add(" TAY");
+    list.add(" LDA ");
+    list.add(" SBC #");
+    list.add(" TAX");
+    list.add(" TYA");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(8, source.getCode().size());    
+  }
+  
+  @Test
+  public void testByte_index_sub() {
+    List<String> list = new ArrayList<>();
+    list.add(" SEC");
+    list.add(" LDA ");
+    list.add(" SBC #<1");
+    list.add(" TAY");
+    list.add(" LDA ");
+    list.add(" ...");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(5, source.getCode().size());
+    
+  }
+  
+  @Test
+  public void testJsrRts1() {
+    List<String> list = new ArrayList<>();
+    list.add(" JSR BLAH");
+    list.add("?RETURN123");
+    list.add(" RTS");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(4, source.getCode().size());
+  }
+
+  @Test
+  public void testJsrRts2() {
+    List<String> list = new ArrayList<>();
+    list.add(" JSR BLAH");
+    list.add("?ENDIF");
+    list.add("?RETURN123");
+    list.add(" RTS");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(5, source.getCode().size());
+  }
+
+  @Test
+  public void testJsrRts3() {
+    List<String> list = new ArrayList<>();
+    list.add(" JSR BLAH");
+    list.add("?ENDIF");
+    list.add("?ENDIF");
+    list.add("?RETURN123");
+    list.add(" RTS");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(6, source.getCode().size());
+  }
+
+  @Test
+  public void testJsrRts4() {
+    List<String> list = new ArrayList<>();
+    list.add(" JSR BLAH");
+    list.add("?ENDIF");
+    list.add("?ENDIF");
+    list.add("?ENDIF");
+    list.add("?RETURN123");
+    list.add(" RTS");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(7, source.getCode().size());
+  }
+
+  @Test
+  public void testJsrRts5() {
+    List<String> list = new ArrayList<>();
+    list.add(" JSR BLAH");
+    list.add("?ENDIF");
+    list.add("?ENDIF");
+    list.add("?ENDIF");
+    list.add("?ENDIF");
+    list.add("?RETURN123");
+    list.add(" RTS");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(8, source.getCode().size());
+  }
+
+  @Test
+  public void teststy_stx_erg_ldy_ldx_cpy_cpx_erg() {
+    List<String> list = new ArrayList<>();
+    list.add(" STY @ERG");
+    list.add(" STX @ERG+1");
+    list.add(" LDY #<low");
+    list.add(" LDX #high");
+    list.add(" CPY @ERG");
+    list.add(" BNE ?FA123");
+    list.add(" CPX @ERG+1");
+    list.add(" BEQ ?THEN2");
+    list.add("?FA123");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(6, source.getCode().size());
+  }
+
+  @Test
+  public void teststa_stx_erg_ldy_ldx_cpy_cpx_erg() {
+    List<String> list = new ArrayList<>();
+    list.add(" STA @ERG");
+    list.add(" STX @ERG+1");
+    list.add(" LDY #<low");
+    list.add(" LDX #high");
+    list.add(" CPY @ERG");
+    list.add(" BNE ?FA123");
+    list.add(" CPX @ERG+1");
+    list.add(" BEQ ?THEN2");
+    list.add("?FA123");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(6, source.getCode().size());
+  }
+
+  @Test
+  public void teststa_erg_ldy_cpy_erg_beq() {
+    List<String> list = new ArrayList<>();
+    list.add(" STA @ERG");
+    list.add(" LDY #<low");
+    list.add(" CPY @ERG");
+    list.add(" BEQ ?THEN2");
+    list.add("?FA123");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(4, source.getCode().size());    
+  }
+
+  @Test
+  public void teststa_erg_ldy_cpy_erg_bne() {
+    List<String> list = new ArrayList<>();
+    list.add(" STA @ERG");
+    list.add(" LDY #<low");
+    list.add(" CPY @ERG");
+    list.add(" BNE ?THEN2");
+    list.add("?FA123");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(4, source.getCode().size());    
+  }
+
+  @Test
+  public void teststa_erg_ldy_cpy_erg_bne_fa() {
+    List<String> list = new ArrayList<>();
+    list.add(" STA @ERG");
+    list.add(" LDY #<low");
+    list.add(" CPY @ERG");
+    list.add(" BNE ?FA2");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(3, source.getCode().size());    
+  }
+
+  @Test
+  public void teststa_erg_ldy_cpy_erg_beq_fa_bcc() {
+    List<String> list = new ArrayList<>();
+    list.add(" STA @ERG");
+    list.add(" LDY #<low");
+    list.add(" CPY @ERG");
+    list.add(" BEQ ?FA2");
+    list.add(" BCC ?FA2");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(0, peepholeOptimizerSUT.getUsedOptimisations());
+  }
+
+  @Test
+  public void teststa_erg_ldy_cpy_erg_beq_fa_no_bcc() {
+    List<String> list = new ArrayList<>();
+    list.add(" STA @ERG");
+    list.add(" LDY #<low");
+    list.add(" CPY @ERG");
+    list.add(" BEQ ?FA2");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(3, source.getCode().size());    
+  }
+  
+  @Test
+  public void testldy_sty_putarray_lda_ldx_putarray_sta() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY #<low");
+    list.add(" STY @PUTARRAY");
+    list.add(" LDA schnubbel");
+    list.add(" LDX @PUTARRAY");
+    list.add(" STA array,X");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(4, source.getCode().size());
+  }
+
+  @Test
+  public void testTay_iny_tya() {
+    List<String> list = new ArrayList<>();
+    list.add(" TAY");
+    list.add(" INY");
+    list.add(" TYA");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(3, source.getCode().size());    
+  }
+  
+  @Test
+  public void testclc_lda_x_adc_1_sta_y() {
+    List<String> list = new ArrayList<>();
+    list.add(" CLC");
+    list.add(" LDA J");
+    list.add(" ADC #<1");
+    list.add(" STA J1 ; (11)");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(4, source.getCode().size());    
+  }
 }

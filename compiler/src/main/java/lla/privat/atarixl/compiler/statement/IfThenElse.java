@@ -42,6 +42,7 @@ public class IfThenElse extends Code {
     Symbol condition = new Condition(source, conditionStr).condition(nextSymbol).build();
     source.match(condition, "THEN");
 
+    // Due to the fact this is a single pass Compiler, we need such lines for the assembler
     code(" .if .not .def ?else" + condi);
     code(" jmp ?endif" + condi);
     code(" .else");

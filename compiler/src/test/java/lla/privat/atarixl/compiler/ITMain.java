@@ -65,7 +65,7 @@ public class ITMain {
     File file = new File(tempPath + "/TSTSIEVE.ASM");
     Assert.assertTrue(file.exists());
 
-    Assert.assertEquals(60, main.getUsedOptimisations());
+    Assert.assertEquals(66, main.getUsedOptimisations());
   }
 
   @Test
@@ -91,7 +91,7 @@ public class ITMain {
   }
 
 
-  @Ignore
+//  @Ignore
   @Test
   public void testOxygeneBe() throws IOException {
     String testOxygeneBe = "src/test/resources/lla/privat/atarixl/compiler/test-player-missile.wnf";
@@ -102,7 +102,7 @@ public class ITMain {
     File file = new File(tempPath + "/OXYGENBE.ASM");
     Assert.assertTrue(file.exists());
 
-    Assert.assertEquals(774, main.getUsedOptimisations());
+    Assert.assertEquals(1036, main.getUsedOptimisations());
   }
 
   @Test

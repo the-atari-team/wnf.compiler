@@ -388,7 +388,13 @@ protected void functionCallAccess(String name, Type type) {
     p_code.add(PCode.NOP.getValue());
     p_code.add(PCode.ADDRESS.getValue());
     ergebnis = Type.WORD; // Egal was es vorher war, wir sind jetzt word breit!
-    p_code.add(source.getVariablePosition(nameSymbol.get()));
+    String name = nameSymbol.get();
+    int variablePosition = source.getVariablePosition(name);
+    if (variablePosition == -1 && name.startsWith("@")) {
+      source.addVariable(name, Type.FUNCTION);
+      variablePosition = source.getVariablePosition(name);      
+    }
+    p_code.add(variablePosition);
     source.getVariable(nameSymbol.get()).setRead();
   }
   
@@ -396,6 +402,9 @@ protected void functionCallAccess(String name, Type type) {
     // Array Access
     Symbol squareBracketOpen = source.nextElement();
     // "["
+    source.match(squareBracketOpen, "[");
+    source.throwIfVariableUndefined(name);
+    
     /* Symbol squareBrackedClose = */ factor(squareBracketOpen);
 
     VariableDefinition variable = source.getVariable(name);
