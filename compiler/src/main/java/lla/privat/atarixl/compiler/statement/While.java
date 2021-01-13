@@ -43,14 +43,17 @@ public class While extends Code {
     Symbol condition = new Condition(source, conditionStr).condition(nextSymbol).build();
     source.match(condition, "DO");
 
-    code(" jmp ?wend"+condi);
+    final String exitVariable = "?wend" + condi;
+    code(" jmp "+exitVariable);
+    source.addBreakVariable(exitVariable);
     code(conditionStr);
 
     nextSymbol = source.nextElement();
     nextSymbol = new Statement(source).statement(nextSymbol).build();
 
     code(" jmp ?while"+condi);
-    code("?wend"+condi);
+    code(exitVariable);
+    source.clearBreakVariable();
     return this;
   }
 

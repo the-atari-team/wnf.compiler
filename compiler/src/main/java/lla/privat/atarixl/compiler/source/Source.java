@@ -8,6 +8,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -669,5 +670,24 @@ public class Source implements Enumeration<Symbol> {
     this.includePaths.addAll(includePaths);
   }
 
-
+  /**
+   * BREAK Statement is implemented as a stack,
+   * every loop add a new breakable stage
+   * at end of loop, this stage will remove, so the old stage come back
+   */
+  private Stack<String> breakVariable = new Stack<>();
+  public void addBreakVariable(final String breakVariable) {
+    this.breakVariable.push(breakVariable);
+  }
+  
+  public void clearBreakVariable() {
+    breakVariable.pop();
+  }
+  
+  public String getBreakVariable() {
+    if (breakVariable.isEmpty()) {
+      error(new Symbol("BREAK", SymbolEnum.variable_name), "We are not inside a breakable stage.");
+    }
+    return breakVariable.peek();
+  }
 }

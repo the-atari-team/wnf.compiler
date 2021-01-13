@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public enum ReservedNames {
-  ADR, AND, ARRAY, ASSERT, BEGIN, BYTE, DIV, DO, DOWNTO, ELSE, END, FOR, FUNCTION, IF, INCLUDE, LOCAL, LOMEM, MOD, OR,
+  ADR, AND, ARRAY, ASSERT, BEGIN, BREAK, BYTE, DIV, DO, DOWNTO, ELSE, END, FOR, FUNCTION, IF, INCLUDE, LOCAL, LOMEM, MOD, OR,
   PROCEDURE, PROGRAM, REPEAT, RETURN, STRING, THEN, TO, UNTIL, WHILE, WORD, XOR;
 
   private static Set<String> map;

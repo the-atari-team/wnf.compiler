@@ -38,6 +38,9 @@ public class RepeatUntil extends Code {
 
     nextSymbol = source.nextElement();
 
+    final String exitVariable = "?RPTEXIT" + condi;
+    source.addBreakVariable(exitVariable);
+
     boolean isRepeat = true;
     while (isRepeat) {
       String mnemonic = nextSymbol.get();
@@ -49,10 +52,10 @@ public class RepeatUntil extends Code {
         nextSymbol = new Statement(source).statement(nextSymbol).build();
       }
     }
-    String conditionStr = "?RPTEXIT"+condi;
-    nextSymbol = new Condition(source, conditionStr).condition(nextSymbol).build();
+    nextSymbol = new Condition(source, exitVariable).condition(nextSymbol).build();
     code(" jmp ?REPEAT"+condi);
-    code(conditionStr);
+    code(exitVariable);
+    source.clearBreakVariable();
 
     return this;
   }

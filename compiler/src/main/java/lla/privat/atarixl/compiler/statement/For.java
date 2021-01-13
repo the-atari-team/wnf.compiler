@@ -106,7 +106,9 @@ public class For extends Code {
         code(" bcs ?go" + condi);
       }
     }
-    code(" jmp ?exit" + condi);
+    final String exitVariable = "?exit" + condi;
+    code(" jmp "+exitVariable);
+    source.addBreakVariable(exitVariable);
     source.addVariable("?FOR" + condi, typ);
     source.getVariable("?FOR" + condi).setRead();
     code("?go" + condi);
@@ -151,7 +153,8 @@ public class For extends Code {
     }
     code(" JMP ?GO" + condi);
 //    REM  ? #KAN;"; For ende"
-    code("?EXIT" + condi);
+    code(exitVariable);
+    source.clearBreakVariable();
 
     return this;
   }
