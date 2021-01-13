@@ -235,6 +235,34 @@ public class ITPCodeToAssemblerMostlyWord {
   }
 
   @Test
+  public void testExpressionXDiv2Zahl2erKomplement() {
+    Source source = new Source("X / 2 ");
+    source.addVariable("X", Type.WORD);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (4)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" LDX X+1", code.get(++n));
+
+    // Wir tauschen einfach das lowbyte mit dem highbyte
+    Assert.assertEquals(" STY @OP", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" CMP #$80", code.get(++n));
+    Assert.assertEquals(" ROR A", code.get(++n));
+    Assert.assertEquals(" ROR @OP", code.get(++n));
+    Assert.assertEquals(" LDY @OP", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+  }
+
+
+  @Test
   public void testExpressionXDiv256Zahl2erKomplement() {
     Source source = new Source("X / 256 ");
     source.addVariable("X", Type.WORD);
@@ -254,7 +282,11 @@ public class ITPCodeToAssemblerMostlyWord {
     // Wir tauschen einfach das lowbyte mit dem highbyte
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" CPY #$80", code.get(++n));
     Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertTrue(code.get(++n).startsWith(" BCC ?NOTNEG"));
+    Assert.assertEquals(" LDX #$FF", code.get(++n));
+    Assert.assertTrue(code.get(++n).startsWith("?NOTNEG"));
   }
 
   @Test

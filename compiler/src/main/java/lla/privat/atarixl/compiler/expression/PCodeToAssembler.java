@@ -9,9 +9,23 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import lla.privat.atarixl.compiler.Symbol;
+import lla.privat.atarixl.compiler.SymbolEnum;
 import lla.privat.atarixl.compiler.source.Code;
 import lla.privat.atarixl.compiler.source.Source;
 
+/**
+ * PCode to Assembler Generator
+ * Most the time it works as follows:
+ * - We load a value into register (Y + 256 * X)
+ * - If we need to work on,
+ * --  move register to akku (TYA or TXA)
+ * --  work on it
+ * --  move akku back to register (TAY or TAX)
+ * - the result is always that the word value stays in register (Y + 256 * X) 
+ * IMPORTANT:
+ * - Do not try to optimize code here, use Peephole Optimizer for that
+ */
 public class PCodeToAssembler extends Code {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PCodeToAssembler.class);
@@ -396,13 +410,15 @@ public class PCodeToAssembler extends Code {
           code(" lda " + a$ + ",y"); // ;b.array short"
           code(" tay");
         }
-        else {
-          // TODO: diesen Fall unterstützen wir gerade nicht!
-          if (ergebnis == Type.BYTE) {
-            code(" ldx #0");
-          }
-          code(" getarrayb " + a$); // ;" ;byte-array"
-        }
+// DEAD Code!        
+//        else {
+//          // TODO: diesen Fall unterstützen wir gerade nicht!
+//          if (ergebnis == Type.BYTE) {
+//            code(" ldx #0");
+//          }
+//          code(" getarrayb " + a$); // ;" ;byte-array"
+//          code(" tay");
+//        }
         if (ergebnis == Type.WORD) {
           code(" ldx #0");
         }
@@ -491,8 +507,10 @@ public class PCodeToAssembler extends Code {
     }
   }
 
+  private static int condi;
 // -------------------------------
   public int mul_div_with_shift(int value, int pcode) {
+    ++condi;
     int exponent;
     if (value > 1) {
       exponent = Long.valueOf(Math.round(Math.log(value) / 0.69314718 + 1.0e-05)).intValue(); // log(x)/log(2)
@@ -504,9 +522,15 @@ public class PCodeToAssembler extends Code {
 //    code("; shiften um ";d;" bits"
       if (exponent > 7) {
         if (pcode == PCode.IDIV.getValue()) {
+          // TODO: make shifts negativable              
+          
           code(" txa"); // ;hohe zahl in kleine zahl"
           code(" tay");
+          code(" cpy #$80");
           code(" ldx #0");
+          code(" bcc ?notneg"+condi);
+          code(" ldx #$ff");
+          code("?notneg"+condi);
         }
         if (pcode == PCode.IMULT.getValue()) {
           code(" tya"); // ;kleine zahl in hohe zahl"
@@ -517,30 +541,50 @@ public class PCodeToAssembler extends Code {
       }
 
       if (exponent > 0) {
-        code(" tya"); // ;mul/div shiften"
-        if (ergebnis != Type.BYTE) {
-          code(" stx @op");
-        }
-        for (int z = 0; z < exponent; z++) {
-          if (pcode == PCode.IMULT.getValue()) {
-            code(" asl a");
-            if (ergebnis != Type.BYTE) {
+        if (pcode == PCode.IMULT.getValue()) {
+          if (ergebnis == Type.BYTE) { // ;mul shiften"
+            code(" tya");
+            for (int z = 0; z < exponent; z++) {
+              code(" asl a");
+            }         
+            code(" tay");
+          }
+          else {
+            code(" tya"); 
+            code(" stx @op");
+            
+            for (int z = 0; z < exponent; z++) {
+              code(" asl a");
               code(" rol @op");
             }
-          }
-          else { // idiv
-            if (ergebnis == Type.BYTE) {
-              code(" lsr a");
-            }
-            else {
-              code(" lsr @op");
-              code(" ror a");
-            }
+            code(" tay");
+            code(" ldx @op");            
           }
         }
-        code(" tay");
-        if (ergebnis != Type.BYTE) {
-          code(" ldx @op");
+        else if (pcode == PCode.IDIV.getValue()) {
+          if (ergebnis == Type.BYTE) { // ;div shiften"
+            code(" tya");
+            for (int z = 0; z < exponent; z++) {
+                code(" lsr a");
+            }
+            code(" tay");         
+          }
+
+          else {
+            code(" sty @op");
+            code(" txa");
+
+            for (int z = 0; z < exponent; z++) {
+              code(" cmp #$80");
+              code(" ror a");
+              code(" ror @op");
+            }
+            code(" ldy @op");
+            code(" tax");
+          }
+        }
+        else {
+          source.error(new Symbol("", SymbolEnum.noSymbol), "Other than IMULT or IDIV not supported with shift.");
         }
       }
     }
