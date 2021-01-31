@@ -91,7 +91,7 @@ public class ITMain {
   }
 
 
-//  @Ignore
+  @Ignore
   @Test
   public void testOxygeneBe() throws IOException {
     String testOxygeneBe = "src/test/resources/lla/privat/atarixl/compiler/test-player-missile.wnf";

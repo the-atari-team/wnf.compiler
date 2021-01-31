@@ -755,4 +755,36 @@ public class TestPeepholeOptimizer {
 
     Assert.assertEquals(4, source.getCode().size());    
   }
+
+  
+  @Test
+  public void testParameterUebergabe() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY OLDXPOS");
+    list.add(" LDX OLDXPOS+1");
+    list.add(" TYA");
+    list.add(" LDY #1");
+    list.add(" STA (@HEAP_PTR),Y");
+    list.add(" TXA");
+    list.add(" INY");
+    list.add(" STA (@HEAP_PTR),Y");
+    
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(2, peepholeOptimizerSUT.getUsedOptimisations());
+    
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals(" LDA OLDXPOS ; (6)", code.get(++n));
+    Assert.assertEquals(" LDY #1", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" LDA OLDXPOS+1 ; (13)", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" ...", code.get(++n));
+  }
+  
 }

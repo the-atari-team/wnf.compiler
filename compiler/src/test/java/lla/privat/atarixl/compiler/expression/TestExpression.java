@@ -27,13 +27,13 @@ public class TestExpression {
 
     Assert.assertEquals(SymbolEnum.noSymbol, symbol.getId());
   }
-
+  
   @Test
   public void testExpression() {
     Source source = new Source("123 ");
 
     setupExpression(source);
-
+    
     Assert.assertEquals("160 123", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
@@ -45,7 +45,7 @@ public class TestExpression {
     Source source = new Source("160 ");
 
     setupExpression(source);
-
+    
     Assert.assertEquals("160 160", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
@@ -57,7 +57,7 @@ public class TestExpression {
     Source source = new Source("$AF ");
 
     setupExpression(source);
-
+    
     Assert.assertEquals("160 175", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
@@ -69,7 +69,7 @@ public class TestExpression {
     Source source = new Source("%10111000 ");
 
     setupExpression(source);
-
+    
     Assert.assertEquals("160 184", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
@@ -216,14 +216,14 @@ public class TestExpression {
 
   @Test
   public void testAddSubInExpression() {
-    Source source = new Source("1 + 2 - 3");
+    Source source = new Source("2 + 3 - 4");
 
     setupExpression(source);
 
-    Assert.assertEquals("160 1 162 160 2 163 8 162 160 3 163 9", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 2 162 160 3 163 8 162 160 4 163 9", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 1 16 167 2 17 167 3 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 2 16 167 3 17 167 4 9999999", expressionSUT.joinedPCode());
 
   }
 
@@ -438,5 +438,68 @@ public class TestExpression {
     Assert.assertEquals("180 0 65 0 9999999", expressionSUT.joinedPCode());
   }
 
+  @Test
+  public void testAddAddInExpression() {
+    Source source = new Source("2 + 3 + 4");
 
+    setupExpression(source);
+
+    Assert.assertEquals("160 2 162 160 3 163 8 162 160 4 163 8", expressionSUT.joinedPCode());
+
+    expressionSUT.optimisation();
+    Assert.assertEquals("167 2 16 167 3 16 167 4 9999999", expressionSUT.joinedPCode());
+  }
+
+  @Test
+  public void testMulDivInExpression() {
+    // Mathematisch richtig!
+    // Es wird hier leider(?) zuerst die Division ausgeführt,
+    // dann wird multipliziert.
+    // Soll es in einer anderen Reihenfolge passieren, ist zu klammern.
+    Source source = new Source("2 * 3 / 4");
+
+    setupExpression(source);
+
+    String joinedPCode = expressionSUT.joinedPCode();
+    Assert.assertEquals("160 2 162 160 3 162 160 4 163 11 163 10", joinedPCode);
+
+    expressionSUT.optimisation();
+    joinedPCode = expressionSUT.joinedPCode();
+    Assert.assertEquals("167 2 162 167 3 19 167 4 163 10 9999999", joinedPCode);
+  }
+
+  @Test
+  public void testMulDivWithBracketInExpression() {
+    Source source = new Source("(2 * 3) / 4");
+
+    setupExpression(source);
+
+    String joinedPCode = expressionSUT.joinedPCode();
+    // 160 := load# 2
+    // 162 := push
+    // 160 := load# 3
+    // 163 := pull
+    //  10 := mul
+    // 162 := push
+    // 160 := load# 4
+    // 163 := pull
+    //  11 := div
+    Assert.assertEquals("160 2 162 160 3 163 10 162 160 4 163 11", joinedPCode);
+
+    expressionSUT.optimisation();
+    joinedPCode = expressionSUT.joinedPCode();
+    Assert.assertEquals("167 2 18 167 3 19 167 4 9999999", joinedPCode);
+  }
+
+  @Test
+  public void testFunctionCall() {
+    Source source = new Source("@paintbomb(oldxpos, 159 - oldypos)");
+    source.addVariable("OLDXPOS", Type.WORD);
+    source.addVariable("OLDYPOS", Type.WORD);
+    source.addVariable("@PAINTBOMB", Type.PROCEDURE);
+    setupExpression(source);
+
+    String joinedPCode = expressionSUT.joinedPCode();
+    Assert.assertEquals("180 0 168 0 181 0 160 159 162 168 1 163 9 181 1 64 2", joinedPCode);
+  }
 }

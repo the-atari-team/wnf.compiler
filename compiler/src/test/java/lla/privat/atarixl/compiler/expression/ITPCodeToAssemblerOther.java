@@ -500,4 +500,48 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" JSR @FUNCTION_POINTER", code.get(++n));
   }
 
+  @Test
+  public void testExpressionFunctionCall() {
+    Source source = new Source("@paintbomb(oldxpos, 159 - oldypos)");
+    source.addVariable("OLDXPOS", Type.WORD);
+    source.addVariable("OLDYPOS", Type.WORD);
+    source.addVariable("@PAINTBOMB", Type.PROCEDURE);
+
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY OLDXPOS", code.get(++n));
+    Assert.assertEquals(" LDX OLDXPOS+1", code.get(++n));
+    Assert.assertEquals("; (16)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" LDY #1", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals("; (3)", code.get(++n));
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" LDA #<159", code.get(++n));
+    Assert.assertEquals(" SBC OLDYPOS", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA #>159", code.get(++n));
+    Assert.assertEquals(" SBC OLDYPOS+1", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+    Assert.assertEquals("; (16)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" LDY #3", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals(" JSR @PAINTBOMB", code.get(++n));
+  }
 }

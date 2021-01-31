@@ -287,7 +287,7 @@ public class PeepholeOptimizer {
         codeList.get(index + 5).startsWith(" STA")) {
       LOGGER.debug("Peephole Optimization possible at Line: {}", index);
       
-      String newStore = codeList.get(index+4).replace("STY", "STA");
+      String newStore = codeList.get(index+4).replace(" STY", " STA");
       codeList.set(index, newStore + " ; (5)");
 
       String oldStore = codeList.get(index+4).replace(" STY", ";opt STY");
@@ -315,7 +315,7 @@ public class PeepholeOptimizer {
     if (codeList.get(index).startsWith(" LDY") &&
         codeList.get(index + 2).startsWith(" TYA")) {
       LOGGER.debug("Peephole Optimization possible at Line: {}", index);
-      String newLoad = codeList.get(index).replace("LDY", "LDA");
+      String newLoad = codeList.get(index).replace(" LDY", " LDA");
       codeList.set(index, newLoad + " ; (6)");
 
       codeList.set(index + 2, ";opt TYA ; (6)");
@@ -329,7 +329,7 @@ public class PeepholeOptimizer {
     if (codeList.get(index).startsWith(" LDY") &&
         codeList.get(index + 1).startsWith(" TYA")) {
       LOGGER.debug("Peephole Optimization possible at Line: {}", index);
-      String newLoad = codeList.get(index).replace("LDY", "LDA");
+      String newLoad = codeList.get(index).replace(" LDY", " LDA");
       codeList.set(index, newLoad + " ; (10)");
 
       codeList.set(index + 1, ";opt TYA ; (10)");
@@ -343,7 +343,7 @@ public class PeepholeOptimizer {
     if (codeList.get(index).startsWith(" TAY") &&
         codeList.get(index + 1).startsWith(" STY")) {
       LOGGER.debug("Peephole Optimization possible at Line: {}", index);
-      String newLoad = codeList.get(index+1).replace("STY", "STA");
+      String newLoad = codeList.get(index+1).replace(" STY", " STA");
       codeList.set(index+1, newLoad + " ; (11)");
 
       codeList.set(index, ";opt TAY ; (11)");
@@ -365,7 +365,7 @@ public class PeepholeOptimizer {
         codeList.get(index + 2).startsWith(" STX")) {
       LOGGER.debug("Peephole Optimization possible at Line: {}", index);
       codeList.set(index, ";opt TAX ; (4)");
-      String newStore = codeList.get(index+2).replace("STX", "STA");
+      String newStore = codeList.get(index+2).replace(" STX", " STA");
       codeList.set(index+2, newStore + " ; (4)");
       incrementStatus(type);
     }
@@ -395,12 +395,12 @@ public class PeepholeOptimizer {
       LOGGER.debug("Peephole Optimization possible at Line: {}", index);
 
       String newLoad = codeList.get(index).replace(" LDY", ";opt LDY");
-      String newCompare = codeList.get(index).replace("LDY", "CPY");
+      String newCompare = codeList.get(index).replace(" LDY", " CPY");
       codeList.set(index, newLoad + " ; (8)");
       codeList.set(index+6, newCompare + " ; (8)");
 
       String newLoad2 = codeList.get(index+1).replace(" LDX", ";opt LDX");
-      String newCompare2 = codeList.get(index+1).replace("LDX", "SBC");
+      String newCompare2 = codeList.get(index+1).replace(" LDX", " SBC");
       codeList.set(index+1, newLoad2 + " ; (8)");
       codeList.set(index+8, newCompare2 + " ; (8)");
 
@@ -410,7 +410,7 @@ public class PeepholeOptimizer {
       String newStore2 = codeList.get(index+3).replace(" STX", ";opt STX");
       codeList.set(index+3, newStore2 + " ; (8)");
 
-      String newLoad3 = codeList.get(index+5).replace("LDX", "LDA");
+      String newLoad3 = codeList.get(index+5).replace(" LDX", " LDA");
       codeList.set(index+5, newLoad3 + " ; (8)");
 
       codeList.set(index+7, ";opt TXA ; (8)");
@@ -597,7 +597,7 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
 
     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
 
-    String newLoad = codeList.get(index).replace("LDX", "LDA");
+    String newLoad = codeList.get(index).replace(" LDX", " LDA");
     codeList.set(index, ";opt was LDX (12)");
     codeList.set(index+4, newLoad + " ; (12)");
     incrementStatus(type);
@@ -624,7 +624,7 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
 
      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
 
-     String newLoad = codeList.get(index).replace("LDX", "LDA");
+     String newLoad = codeList.get(index).replace(" LDX", " LDA");
      codeList.set(index, ";opt (13)");
      codeList.set(index+3, newLoad + " ; (13)");
      incrementStatus(type);
@@ -651,7 +651,7 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
 
      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
 
-     String newCompare = codeList.get(index).replace("LDY", "CPY");
+     String newCompare = codeList.get(index).replace(" LDY", " CPY");
      codeList.set(index, ";opt (14)");
      codeList.set(index+1, ";opt (14)");
      codeList.set(index+3, newCompare + " ; (14)");
