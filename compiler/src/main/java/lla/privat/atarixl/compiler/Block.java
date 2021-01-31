@@ -75,7 +75,7 @@ public class Block extends Code {
                        // verwendet)
       code("@MAIN_FROM_BASIC");
       code(" TSX"); // Speichere den aktuellen Stackpointer, hinter evtl. Basic!
-      code(" JSR @HEAP_INIT");
+      code(" JSR @INIT_RUNTIME");
 
       nextSymbol = new Statement(source).statement(nextSymbol).build();
 
