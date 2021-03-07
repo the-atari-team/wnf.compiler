@@ -14,16 +14,17 @@ import lla.privat.atarixl.compiler.source.Code;
 import lla.privat.atarixl.compiler.source.Source;
 
 /**
- * This is the for implementation without self modified code
- * empty byte loop takes ~24 1/50s in 32768 loops variable in zeropage
- * empty byte loop takes ~26 1/50s in 32768 loops
- * empty word loop takes ~41 1/50s in 32768 loops variable in zeropage
- * empty word loop takes ~45 1/50s in 32768 loops
+ * This is the for implementation with self modified code
+ * empty byte loop takes ~21 to (24) 1/50s 14% in 32768 loops variable in zeropage
+ * empty byte loop takes ~24 to (26) 1/50s  8% in 32768 loops
+ * empty word loop takes ~35 to (41) 1/50s 17% in 32768 loops variable in zeropage
+ * empty word loop takes ~39 to (45) 1/50s 15% in 32768 loops
  *
+ * Self modified code and zero page is up to 28% faster (empty loops word value)
+ * Self modified code and zero page is up to 24% faster (empty loops byte value)
  */
-
-public class For extends Code {
-  private static final Logger LOGGER = LoggerFactory.getLogger(For.class);
+public class ForSMC extends Code {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ForSMC.class);
 
   private final Source source;
 
@@ -31,7 +32,7 @@ public class For extends Code {
 
   private int step;
 
-  public For(Source source) {
+  public ForSMC(Source source) {
     super(source);
 
     this.source = source;
@@ -52,7 +53,7 @@ public class For extends Code {
    * @param symbol
    * @return
    */
-  public For statement(Symbol symbol) {
+  public ForSMC statement(Symbol symbol) {
     source.match(symbol, "FOR");
 
     Symbol variableSymbol = source.nextElement();
@@ -82,22 +83,26 @@ public class For extends Code {
     int condi = source.getLoopCount();
 
     // Zuweisung an y,x variable
-    code(" sty ?for" + condi);
+    code(" sty ?smcfor1lo" + condi + "+1");
+    code(" sty ?smcfor2lo" + condi + "+1");
     if (typ == Type.WORD) {
       if (source.getErgebnis().getBytes() == 1) {
         code(" ldx #0");
       }
-      code(" stx ?for" + condi + "+1");
+      code(" stx ?smcfor1hi" + condi + "+1");
+      code(" stx ?smcfor2hi" + condi + "+1");
     }
 
     if (step == 1) {
-      code(" ldy ?for" + condi);
+      code("?smcfor1lo"+condi);
+      code(" ldy #0"); 
       code(" cpy " + variable);
       if (typ == Type.BYTE) {
         code(" bcs ?go" + condi);
       }
       else {
-        code(" lda ?for" + condi + "+1");
+        code("?smcfor1hi"+condi);
+        code(" lda #0");
         code(" sbc " + variable + "+1");
         code(" bcs ?go" + condi);
       }
@@ -105,21 +110,23 @@ public class For extends Code {
     else {
       // step == -1
       code(" ldy " + variable);
-      code(" cpy ?for" + condi);
+      code("?smcfor1lo"+condi);
+      code(" cpy #0");
       if (typ == Type.BYTE) {
         code(" bcs ?go" + condi);
       }
       else {
         code(" lda " + variable + "+1");
-        code(" sbc ?for" + condi + "+1");
+        code("?smcfor1hi"+condi);
+        code(" sbc #0");
         code(" bcs ?go" + condi);
       }
     }
     final String exitVariable = "?exit" + condi;
     code(" jmp "+exitVariable);
     source.addBreakVariable(exitVariable);
-    source.addVariable("?FOR" + condi, typ);
-    source.getVariable("?FOR" + condi).setRead();
+//    source.addVariable("?FOR" + condi, typ);
+//    source.getVariable("?FOR" + condi).setRead();
     code("?go" + condi);
 
     nextSymbol = source.nextElement();
@@ -127,15 +134,18 @@ public class For extends Code {
 
     if (typ == Type.WORD) {
       code(" lda " + variable + "+1");
-      code(" cmp ?for" + condi + "+1");
+      code("?smcfor2hi"+condi);
+      code(" cmp #0");
       code(" bne ?next" + condi);
     }
     if (step == 1) {
       code(" lda " + variable);
-      code(" cmp ?for" + condi);
+      code("?smcfor2lo"+condi);
+      code(" cmp #0");
     }
     else {
-      code(" LDA ?FOR" + condi);
+      code("?for2lo"+condi);
+      code(" LDA #0");
       code(" CMP " + variable);
     }
     code(" BCS ?EXIT" + condi);

@@ -1293,7 +1293,7 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
       jsr_rts3(i, PeepholeType.JSR_RTS);
       jsr_rts4(i, PeepholeType.JSR_RTS);
       jsr_rts5(i, PeepholeType.JSR_RTS);
-//      jsr_rts(i, PeepholeType.JSR_RTS);
+      jsr_rts(i, PeepholeType.JSR_RTS);
     }
   }
 

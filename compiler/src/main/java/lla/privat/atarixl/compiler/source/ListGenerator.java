@@ -6,7 +6,7 @@ package lla.privat.atarixl.compiler.source;
 public abstract class ListGenerator {
 
   private final Source source;
-
+  
   public ListGenerator(Source source) {
     this.source = source;
   }
@@ -17,13 +17,14 @@ public abstract class ListGenerator {
 
   public void generateCode(int sizeOfArray) {
     StringBuilder line = new StringBuilder();
-    boolean setByte = true;
+    boolean setType = true;
     int valuesPerLine = 8;
     int valueCount = 0;
+    
     for (int i = 0; i < sizeOfArray; i++) {
-      if (setByte) {
+      if (setType) {
         line.append(' ').append(getType()).append(' ');
-        setByte = false;
+        setType = false;
       }
       final String element = getElement(i);
       String quotedElement = StringHelper.maybeString(element);
@@ -37,7 +38,7 @@ public abstract class ListGenerator {
       if (valueCount == valuesPerLine) {
         source.code(line.toString());
         valueCount = 0;
-        setByte = true;
+        setType = true;
         line = new StringBuilder();
       }
       else {

@@ -6,8 +6,9 @@ package lla.privat.atarixl.compiler;
 import java.io.File;
 import java.io.IOException;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -15,10 +16,10 @@ import lla.privat.atarixl.compiler.source.Source;
 
 public class ITMain {
 
-  private String tempPath;
+  private static String tempPath;
 
-  @Before
-  public void setUp() {
+  @BeforeClass
+  public static void setUpClass() {
     String OS = System.getProperty("os.name");
     if (OS.startsWith("Windows")) {
       tempPath = "C:/temp/atari";
@@ -33,6 +34,16 @@ public class ITMain {
     file.delete();
   }
 
+  @AfterClass
+  public static void tearDown() {
+    File file = new File(tempPath + "/TESTCRC.INC");
+    file.delete();
+
+    file = new File(tempPath + "/TSTSIEVE.ASM");
+    file.delete();
+  }
+  
+  @Ignore
   @Test
   public void testSimple() throws IOException {
     String simple = "src/test/resources/lla/privat/atarixl/compiler/simple.wnf";

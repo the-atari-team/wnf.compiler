@@ -44,9 +44,15 @@ public class Statement {
       nextSymbol = new RepeatUntil(source).statement(symbol).build();
     }
     else if (mnemonic.equals("FOR")) {
-      nextSymbol = new For(source).statement(symbol).build();
+      if (source.isSelfModifiedCode()) {
+        nextSymbol = new ForSMC(source).statement(symbol).build();
+      }
+      else {
+        nextSymbol = new For(source).statement(symbol).build();
+      }
     }
     else if (mnemonic.equals("ASSERT")) {
+      source.incrementAsserts();
       nextSymbol = new Assert(source).statement(symbol).build();
     }
     else if (mnemonic.equals("RETURN")) {

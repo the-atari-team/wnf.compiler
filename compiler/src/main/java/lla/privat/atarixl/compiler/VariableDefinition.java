@@ -10,12 +10,12 @@ import lla.privat.atarixl.compiler.expression.Type;
 
 /**
  * VariableDefinition, - was ist eine Variable vom Type, (BYTE, WORD, STRING,
- * BYTE_ARRAY, WORD_ARRAY) - wieviel Bytes belegt das Array - ArtOfUsage, wurde
+ * BYTE_ARRAY, WORD_ARRAY, WORD_SPLIT_ARRAY) - wieviel Bytes belegt das Array - ArtOfUsage, wurde
  * die Variable beschrieben, nur gelesen oder undefined (überflüssig)
  */
 public class VariableDefinition {
   private final String name;
-  private final Type type;
+  private Type type;
 
   private String address;
   private int sizeOfArray;
@@ -92,6 +92,10 @@ public class VariableDefinition {
     return type;
   }
 
+  public void setType(Type type) {
+    this.type = type;
+  }
+  
   @Override
   public int hashCode() {
     final int prime = 31;

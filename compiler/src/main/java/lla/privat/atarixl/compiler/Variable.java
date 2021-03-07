@@ -45,11 +45,16 @@ public class Variable {
    * <li>word name
    * <li>word name=1
    * <li>word array name[1]
+   * <li>word array name[257]
    * <li>word array name[1]=address
    * <li>word array name[1]=[1,2,3,$4,'Hallo']
    * Sonderfall (n > 255) (fat_byte_array)
    * <li>byte array name[256]
    *
+   * word array wird jetzt grundsätzlich ein split array sein, es sei den:
+   * <li>n ist größer als 256
+   * <li>es wird EINE Zahl (Adresse) oder Variable zugewiesen
+   *  
    * @param Symbol next symbol in source
    * @return
    */
@@ -104,11 +109,19 @@ public class Variable {
       if (mnemonic.equals("=")) {
         Symbol squaredBrackedOpenOrNumber = source.nextElement();
         if (squaredBrackedOpenOrNumber.getId() == SymbolEnum.number) {
+          if (lastType == Type.WORD_SPLIT_ARRAY) {
+            VariableDefinition definition = source.getVariable(name);
+            definition.setType(Type.FAT_WORD_ARRAY);
+          }
           String number = squaredBrackedOpenOrNumber.get();
           source.setVariableAddress(name, number);
           nextSymbol = source.nextElement();
         }
         else if (squaredBrackedOpenOrNumber.getId() == SymbolEnum.variable_name) {
+          if (lastType == Type.WORD_SPLIT_ARRAY) {
+            VariableDefinition definition = source.getVariable(name);
+            definition.setType(Type.FAT_WORD_ARRAY);
+          }
           String variable = squaredBrackedOpenOrNumber.get();
           source.setVariableAddress(name, variable);
 
@@ -144,13 +157,16 @@ public class Variable {
 
   private Type makeArrayType(Type type, int arrayCount) {
     if (type == Type.BYTE) {
-      if (arrayCount > 255) {
+      if (arrayCount > 256) {
         return Type.FAT_BYTE_ARRAY;
       }
       return Type.BYTE_ARRAY;
     }
     if (type == Type.WORD) {
-      return Type.WORD_ARRAY;
+      if (arrayCount > 256) {
+        return Type.FAT_WORD_ARRAY;
+      }
+      return Type.WORD_SPLIT_ARRAY;
     }
     source.error(new Symbol("", SymbolEnum.noSymbol), "unexpected array assignment");
     return null;
@@ -196,7 +212,7 @@ public class Variable {
       else if (id == SymbolEnum.string) {
         ++localValues;
         String string = valueSymbol.get();
-        if (lastType == Type.WORD_ARRAY) {
+        if (lastType == Type.WORD_ARRAY || lastType == Type.WORD_SPLIT_ARRAY) {
           source.addVariable(string, Type.STRING);
           String name = "?STRING" + source.getVariablePosition(string);
           arrayValues.add(name);

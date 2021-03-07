@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import lla.privat.atarixl.compiler.Symbol;
-import lla.privat.atarixl.compiler.expression.Expression;
 import lla.privat.atarixl.compiler.source.Code;
 import lla.privat.atarixl.compiler.source.Source;
 
@@ -24,9 +23,9 @@ public class Break extends Code {
     this.source = source;
   }
 
-  public void code(final String sourcecodeline) {
+  public int code(final String sourcecodeline) {
     LOGGER.debug(sourcecodeline);
-    codeGen(sourcecodeline);
+    return codeGen(sourcecodeline);
   }
 
   public Break statement(Symbol symbol) {

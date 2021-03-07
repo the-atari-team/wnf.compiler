@@ -297,6 +297,68 @@ public class TestAssignment {
     Assert.assertEquals(" TXA", source.getCode().get(++n));
     Assert.assertEquals(" STA (@PUTARRAY),Y", source.getCode().get(++n));
   }
+
+  @Test
+  public void testAssignmentToSplitWordArray() {
+    Source source = new Source("y[1]:=x").setVerboseLevel(2);
+    source.addVariable("X", Type.WORD);
+    source.addVariable("Y", Type.WORD_SPLIT_ARRAY);
+    
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Assignment(source).assign(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("X"));
+
+    int n=-1;
+    Assert.assertEquals("; (5)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #<1", source.getCode().get(++n));
+    Assert.assertEquals(" STY @PUTARRAY", source.getCode().get(++n));
+
+    Assert.assertEquals("; (6)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY X", source.getCode().get(++n));
+    Assert.assertEquals(" LDX X+1", source.getCode().get(++n));
+
+    Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n));
+    Assert.assertEquals(" TYA", source.getCode().get(++n));
+    Assert.assertEquals(" LDX @PUTARRAY", source.getCode().get(++n));
+    Assert.assertEquals(" STA Y_LOW,X", source.getCode().get(++n));
+    Assert.assertEquals(" LDA @PUTARRAY+1", source.getCode().get(++n));
+    Assert.assertEquals(" STA Y_HIGH,X", source.getCode().get(++n));
+  }
+
+  @Test
+  public void testAssignmentNumberToSplitWordArray() {
+    Source source = new Source("y[0]:=1").setVerboseLevel(2);
+    source.addVariable("Y", Type.WORD_SPLIT_ARRAY);
+    
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Assignment(source).assign(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    int n=-1;
+    Assert.assertEquals("; (5)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #<0", source.getCode().get(++n));
+    Assert.assertEquals(" STY @PUTARRAY", source.getCode().get(++n));
+
+    Assert.assertEquals("; (5)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #<1", source.getCode().get(++n));
+    Assert.assertEquals(" LDX #0", source.getCode().get(++n));
+
+    Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n));
+    Assert.assertEquals(" TYA", source.getCode().get(++n));
+    Assert.assertEquals(" LDX @PUTARRAY", source.getCode().get(++n));
+    Assert.assertEquals(" STA Y_LOW,X", source.getCode().get(++n));
+    Assert.assertEquals(" LDA @PUTARRAY+1", source.getCode().get(++n));
+    Assert.assertEquals(" STA Y_HIGH,X", source.getCode().get(++n));
+  }
+
   @Test
   public void testAssignmentToByteWithFunctionSomething() {
     Source source = new Source("n := @something()").setVerboseLevel(2);
@@ -358,7 +420,7 @@ public class TestAssignment {
     Assert.assertEquals(" INY", source.getCode().get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", source.getCode().get(++n));
     Assert.assertEquals("; (14)", source.getCode().get(++n));
-    Assert.assertEquals(" JSR @STRCMP", source.getCode().get(++n));
+    Assert.assertEquals(" JSR @STRCMP_II", source.getCode().get(++n));
     Assert.assertEquals(" STY N", source.getCode().get(++n));
   }
 

@@ -24,9 +24,9 @@ public class RepeatUntil extends Code {
     this.source = source;
   }
 
-  public void code(final String sourcecodeline) {
+  public int code(final String sourcecodeline) {
     LOGGER.debug(sourcecodeline);
-    codeGen(sourcecodeline);
+    return codeGen(sourcecodeline);
   }
 
   public RepeatUntil statement(final Symbol symbol) {

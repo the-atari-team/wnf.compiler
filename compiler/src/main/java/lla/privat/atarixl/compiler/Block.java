@@ -44,7 +44,7 @@ public class Block extends Code {
     Symbol nextSymbol = new Program(source).program(currentSymbol).build();
 
     code(";Compiled with WiNiFe Compiler");
-    code(";cdw by 'The Atari Team' 1990-2020");
+    code(";cdw by 'The Atari Team' 1990-2021");
     code(";LLA: make it work again");
 
     if (!source.isProgram()) {
@@ -53,7 +53,6 @@ public class Block extends Code {
 
     code(" .OPT LIST");
     code(" .TITLE " + StringHelper.makeDoubleQuotedString(source.getProgramOrIncludeName()));
-
     if (source.isProgram()) {
       code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("VARIABLE.INC")));
       code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("HARDWARE.INC")));
@@ -220,12 +219,16 @@ public class Block extends Code {
     return lines;
   }
 
-  public void code(final String sourcecodeline) {
+  public int code(final String sourcecodeline) {
     LOGGER.debug(sourcecodeline);
-    codeGen(sourcecodeline);
+    return codeGen(sourcecodeline);
   }
 
   public Symbol build() {
+    if (source.getFilename().startsWith("test") && source.getCountOfAsserts() == 0) {
+      // source.error(Symbol.noSymbol(), "Tests should contain at least an assert()");
+      source.warn("Tests should contain at least one assert() function call!");
+    }
     return nextSymbol;
   }
 

@@ -31,6 +31,7 @@ public class TestFunction {
     Assert.assertEquals(";", code.get(++n));
 
     Assert.assertEquals("NAME", code.get(++n));
+    Assert.assertEquals("; NAME", code.get(++n));
     Assert.assertEquals("; function body", code.get(++n));
     Assert.assertEquals("; function end", code.get(++n));
     Assert.assertEquals("?RETURN1", code.get(++n));
@@ -57,6 +58,7 @@ public class TestFunction {
     Assert.assertEquals(";", code.get(++n));
 
     Assert.assertEquals("NAME", code.get(++n));
+    Assert.assertEquals("NAME_I", code.get(++n));
     Assert.assertEquals(" LDX ONE", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
@@ -102,6 +104,7 @@ public class TestFunction {
     Assert.assertEquals(";", code.get(++n));
     
     Assert.assertEquals("NAME", code.get(++n));
+    Assert.assertEquals("NAME_II", code.get(++n));
     Assert.assertEquals(" LDX ONE", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
@@ -167,6 +170,7 @@ public class TestFunction {
     Assert.assertEquals(";", code.get(++n));
 
     Assert.assertEquals("NAME", code.get(++n));
+    Assert.assertEquals("NAME_I", code.get(++n));
     Assert.assertEquals(" LDX ONE", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));

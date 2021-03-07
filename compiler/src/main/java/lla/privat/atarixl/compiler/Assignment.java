@@ -33,9 +33,9 @@ public class Assignment extends Code {
     this.source = source;
   }
 
-  public void code(final String sourcecodeline) {
+  public int code(final String sourcecodeline) {
     LOGGER.debug(sourcecodeline);
-    codeGen(sourcecodeline);
+    return codeGen(sourcecodeline);
   }
 
   /**
@@ -56,8 +56,13 @@ public class Assignment extends Code {
 
         int width = source.getVariableSize(name);
 
-        if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY) {
+        if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY ||
+            source.getVariableType(name) == Type.WORD_ARRAY ||
+            source.getVariableType(name) == Type.FAT_WORD_ARRAY) {
           width = 2;
+        }
+        if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY) {
+          width = 1;
         }
         Symbol arrayAccess = source.nextElement();
         Symbol squaredBracketClose = new Expression(source).setWidth(width).expression(arrayAccess).build();
@@ -74,7 +79,11 @@ public class Assignment extends Code {
           code(" tya");
           code(" putarrayb " + name);
         }
-        else if (source.getVariableType(name) == Type.WORD_ARRAY) {
+        else if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY) {
+          code(" sty @putarray");
+        }
+        else if (source.getVariableType(name) == Type.WORD_ARRAY ||
+            source.getVariableType(name) == Type.FAT_WORD_ARRAY ) {
           if (source.getErgebnis().getBytes() == 1) {
             code(" ldx #0");
           }
@@ -115,7 +124,24 @@ public class Assignment extends Code {
           code(" ldy #0");
           code(" sta (@putarray),y");
         }
-        else if (source.getVariableType(name) == Type.WORD_ARRAY) {
+        else if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY) {
+          if (source.getErgebnis() == Type.BYTE) {
+            code(" ldx #0");
+          }
+          // y/x contains value should copied to name,x and name,x
+          code(" stx @putarray+1"); // zwischenspeichern
+          code(" tya");
+          code(" ldx @putarray");
+          code(" sta " + name + "_low,x");
+          code(" lda @putarray+1"); // aus dem zwischenspeicher holen
+          code(" sta " + name + "_high,x");
+        }
+        else if (source.getVariableType(name) == Type.WORD_ARRAY ||
+            source.getVariableType(name) == Type.FAT_WORD_ARRAY) {
+//          if (source.getErgebnis() == Type.BYTE) {
+// TODO herausfinden, ob ich hier hin komme!
+//            code(" ldx #0");
+//          }
           code(" tya");
           code(" ldy #0");
           code(" sta (@putarray),y");

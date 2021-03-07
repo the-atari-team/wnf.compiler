@@ -70,9 +70,9 @@ public class Program extends Code {
     return this;
   }
 
-  public void code(final String sourcecodeline) {
+  public int code(final String sourcecodeline) {
     LOGGER.debug(sourcecodeline);
-    codeGen(sourcecodeline);
+    return codeGen(sourcecodeline);
   }
 
   public Symbol build() {

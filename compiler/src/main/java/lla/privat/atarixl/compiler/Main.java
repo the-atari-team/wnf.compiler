@@ -49,6 +49,8 @@ public class Main {
 
   private List<String> includePaths;
 
+  private boolean selfModifiedCode = false;
+  
   protected Main() {
     optimisationLevel = 0;
     verboseLevel = 0;
@@ -62,19 +64,20 @@ public class Main {
     outputPath = null;
   }
 
-  public Main(String filename) throws IOException {
+  public Main(String filename) {
     this(filename, 0, 0);
   }
 
-  public Main(String filename, int optimize, int verboseLevel) throws IOException {
-    this(filename, optimize, verboseLevel, null);
+  public Main(String filename, int optimize, int verboseLevel) {
+    this(filename, optimize, verboseLevel, null, false);
   }
 
-  public Main(String filename, int optimize, int verboseLevel, String outputPath) throws IOException {
+  public Main(String filename, int optimize, int verboseLevel, String outputPath, boolean selfModifiedCode) {
     this.filename = filename;
     this.optimisationLevel = optimize;
     this.verboseLevel = verboseLevel;
     this.outputPath = outputPath;
+    this.selfModifiedCode = selfModifiedCode;
   }
 
   public Main setOutputPath(String outputPath) {
@@ -92,6 +95,7 @@ public class Main {
     LOGGER.info(" -v level | --verbose level  - be more verbose");
     LOGGER.info(" -I path                     - include path to search for includes, can given more than once.");
     LOGGER.info(" -o path                     - set output path, where the ASM file is stored.");
+    LOGGER.info(" -smc                        - if given, allow self modified code (smc). (Experimental)");
     LOGGER.info(" -h | --help                 - display this help and exit.");
   }
 
@@ -104,6 +108,7 @@ public class Main {
 
     int optimisationLevel = 0;
     int verboseLevel = 0;
+    boolean selfModifiedCode = false;
     String outputpath = "";
     List<String> includePaths = new ArrayList<>();
 
@@ -123,6 +128,10 @@ public class Main {
       else if (parameter.equals("-o")) {
         outputpath = args[index + 1];
         ++index;
+      }
+      else if (parameter.equals("-smc")) {
+        LOGGER.warn("SMC Parameter given, use self modified code. Expect the unexpected!");
+        selfModifiedCode = true;
       }
       else if (parameter.equals("-I")) {
         String additionalIncludePath = args[index + 1];
@@ -162,7 +171,7 @@ public class Main {
         basename = new File(file.getAbsolutePath()).getParent();
         outputpath = basename;
       }
-      final Main main = new Main(filename, optimisationLevel, verboseLevel, outputpath);
+      final Main main = new Main(filename, optimisationLevel, verboseLevel, outputpath, selfModifiedCode);
       main.setIncludePath(includePaths);
       if (!basename.isEmpty()) {
         main.addIncludePath(basename);
@@ -189,8 +198,9 @@ public class Main {
       throw new FileNotFoundException("ERROR: Given file does not exist.");
     }
 
-    String wnfProgram = new SourceReader(this.filename).readFile();
-    this.source = new Source(wnfProgram);
+    String wnfProgramCode = new SourceReader(this.filename).readFile();
+    this.source = new Source(wnfProgramCode);
+    this.source.setFilename(this.filename);
     this.source.setVerboseLevel(verboseLevel);
     if (includePaths != null) {
       this.source.setIncludePaths(includePaths);
@@ -198,6 +208,7 @@ public class Main {
     if (outputPath == null) {
       this.outputPath = this.filename;
     }
+    this.source.setSelfModifiedCode(selfModifiedCode);
     return this;
   }
 

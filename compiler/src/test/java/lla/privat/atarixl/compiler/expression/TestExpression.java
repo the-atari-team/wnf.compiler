@@ -299,10 +299,10 @@ public class TestExpression {
     setupExpression(source);
 
     // zahl <value> push zahl <value> pull add
-    Assert.assertEquals("180 0 64 0", expressionSUT.joinedPCode());
+    Assert.assertEquals("180 0 64 0 0", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("180 0 64 0 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("180 0 64 0 0 9999999", expressionSUT.joinedPCode());
   }
 
   @Test
@@ -313,10 +313,10 @@ public class TestExpression {
     setupExpression(source);
 
     // zahl <value> push zahl <value> pull add
-    Assert.assertEquals("160 48 162 180 0 160 123 181 0 64 0 163 8", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 48 162 180 0 160 123 181 0 64 0 1 163 8", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 48 162 180 0 167 123 181 0 64 0 163 8 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 48 162 180 0 167 123 181 0 64 0 1 163 8 9999999", expressionSUT.joinedPCode());
   }
 
   @Test
@@ -327,10 +327,10 @@ public class TestExpression {
     setupExpression(source);
 
     // zahl <value> push zahl <value> pull add
-    Assert.assertEquals("160 48 162 180 0 160 123 162 160 2 163 9 181 0 64 0 163 8", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 48 162 180 0 160 123 162 160 2 163 9 181 0 64 0 1 163 8", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 48 162 180 0 167 123 17 167 2 181 0 64 0 163 8 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 48 162 180 0 167 123 17 167 2 181 0 64 0 1 163 8 9999999", expressionSUT.joinedPCode());
   }
 
   // innerhalb von Ausdrücken wollen wir keine Strings, das sollten wir nur in
@@ -346,13 +346,13 @@ public class TestExpression {
     // zahl <value> push zahl <value> pull add
     System.out.println(expressionSUT.joinedPCode());
     Assert.assertEquals(
-        "160 48 162 180 0 172 2 181 0 172 3 181 1 160 2 162 168 0 162 160 4 163 10 163 8 181 2 64 1 163 8",
+        "160 48 162 180 0 172 2 181 0 172 3 181 1 160 2 162 168 0 162 160 4 163 10 163 8 181 2 64 1 3 163 8",
         expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
     System.out.println(expressionSUT.joinedPCode());
     Assert.assertEquals(
-        "167 48 162 180 0 172 2 181 0 172 3 181 1 167 2 162 168 0 18 167 4 163 8 181 2 64 1 163 8 9999999",
+        "167 48 162 180 0 172 2 181 0 172 3 181 1 167 2 162 168 0 18 167 4 163 8 181 2 64 1 3 163 8 9999999",
         expressionSUT.joinedPCode());
   }
 
@@ -364,10 +364,10 @@ public class TestExpression {
     setupExpression(source);
 
     // zahl <value> push zahl <value> pull add
-    Assert.assertEquals("180 0 172 1 181 0 172 1 181 1 64 0", expressionSUT.joinedPCode());
+    Assert.assertEquals("180 0 172 1 181 0 172 1 181 1 64 0 2", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("180 0 172 1 181 0 172 1 181 1 64 0 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("180 0 172 1 181 0 172 1 181 1 64 0 2 9999999", expressionSUT.joinedPCode());
   }
 
   @Test
@@ -380,11 +380,11 @@ public class TestExpression {
 
     // zahl <value> push zahl <value> pull add
     System.out.println(expressionSUT.joinedPCode());
-    Assert.assertEquals("180 0 172 2 181 0 180 1 160 1 181 0 64 1 182 1 181 1 64 0", expressionSUT.joinedPCode());
+    Assert.assertEquals("180 0 172 2 181 0 180 1 160 1 181 0 64 1 1 182 1 181 1 64 0 2", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
     System.out.println(expressionSUT.joinedPCode());
-    Assert.assertEquals("180 0 172 2 181 0 180 1 167 1 181 0 64 1 182 1 181 1 64 0 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("180 0 172 2 181 0 180 1 167 1 181 0 64 1 1 182 1 181 1 64 0 2 9999999", expressionSUT.joinedPCode());
   }
 
   @Test
@@ -432,10 +432,10 @@ public class TestExpression {
     setupExpression(source);
 
     // zahl <value> push zahl <value> pull add
-    Assert.assertEquals("180 0 65 0", expressionSUT.joinedPCode());
+    Assert.assertEquals("180 0 65 0 0", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("180 0 65 0 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("180 0 65 0 0 9999999", expressionSUT.joinedPCode());
   }
 
   @Test
@@ -500,6 +500,6 @@ public class TestExpression {
     setupExpression(source);
 
     String joinedPCode = expressionSUT.joinedPCode();
-    Assert.assertEquals("180 0 168 0 181 0 160 159 162 168 1 163 9 181 1 64 2", joinedPCode);
+    Assert.assertEquals("180 0 168 0 181 0 160 159 162 168 1 163 9 181 1 64 2 2", joinedPCode);
   }
 }

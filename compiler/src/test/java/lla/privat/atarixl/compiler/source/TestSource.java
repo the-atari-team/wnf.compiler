@@ -263,4 +263,42 @@ public class TestSource {
     Assert.assertEquals(" .WORD 1,-1,255", code.get(++n));
   }
 
+  @Test
+  public void testGenerateVariables_wordSplitArrayWithLength() {
+    String program = "";
+    Source sourceSUT = new Source(program);
+
+    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 15);
+
+    sourceSUT.generateVariables();
+
+    List<String> code = sourceSUT.getCode();
+
+    int n = -1;
+    Assert.assertEquals("HALLO_LOW", code.get(++n));
+    Assert.assertEquals(" *=*+15", code.get(++n));
+    Assert.assertEquals("HALLO_HIGH", code.get(++n));
+    Assert.assertEquals(" *=*+15", code.get(++n));
+  }
+
+  @Test
+  public void testGenerateVariables_wordSplitArrayWithValues() {
+    String program = "";
+    Source sourceSUT = new Source(program);
+
+    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 10);
+    List<String> arrayValues = Arrays.asList("1", "-1", "255");
+    sourceSUT.setVariableArray("HALLO", arrayValues);
+
+    sourceSUT.generateVariables();
+
+    List<String> code = sourceSUT.getCode();
+
+    int n = -1;
+    Assert.assertEquals("HALLO_LOW", code.get(++n));
+    Assert.assertEquals(" .BYTE <1,<-1,<255", code.get(++n));
+    Assert.assertEquals("HALLO_HIGH", code.get(++n));
+    Assert.assertEquals(" .BYTE >1,>-1,>255", code.get(++n));
+  }
+
 }

@@ -190,7 +190,7 @@ weitere lokale Variablen können mit `LOCAL` name,... angelegt
 werden, auch diese Variablen landen auf dem Heap.
 Die Variablen müssen aber auch schon global existieren.
 Funktion können an beliebiger Stelle mit `RETURN wert` verlassen werden,
-der Wert muss angegeben werden und wird einer Variablen zugewiesen,
+der Wert muss immer angegeben werden und wird einer Variablen zugewiesen,
 damit das klappt, muss der Funktionsname mit '@' beginnen.
 void Funktionen wie in C, gibt es nicht, dafür sind die Proceduren.
 

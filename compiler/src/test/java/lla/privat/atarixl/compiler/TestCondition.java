@@ -152,6 +152,7 @@ public class TestCondition {
     Assert.assertEquals(" LDY Y", code.get(++n));
     Assert.assertEquals(" STY @ERG", code.get(++n));
     Assert.assertEquals(" LDY #<1", code.get(++n));
+    Assert.assertEquals("; Bedingung (a==b)", code.get(++n));
     Assert.assertEquals(" CPY @ERG", code.get(++n));
     Assert.assertEquals(" BNE ?FA2", code.get(++n));
     Assert.assertEquals(" JMP ?TRUE", code.get(++n));

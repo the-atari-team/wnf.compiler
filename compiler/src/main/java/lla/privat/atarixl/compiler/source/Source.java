@@ -64,9 +64,15 @@ public class Source implements Enumeration<Symbol> {
   // Ergebnis der letzten Expression
   private Type ergebnis;
 
-  public Source(final String program) {
+  private int countOfAsserts = 0;
+
+  private String filename = "";
+  
+  private boolean selfModifiedCode;
+  
+  public Source(final String sourceCode) {
     this.showCode = false;
-    this.programTokenizer = new SymbolTokenizer(program + " "); // TODO: Das Whitespace am Ende macht vieles einfacher!
+    this.programTokenizer = new SymbolTokenizer(sourceCode + " "); // TODO: Das Whitespace am Ende macht vieles einfacher!
     variables = new HashMap<>();
 
     variableList = new ArrayList<>();
@@ -88,8 +94,17 @@ public class Source implements Enumeration<Symbol> {
 
   public void setProgramOrIncludeName(String name) {
     this.programOrIncludeName = name;
+    if (name.length() > 8) {
+      error(new Symbol(name, SymbolEnum.variable_name), "Program or Include name too long. 8 char max.");
+    }
   }
 
+  public void setFilename(String filename) {
+    this.filename = filename;
+  }
+  public String getFilename() {
+    return filename;
+  }
   /**
    * Der Prefix innerhalb der Includes kommt aus der 1. Zeile INCLUDE
    * <prefix>:<name>
@@ -139,6 +154,16 @@ public class Source implements Enumeration<Symbol> {
     return this;
   }
 
+  public boolean isSelfModifiedCode() {
+    return selfModifiedCode;
+  }
+
+  public void setSelfModifiedCode(boolean selfModifiedCode) {
+    this.selfModifiedCode = selfModifiedCode;
+  }
+
+  
+  
 //
 //                                                   OO        OOO                               OOOOOO                   OO
 //                                                   OO         OO                              OO    OO                  OO
@@ -150,17 +175,27 @@ public class Source implements Enumeration<Symbol> {
 //
 
   // add one line to the assembler code
-  public void code(String sourcecode) {
+  public int code(String sourcecode) {
+    int n = assemblerCodeList.size();
     assemblerCodeList.add(sourcecode);
+    return n;
   }
 
   // add a bunch of lines to the assembler code
-  public void code(List<String> sourcecodeList) {
+  public int code(List<String> sourcecodeList) {
+    int n = assemblerCodeList.size();
     for (String item : sourcecodeList) {
       assemblerCodeList.add(item);
     }
+    return n;
   }
 
+  public void replaceCode(int index, String codeToReplace) {
+    if (index != 0) {
+      assemblerCodeList.set(index, codeToReplace);
+    }
+  }
+  
   public List<String> getCode() {
     return assemblerCodeList;
   }
@@ -384,6 +419,19 @@ public class Source implements Enumeration<Symbol> {
     }
     return 0;
   }
+  
+  public String generateFunctionNameWithParameters(String name, int countOfParameters) {
+    if (countOfParameters > 0) {
+      StringBuilder nameBuilder = new StringBuilder();
+      nameBuilder.append(name);
+      nameBuilder.append('_');
+      for (int i=0;i<countOfParameters;i++) {
+        nameBuilder.append("I");
+      }
+      return nameBuilder.toString();
+    }
+    return name;
+  }
 
   //
 //  OOOOOO                                                      OO                                                  OO            OO        OOO
@@ -403,7 +451,7 @@ public class Source implements Enumeration<Symbol> {
 
       if (getVariableType(name) != Type.STRING) {
         if (!definition.hasAnyAccess()) {
-          LOGGER.warn("Variable: '{}' is not used.", name);
+          warn("Variable: '{}' is not used.", name);
         }
       }
     }
@@ -445,6 +493,7 @@ public class Source implements Enumeration<Symbol> {
 
     case FUNCTION:
     case PROCEDURE:
+    case FUNCTION_POINTER:
       // FUNCTION and PROCEDURE are already defined as Sourcecode
       break;
 
@@ -472,15 +521,20 @@ public class Source implements Enumeration<Symbol> {
       break;
 
     case WORD_ARRAY:
+    case FAT_WORD_ARRAY:
       generateWordArray(name, definition);
       break;
-
+    case WORD_SPLIT_ARRAY:
+      generateWordSplitArray(name, definition);
+      break;
     case STRING:
       String stringName = "?STRING" + getVariablePosition(name);
       code(stringName);
       code(" .BYTE " + StringHelper.makeDoubleQuotedString(name) + "," + STRING_END_MARK);
       break;
-    default:
+    case UNKNOWN:
+      break;
+//    default:
     }
   }
 
@@ -503,7 +557,38 @@ public class Source implements Enumeration<Symbol> {
       code(name);
       code(" *=*+" + (definition.getSizeOfArray() * 2));
     }
+  }
 
+  private void generateWordSplitArray(String name, VariableDefinition definition) {
+    if (definition.getAddress() != null) {
+      // code(name + " = " + definition.getAddress());
+      // TODO: This is not supported!
+    }
+    else if (!definition.getArrayContent().isEmpty()) {
+      code(name+"_LOW");
+      ByteListGenerator generatorlow = new ByteListGenerator(this) {
+        @Override
+        public String getElement(int index) {
+          return "<"+definition.getArrayElement(index);
+        }
+      };
+      generatorlow.generateCode(definition.getArrayContent().size());
+
+      code(name+"_HIGH");
+      ByteListGenerator generatorhigh = new ByteListGenerator(this) {
+        @Override
+        public String getElement(int index) {
+          return ">"+definition.getArrayElement(index);
+        }
+      };
+      generatorhigh.generateCode(definition.getArrayContent().size());
+    }
+    else {
+      code(name+"_LOW");
+      code(" *=*+" + definition.getSizeOfArray());
+      code(name+"_HIGH");
+      code(" *=*+" + definition.getSizeOfArray());
+    }
   }
 
   private void generateByteArray(String name, VariableDefinition definition) {
@@ -579,7 +664,7 @@ public class Source implements Enumeration<Symbol> {
 
   public void throwIfNotArrayType(Type type) {
     if (type == Type.BYTE || type == Type.WORD) {
-      error(new Symbol("", SymbolEnum.noSymbol), "variable must from type array");
+      error(Symbol.noSymbol(), "variable must from type array");
     }
   }
 
@@ -599,6 +684,16 @@ public class Source implements Enumeration<Symbol> {
     programTokenizer.error(symbol, message);
   }
 
+  /**
+   * give out warning
+   */
+  public void warn(String message) {
+    LOGGER.warn(message);
+  }
+  
+  public void warn(String message, Object arg) {
+    LOGGER.warn(message, arg);
+  }
 //
 //                                           OO
 //                                           OO
@@ -689,5 +784,17 @@ public class Source implements Enumeration<Symbol> {
       error(new Symbol("BREAK", SymbolEnum.variable_name), "We are not inside a breakable stage.");
     }
     return breakVariable.peek();
+  }
+
+  /**
+   * return count of used asserts, helpful for more tests
+   * @return count of used asserts
+   */
+  public int getCountOfAsserts() {
+    return countOfAsserts;
+  }
+
+  public void incrementAsserts() {
+    ++countOfAsserts;
   }
 }

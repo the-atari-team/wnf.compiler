@@ -13,6 +13,10 @@ public class Symbol {
     this.id = id;
   }
 
+  public static Symbol noSymbol() {
+    return new Symbol("", SymbolEnum.noSymbol);
+  }
+
   public String get() {
     return this.value;
   }

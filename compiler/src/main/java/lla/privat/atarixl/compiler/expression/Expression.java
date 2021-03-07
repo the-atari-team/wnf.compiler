@@ -71,9 +71,9 @@ public class Expression extends Code {
     return mayBeUnaryOperator.equals("+") || mayBeUnaryOperator.equals("-");
   }
 
-  public void code(final String sourcecodeline) {
+  public int code(final String sourcecodeline) {
     LOGGER.debug(sourcecodeline);
-    codeGen(sourcecodeline);
+    return codeGen(sourcecodeline);
   }
 
   public Symbol build() {
@@ -359,14 +359,16 @@ protected void functionCallAccess(String name, Type type) {
     }
   }
   if (type.equals(Type.FUNCTION)) {
-  // Endlich der Funktionsaufruf
-  p_code.add(PCode.FUNCTION.getValue());
-  p_code.add(source.getVariablePosition(name));
-  source.getVariable(name).setRead();
+    // Endlich der Funktionsaufruf
+    p_code.add(PCode.FUNCTION.getValue());
+    p_code.add(source.getVariablePosition(name));
+    p_code.add(localParameterCount);
+    source.getVariable(name).setRead();
   }
   else if (type.equals(Type.FUNCTION_POINTER)) {
     p_code.add(PCode.FUNCTION_POINTER.getValue());
     p_code.add(source.getVariablePosition(name));
+    p_code.add(localParameterCount);
     source.getVariable(name).setRead();    
   }
   else {
@@ -384,6 +386,8 @@ protected void functionCallAccess(String name, Type type) {
 }
   protected void addressAccess() {
     Symbol peekSymbol = source.nextElement(); // ":"
+    source.match(peekSymbol, ":");
+
     Symbol nameSymbol = source.nextElement(); // address of name
     p_code.add(PCode.NOP.getValue());
     p_code.add(PCode.ADDRESS.getValue());
@@ -417,8 +421,14 @@ protected void functionCallAccess(String name, Type type) {
       p_code.add(PCode.FAT_BYTE_ARRAY.getValue());
       p_code.add(source.getVariablePosition(name));
     }
-    else if (variable.getType() == Type.WORD_ARRAY) {
+    else if (variable.getType() == Type.WORD_ARRAY ||
+        variable.getType() == Type.FAT_WORD_ARRAY) {
       p_code.add(PCode.WORD_ARRAY.getValue());
+      p_code.add(source.getVariablePosition(name));
+      ergebnis = Type.WORD;
+    }
+    else if (variable.getType() == Type.WORD_SPLIT_ARRAY) {
+      p_code.add(PCode.WORD_SPLIT_ARRAY.getValue());
       p_code.add(source.getVariablePosition(name));
       ergebnis = Type.WORD;
     }
@@ -505,6 +515,7 @@ protected void functionCallAccess(String name, Type type) {
           p_code.get(i) == PCode.BYTE_ARRAY.getValue() ||
           p_code.get(i) == PCode.FAT_BYTE_ARRAY.getValue() ||
           p_code.get(i) == PCode.WORD_ARRAY.getValue() ||
+          p_code.get(i) == PCode.WORD_SPLIT_ARRAY.getValue() ||
           p_code.get(i) == PCode.ADDRESS.getValue() ||
           p_code.get(i) == PCode.FUNCTION.getValue() ||
           p_code.get(i) == PCode.STRING.getValue()

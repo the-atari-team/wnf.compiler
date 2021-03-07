@@ -71,8 +71,8 @@ public class PCodeToAssembler extends Code {
     source.code(assemblerCodeList);
   }
 
-  public void code(final String sourcecodeline) {
-    codeGen(sourcecodeline);
+  public int code(final String sourcecodeline) {
+    return codeGen(sourcecodeline);
   }
 
 
@@ -386,6 +386,21 @@ public class PCodeToAssembler extends Code {
         // y+256+x are set with a value out of getarrayw
         a = a + 2;
       }
+      // -------------------------------
+      else if (currentPCode == PCode.WORD_SPLIT_ARRAY.getValue()) {
+        code("; (11.2)"); // TEST VORHANDEN
+        int num = p_code.get(a + 1);
+        a$ = source.getVariableAt(num);
+        // Type typ = source.getVariableType(a$);
+        // if (typ == Type.BYTE_ARRAY) {
+          code(" ldx " + a$ + "_high,y");
+          code(" lda " + a$ + "_low,y");
+          code(" tay");
+        // }
+        // y+256*x are set
+        a = a + 2;
+      }
+      // -------------------------------        
       else if (currentPCode == PCode.FAT_BYTE_ARRAY.getValue()) {
         code(";#2 (12.2)"); // TEST VORHANDEN
         int num = p_code.get(a + 1);
@@ -437,9 +452,11 @@ public class PCodeToAssembler extends Code {
       else if (currentPCode == PCode.FUNCTION.getValue()) {
         code(";#2 (14)");
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
+        int parameterCount = p_code.get(a+2);
         a$ = source.getVariableAt(num);
-        code(" jsr " + a$); // ;" ; -->func"
-        a = a + 2;
+        String functionName = source.generateFunctionNameWithParameters(a$, parameterCount); 
+        code(" jsr " + functionName); // ;" ; -->func"
+        a = a + 3;
       }
       else if (currentPCode == PCode.FUNCTION_POINTER.getValue()) {
         code(";#2 (14 ptr)");
@@ -448,7 +465,7 @@ public class PCodeToAssembler extends Code {
         code(" ldy " + a$); // ;" ;Inhalt der Variable nach y,x"
         code(" ldx " + a$ + "+1");
         code(" jsr @function_pointer"); // ;" ; --> func ptr"
-        a = a + 2;
+        a = a + 3;
       }
       else if (currentPCode == PCode.STRING.getValue()) {
         code(";#2 (15)");
