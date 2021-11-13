@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.source;
@@ -11,7 +11,7 @@ public class TestCode {
 
   private Code codeSUT;
   private Source source;
-  
+
   @Before
   public void setUp() {
     source = new Source("");
@@ -22,11 +22,11 @@ public class TestCode {
       }
     };
   }
-  
+
   @Test
   public void addRealCodeLine() {
     codeSUT.code(" test");
-    
+
     Assert.assertEquals(" TEST", source.getCode().get(0));
   }
 
@@ -38,7 +38,7 @@ public class TestCode {
   @Test
   public void addCommentLineLevel1() {
     codeSUT.code(";#1 test");
-    
+
     Assert.assertEquals(0, source.getCode().size());
   }
 
@@ -46,15 +46,15 @@ public class TestCode {
   public void addCommentLineVerboseLevel1wish1() {
     source.setVerboseLevel(1);
     codeSUT.code(";#1 test");
-    
+
     Assert.assertEquals("; test", source.getCode().get(0));
   }
-  
+
   @Test
   public void addCommentLineVerboseLevel2wish1() {
     source.setVerboseLevel(2);
     codeSUT.code(";#1 test");
-    
+
     Assert.assertEquals("; test", source.getCode().get(0));
   }
 
@@ -62,7 +62,7 @@ public class TestCode {
   public void addCommentLineVerboseLevel3wish1() {
     source.setVerboseLevel(3);
     codeSUT.code(";#1 test");
-    
+
     Assert.assertEquals("; test", source.getCode().get(0));
   }
 
@@ -70,14 +70,14 @@ public class TestCode {
   public void addCommentLineVerboseLevel3wish2() {
     source.setVerboseLevel(3);
     codeSUT.code(";#2 test");
-    
+
     Assert.assertEquals("; test", source.getCode().get(0));
   }
   @Test
   public void addCommentLineVerboseLevel3wish3() {
     source.setVerboseLevel(3);
     codeSUT.code(";#3 test");
-    
+
     Assert.assertEquals("; test", source.getCode().get(0));
   }
 }

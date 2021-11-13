@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -50,11 +50,12 @@ public class Variable {
    * <li>word array name[1]=[1,2,3,$4,'Hallo']
    * Sonderfall (n > 255) (fat_byte_array)
    * <li>byte array name[256]
+   * <li>const name=1
    *
    * word array wird jetzt grundsätzlich ein split array sein, es sei den:
    * <li>n ist größer als 256
    * <li>es wird EINE Zahl (Adresse) oder Variable zugewiesen
-   *  
+   *
    * @param Symbol next symbol in source
    * @return
    */
@@ -62,14 +63,23 @@ public class Variable {
     Type lastType = Type.UNKNOWN;
     String mnemonic = symbol.get();
 
-    if (mnemonic.equals("BYTE")) {
+    if (mnemonic.equals("BYTE") || mnemonic.equals("UINT8")) {
       lastType = Type.BYTE;
     }
-    else if (mnemonic.equals("WORD")) {
+    else if (mnemonic.equals("INT8")) {
+      lastType = Type.INT8;
+    }
+    else if (mnemonic.equals("WORD") || mnemonic.equals("INT16")) {
       lastType = Type.WORD;
+    }
+    else if (mnemonic.equals("UINT16")) {
+      lastType = Type.UINT16;
     }
     else if (mnemonic.equals("STRING")) {
       lastType = Type.BYTE_ARRAY;
+    }
+    else if (mnemonic.equals("CONST")) {
+      lastType = Type.CONST;
     }
     else {
       source.error(symbol, "unexpected variable type.");
@@ -129,7 +139,7 @@ public class Variable {
         }
         else if (squaredBrackedOpenOrNumber.get().equals("[")) {
           source.throwIfNotArrayType(lastType);
-          nextSymbol = getValues(squaredBrackedOpenOrNumber, lastType);
+          nextSymbol = getArrayValues(squaredBrackedOpenOrNumber, lastType);
         }
         else {
           source.error(squaredBrackedOpenOrNumber,
@@ -137,6 +147,11 @@ public class Variable {
         }
       }
 
+      if (lastType.equals(Type.CONST)) {
+        if (!source.getVariable(name).hasAddress()) {
+          source.error(new Symbol(name, SymbolEnum.variable_name),"CONST must initialised with an address (CONST x=1)");
+        }
+      }
       mnemonic = nextSymbol.get();
       if (mnemonic.equals(",")) {
         nextSymbol = source.nextElement();
@@ -172,7 +187,7 @@ public class Variable {
     return null;
   }
 
-  private Symbol getValues(final Symbol symbol, Type lastType) {
+  private Symbol getArrayValues(final Symbol symbol, Type lastType) {
     source.match(symbol, "[");
 
     boolean hasValues = true;

@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.statement;
@@ -48,6 +48,7 @@ public class Assert extends Code {
     if (nextSymbol.get().equals(",")) {
 
       Symbol falseString = source.nextElement();
+      code(" jsr @ASSERT_ERROR_PREFIX");
       code(" jsr @print_string");
       code(" .BYTE " + StringHelper.makeDoubleQuotedString(falseString.get()) + "," + Source.STRING_END_MARK);
       code(" jsr @eolout");

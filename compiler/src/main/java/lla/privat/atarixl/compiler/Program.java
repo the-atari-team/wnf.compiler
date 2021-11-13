@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -40,6 +40,14 @@ public class Program extends Code {
         Symbol address = source.nextElement(); // address
         source.throwIsValueNotANumber(address);
         source.setLomem(address.get());
+
+        if (source.peekSymbol().get().equals(",")) {
+          Symbol komma = source.nextElement(); // name
+          source.match(komma, ",");
+          Symbol runad = source.nextElement(); // runad
+          source.match(runad, "RUNAD");
+          source.setRunAd();
+        }
       }
     }
     else if (first.equals("INCLUDE")) {

@@ -1,9 +1,10 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestSymbolTokenizer {
@@ -49,6 +50,24 @@ public class TestSymbolTokenizer {
     Assert.assertEquals("PROGRAM", symbol.get());
 
     Assert.assertEquals("program name", symbolTokenizerSUT.getCodeLine());
+  }
+
+  @Test
+  public void testGetSymbolExpressionWithW() {
+    String program = " w:=2+2*2 ";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
+
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("W__", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals(":=", symbol.get());
+    Assert.assertEquals(SymbolEnum.symbol, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("2", symbol.get());
+    Assert.assertEquals(SymbolEnum.number, symbol.getId());
   }
 
   @Test
@@ -195,6 +214,27 @@ public class TestSymbolTokenizer {
   }
 
   @Test
+  public void testGetSymbolStringWithQuote() {
+    String program = "'String mit \\'Quote\\'' ";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
+
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("'String mit \\'Quote\\''", symbol.get());
+    Assert.assertEquals(SymbolEnum.string, symbol.getId());
+  }
+
+  @Test
+  public void testGetSymbolStringWithDoubleQuote() {
+    String program = "'String mit \"DoubleQuote\"' ";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
+
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("'String mit \"DoubleQuote\"'", symbol.get());
+    Assert.assertEquals(SymbolEnum.string, symbol.getId());
+  }
+
+
+  @Test
   public void testGetSymbolEmptyString() {
     String program = "'' ";
     SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
@@ -312,6 +352,99 @@ public class TestSymbolTokenizer {
     Assert.assertEquals("VARIABLE", symbol.get());
     Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
   }
+
+  @Test
+  public void testGetSymbolAdrVariableWithPrefix() {
+    String program = "  adr:variable ";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
+    symbolTokenizerSUT.setPrefix("TEST");
+
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("ADR", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals(":", symbol.get());
+    Assert.assertEquals(SymbolEnum.symbol, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("TEST_VARIABLE", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+  }
+
+  @Test
+  public void testGetSymbolToWordVariable() {
+    String program = "  b2w:variable ";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
+
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("B2W", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals(":", symbol.get());
+    Assert.assertEquals(SymbolEnum.symbol, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("VARIABLE", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+  }
+
+  @Test
+  public void testGetSymbolToWordVariableWithPrefix() {
+    String program = "  b2w:variable ";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
+    symbolTokenizerSUT.setPrefix("TEST");
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("B2W", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals(":", symbol.get());
+    Assert.assertEquals(SymbolEnum.symbol, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("TEST_VARIABLE", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+  }
+
+  @Test
+  public void testGetSymbolAbsoluteVariable() {
+    String program = "  abs:variable ";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
+
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("ABS", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals(":", symbol.get());
+    Assert.assertEquals(SymbolEnum.symbol, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("VARIABLE", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+  }
+
+  @Ignore
+  @Test
+  public void testGetSymbolAbsoluteVariableWithPrefix() {
+    String program = "  abs:variable ";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
+    symbolTokenizerSUT.setPrefix("TEST");
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("ABS", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals(":", symbol.get());
+    Assert.assertEquals(SymbolEnum.symbol, symbol.getId());
+
+    symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("TEST_VARIABLE", symbol.get());
+    Assert.assertEquals(SymbolEnum.variable_name, symbol.getId());
+  }
+
 
   @Test
   public void testGetSymbolFunctionPointerCall() {

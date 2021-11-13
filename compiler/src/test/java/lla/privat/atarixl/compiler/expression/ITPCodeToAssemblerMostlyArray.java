@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -98,17 +98,17 @@ public class ITPCodeToAssemblerMostlyArray {
 
     Assert.assertEquals("; (9)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" STX @OP", code.get(++n));
+    Assert.assertEquals(" STX @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));   // * 2
-    Assert.assertEquals(" ROL @OP", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));   // * 2
-    Assert.assertEquals(" ROL @OP", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));   // * 2
-    Assert.assertEquals(" ROL @OP", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));   // * 2
-    Assert.assertEquals(" ROL @OP", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" LDX @OP", code.get(++n));
+    Assert.assertEquals(" LDX @OP+1", code.get(++n));
   }
 
   @Test
@@ -192,4 +192,26 @@ public class ITPCodeToAssemblerMostlyArray {
     Assert.assertEquals(" JSR F", code.get(++n));
 
   }
+  
+  
+  @Test
+  public void testExpressionByteArrayLength() {
+    Source source = new Source("x_length ");
+    source.addVariable("X", Type.BYTE_ARRAY, 2);
+    source.addVariable("Y", Type.BYTE);
+    
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    new PCodeToAssembler(source, p_code, ergebnis).build();
+
+    List<String> code = source.getCode();
+
+    int n=-1;
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<2", code.get(++n));
+    Assert.assertEquals(" LDX #>2", code.get(++n));
+    Assert.assertEquals(3, code.size());
+  }
+
 }

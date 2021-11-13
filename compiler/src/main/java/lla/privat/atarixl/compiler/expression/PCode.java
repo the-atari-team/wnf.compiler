@@ -1,9 +1,13 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum PCode {
+  UNKNOWN(0),
 // 0000_1xxx
 // load zahl push, load zahl2 pull add
   UPN_ADD(8),
@@ -27,10 +31,10 @@ public enum PCode {
   IMOD(23),
 
 //
-  FUNCTION(64),
-  FUNCTION_POINTER(65),
+  FUNCTION(64),         // followed by function name (number) and parameter count (number)
+  FUNCTION_POINTER(65), // followed by function name (number) and parameter count (number)
 
-  ZAHL(160), // zahl folgt
+  ZAHL(160),            // zahl folgt
   PUSH(162),
   PULL(163),
   INT_ZAHL(167),
@@ -41,6 +45,10 @@ public enum PCode {
   ADDRESS(171),
   STRING(172),
   WORD_SPLIT_ARRAY(174),
+  // very short math routines
+  ABSOLUTE(175),
+  TOWORD(176),
+
   PARAMETER_START_ADD_TO_HEAP_PTR(180),
   PARAMETER_PUSH(181),
   PARAMETER_END_SUB_FROM_HEAP_PTR(182),
@@ -51,11 +59,26 @@ public enum PCode {
 
   private int value;
 
+  private static final Map<Integer, PCode> intToTypeMap = new HashMap<>();
+
+  static {
+    for (PCode type : PCode.values()) {
+      intToTypeMap.put(type.value, type);
+    }
+  }
+
   private PCode(int value) {
     this.value = value;
   }
 
   public int getValue() {
     return value;
+  }
+
+  public static PCode fromInt(int i) {
+    PCode type = intToTypeMap.get(Integer.valueOf(i));
+    if (type == null)
+      return PCode.UNKNOWN;
+    return type;
   }
 }

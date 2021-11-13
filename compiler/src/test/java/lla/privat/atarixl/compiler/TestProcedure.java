@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -100,7 +100,7 @@ public class TestProcedure {
     Assert.assertEquals(";", code.get(++n));
     Assert.assertEquals("; procedure name(one, two) begin end", code.get(++n));
     Assert.assertEquals(";", code.get(++n));
-    
+
     Assert.assertEquals("NAME", code.get(++n));
     Assert.assertEquals("NAME_II", code.get(++n));
     Assert.assertEquals(" LDX ONE", code.get(++n));

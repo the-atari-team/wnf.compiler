@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -7,8 +7,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 public enum ReservedNames {
-  ADR, AND, ARRAY, ASSERT, BEGIN, BREAK, BYTE, DIV, DO, DOWNTO, ELSE, END, FOR, FUNCTION, IF, INCLUDE, LOCAL, LOMEM, MOD, OR,
-  PROCEDURE, PROGRAM, REPEAT, RETURN, STRING, THEN, TO, UNTIL, WHILE, WORD, XOR;
+  PROGRAM, INCLUDE, LOMEM,
+  PROCEDURE, FUNCTION, RETURN,
+  BEGIN, END,
+  IF, THEN, ELSE,
+  FOR, TO, DOWNTO, DO, BREAK, WHILE,
+  REPEAT, UNTIL,
+  ADR, AND, B2W, DIV, MOD, OR, XOR,
+  ASSERT,
+  LOCAL, CONST, BYTE, WORD, ARRAY, STRING, INT8, UINT8, INT16, UINT16;
 
   private static Set<String> map;
 

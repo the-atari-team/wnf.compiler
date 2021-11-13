@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -46,7 +46,50 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (13)", code.get(++n));
     Assert.assertEquals(" LDY #<X", code.get(++n));
     Assert.assertEquals(" LDX #>X", code.get(++n));
+    Assert.assertEquals(3, code.size());
   }
+
+  @Test
+  public void testExpressionByteToWord() {
+    Source source = new Source("x ");
+    source.addVariable("X", Type.BYTE);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(3, code.size());
+  }
+
+  @Test
+  public void testExpressionInt8ToWord() {
+    Source source = new Source("x ");
+    source.addVariable("X", Type.INT8);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" CPY #$80", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(" BCC *+4", code.get(++n));
+    Assert.assertEquals(" LDX #$FF", code.get(++n));
+    Assert.assertEquals(6, code.size());
+  }
+
 
   @Test
   public void testExpressionString() {
@@ -65,6 +108,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (15)", code.get(++n));
     Assert.assertEquals(" LDY #<?STRING1", code.get(++n));
     Assert.assertEquals(" LDX #>?STRING1", code.get(++n));
+    Assert.assertEquals(3, code.size());
   }
 
   @Test
@@ -82,6 +126,7 @@ public class ITPCodeToAssemblerOther {
     int n = -1;
     Assert.assertEquals("; (14)", code.get(++n));
     Assert.assertEquals(" JSR X", code.get(++n));
+    Assert.assertEquals(2, code.size());
   }
 
   @Test
@@ -241,7 +286,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" LDX N_HIGH,Y", code.get(++n));
     Assert.assertEquals(" LDA N_LOW,Y", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
-    
+
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
@@ -253,7 +298,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (14)", code.get(++n));
     Assert.assertEquals(" JSR X_I", code.get(++n));
   }
-  
+
   @Test
   public void testExpressionPrintf2Parameter() {
     Source source = new Source("@printf('%s%d\\n', 123) ");
@@ -386,7 +431,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" JSR @EXIT_I", code.get(++n));
   }
 
-  
+
   @Test
   public void testFunctionInFunctionInFunction() {
     Source source = new Source("@A(1,2,@B(3,@C(4)))");
@@ -403,7 +448,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (5)", code.get(++n));           // 1. parameter for @A
     Assert.assertEquals(" LDY #<1", code.get(++n));
     Assert.assertEquals(" LDX #>1", code.get(++n));
-    
+
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
@@ -415,7 +460,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (5)", code.get(++n));           // 2. parameter for @A
     Assert.assertEquals(" LDY #<2", code.get(++n));
     Assert.assertEquals(" LDX #>2", code.get(++n));
-    
+
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #3", code.get(++n));
@@ -430,7 +475,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (5)", code.get(++n));           // 1. parameter for @B
     Assert.assertEquals(" LDY #<3", code.get(++n));
     Assert.assertEquals(" LDX #>3", code.get(++n));
-    
+
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
@@ -445,7 +490,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (5)", code.get(++n));           // 1. parameter for @C
     Assert.assertEquals(" LDY #<4", code.get(++n));
     Assert.assertEquals(" LDX #>4", code.get(++n));
-    
+
     Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
@@ -467,7 +512,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" INY", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
-  
+
     Assert.assertEquals("; (14)", code.get(++n));         // call @B
     Assert.assertEquals(" JSR @B_II", code.get(++n));
 
@@ -481,7 +526,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" INY", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
-  
+
     Assert.assertEquals("; (14)", code.get(++n));         // call @A
     Assert.assertEquals(" JSR @A_III", code.get(++n));
   }
@@ -579,5 +624,126 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals("; (14)", code.get(++n));
     Assert.assertEquals(" JSR @PAINTBOMB_II", code.get(++n));
+  }
+
+
+  @Test
+  public void testExpressionFunctionCallWithByteVariableParameter() {
+    Source source = new Source("x(n) ");
+    source.addVariable("X", Type.FUNCTION);
+    source.addVariable("N", Type.BYTE);
+
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY N", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+
+    Assert.assertEquals("; (16)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" LDY #1", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+
+    Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals(" JSR X_I", code.get(++n));
+  }
+
+  @Test
+  public void testExpressionFunctionCallWithInt8VariableParameter() {
+    Source source = new Source("x(n) ");
+    source.addVariable("X", Type.FUNCTION);
+    source.addVariable("N", Type.INT8);
+
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY N", code.get(++n));
+    Assert.assertEquals(" CPY #$80", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(" BCC *+4", code.get(++n));
+    Assert.assertEquals(" LDX #$FF", code.get(++n));
+
+    Assert.assertEquals("; (16)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" LDY #1", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+
+    Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals(" JSR X_I", code.get(++n));
+  }
+
+  @Test
+  public void testExpressionFunctionCallUnknownParameter() {
+    Source source = new Source("@fillbyte(0, adr:vertical, 52) ");
+    source.addVariable("VERTICAL", Type.WORD_SPLIT_ARRAY);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<0", code.get(++n));
+    Assert.assertEquals(" LDX #>0", code.get(++n));
+
+    Assert.assertEquals("; (16)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" LDY #1", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+
+    Assert.assertEquals("; (13)", code.get(++n));
+    Assert.assertEquals(" LDY #<VERTICAL", code.get(++n));
+    Assert.assertEquals(" LDX #>VERTICAL", code.get(++n));
+
+    Assert.assertEquals("; (16)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" LDY #3", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<52", code.get(++n));
+    Assert.assertEquals(" LDX #>52", code.get(++n));
+
+    Assert.assertEquals("; (16)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" LDY #5", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+
+    Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals(" JSR @FILLBYTE_III", code.get(++n));
+
+    Assert.assertEquals(n + 1, code.size());
   }
 }

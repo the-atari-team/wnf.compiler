@@ -1,0 +1,38 @@
+= Atari 8bit WNF Compiler
+
+== What is new
+
+* `const variable=value` is a first try to support const values.
+To get firm with the lot of magic values in code.
+
+* first support of signed int (ini8) -128 to 127
+  in for loop, in normal conditions (if, while, until, assert)
+  But be warned, there is no error if you overflow or underflow.
+  In Expressions there will be a "autobox" conversion to word only.
+
+* smc in for loop, activateable by parameter -smc
+
+* Parameter name expansion like in C++ language.
+Every parameter is marked by an extra 'i' so a function name must contain also it's count of parameters.
+If you have an external assembler function named by a name
+  @name
+  you need additionally give it's name with count of parameters, like
+  @name_ii
+  much better for error search, if you use one parameter too less or much.
+
+One extra point:: Some functions allows different count of parameters, like @printf() function.
+Now we need to add the parameters expansion here by give lot of extra i
+
+  @printf_i
+  @printf_ii
+  @printf_iii
+  @printf_iiii
+  @printf_iiiii
+  ...
+
+looks stupid, but at the moment there is no better way.
+
+* Split word array access for arrays smaller than 257 items into a low byte and a high byte array.
+So we can access with simple x/y-register access to `<array name>_low` and `<array name>_high` values,
+which allows much faster access to it's values.
+

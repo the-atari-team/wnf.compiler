@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.statement;
@@ -86,7 +86,7 @@ public class ForSMC extends Code {
     code(" sty ?smcfor1lo" + condi + "+1");
     code(" sty ?smcfor2lo" + condi + "+1");
     if (typ == Type.WORD) {
-      if (source.getErgebnis().getBytes() == 1) {
+      if (source.getTypeOfLastExpression().getBytes() == 1) {
         code(" ldx #0");
       }
       code(" stx ?smcfor1hi" + condi + "+1");
@@ -95,7 +95,7 @@ public class ForSMC extends Code {
 
     if (step == 1) {
       code("?smcfor1lo"+condi);
-      code(" ldy #0"); 
+      code(" ldy #0");
       code(" cpy " + variable);
       if (typ == Type.BYTE) {
         code(" bcs ?go" + condi);

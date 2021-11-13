@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -20,7 +20,7 @@ import lla.privat.atarixl.compiler.optimization.PeepholeOptimizer;
 import lla.privat.atarixl.compiler.source.Source;
 
 /**
- * Atari 8bit WNF-Compiler 1990 - 2020
+ * Atari 8bit WNF-Compiler 1990 - 2021
  *
  * @author lars <dot> langhans <at> gmx <dot> de
  *
@@ -50,7 +50,7 @@ public class Main {
   private List<String> includePaths;
 
   private boolean selfModifiedCode = false;
-  
+
   protected Main() {
     optimisationLevel = 0;
     verboseLevel = 0;

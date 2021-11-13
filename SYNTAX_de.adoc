@@ -1,71 +1,98 @@
-= Syntax:
+= Syntax zum WNF-Compiler
 Doc Writer <lars[dot]langhans[at]gmx[dot]de>
 v1.0
 :toc:
 :toclevels: 3
 
 Die Syntax ist noch ziemlich offen, erstmal soll das Grundgerüst
-soweit stehen und jede Menge Tests zeigen, das der Compiler tut, was man
-von ihm verlangt. _"Schnelleren Code erzeugen, als compiliertes (Turbo)BASIC."_
+soweit stehen und jede Menge Tests zeigen, das der Compiler tut,
+was man von ihm verlangt.
+_"Schnelleren Code erzeugen, als compiliertes (Turbo)BASIC."_.
+Dabei aber genau so einfach zu schreiben sein.
 
-== Nun die Syntax:
+== Nun die Syntax
 
 Ich habe mir mal die Mühe gemacht, die Syntax in BNF aufzuspalten.
-Als dieser Compiler entstand,
-kannte ich lex und yacc noch nicht.
-Trotzdem sollte die Sprache in BNF
+Als dieser Compiler entstand, kannte ich lex und yacc noch nicht.
+Trotzdem sollte die Sprache in
+https://de.wikipedia.org/wiki/Backus-Naur-Form[BNF]
 abbildbar sein.
 
-link:winife.bnf[Backus Naur Form]
+link:winife.bnf[Backus Naur Form] zum WNF-Compiler
+
 
 `(PROGRAM|INCLUDE) suffix:name`:: Der Name ist ohne Extension anzugeben, max 8 Zeichen, unter diesem Namen
 wird das Assembler-Programm abgelegt. Vorsicht, die Datei kann sehr groß werden >180kb ist möglich!
 
 PROGRAM besagt, es wird ein Program mit Main() Funktion erstellt.
-Hier funktioniert LOMEM und INCLUDE am Ende. Suffix wird nicht unterstützt.
+Hier funktioniert LOMEM und INCLUDE am Ende.
+Suffix wird nicht unterstützt.
 
 INCLUDE besagt, es werden nur Proceduren zu Assembler umgesetzt,
 LOMEM ist nicht erlaubt,
 INCLUDEs am Ende sind nicht erlaubt.
-Es gibt keine Main() Funktion. Das Ergebnis ist eine einbindbare INC Datei,
-die in ein PROGRAM file eingebunden werden muss. Alle Variablen werden mit 'suffix' versehen, es sei denn,
-die Variable startet mit '@'. So kann man globale Funktionen/Proceduren definieren, die von außen
-aufgerufen werden können.
+Es gibt keine Main() Funktion.
+Das Ergebnis ist eine per ".include" einbindbare INC Datei,
+die in ein PROGRAM file eingebunden werden kann.
+Alle Variablen werden mit 'suffix' versehen, es sei denn,
+die Variable startet mit '@'.
+So kann man globale Funktionen/Proceduren definieren,
+die von außen aufgerufen werden können.
 
-`[ LOMEM=<123> ]`:: verpasst dem Programm eine andere Startadresse, kann,
-muss nicht angegeben werden, aktuelle Startadresse ist $4000, zudem gibt
-es extra einen Einstieg über Atari-(Turbo-)Basic, dies ist LOMEM+3, also soll das
-erstellte Programm von Basic gestartet werden: `?USR($4003)`
-Dabei wird der Stack entsprechend abgeräumt.
+`[ LOMEM=<123> ]`:: verpasst dem Programm eine andere
+Startadresse, kann, muss nicht angegeben werden,
+aktuelle Startadresse ist $4000, zudem gibt
+es extra einen Einstieg über Atari-(Turbo-)Basic,
+dies ist LOMEM+3, also sollte das
+erstellte Programm von Basic gestartet werden:
+`?USR($4003)` Dabei wird der Stack entsprechend abgeräumt.
 `?hex$(dpeek($90))` zeigt ungefähr auf das Ende bei TurboBasic.
-Vorsicht, der Wert schwankt leicht. Ist halt ein grober Anhaltspunkt.
+Vorsicht, der Wert schwankt leicht.
+Ist halt ein grober Anhaltspunkt.
 
-* Parameterübergabe von Basic erfolgt über ein array.
-Ein `word array args[1] = @parameter` irgendwo vor der Hauptroutine, gibt den
-Zugriff frei.
-Dann kann in der Hauptroutine über args[0] auf die Parameter zugegriffen werden.
-Es findet keine Prüfung statt, ob der Parameter existiert. +
-Wichtig: Da die Basic-Parameter auf dem Heap abgelegt werden, sollten diese zur Nutzung als erstes kopiert werden.
+* Parameterübergabe von Basic erfolgt über ein Array.
+Ein `word array args[1] = @parameter`
+irgendwo vor der Hauptroutine, gibt den Zugriff frei.
+Dann kann in der Hauptroutine über args[0..n]
+auf die Parameter zugegriffen werden.
+Es findet keine Prüfung statt, ob die Parameter existiert. +
+**Wichtig:** Da die Basic-Parameter auf dem Heap abgelegt werden, sollten diese zur Nutzung als erstes kopiert werden.
 
 
 `BLOCK`:: Das gesamte Programm besteht aus exakt einem Block.
-Am Anfang wird eine MACROS.INC mit includiert, da Macros vom Assembler
+Ein Block hat dann keine bis mehrere Proceduren/Functionen
+und ein abschließendes Statement. Dann noch ein paar includes.
+Fertig: Mehr kann der Compiler nicht, total einfach.
+
+Ok, spalten wir das ganze etwas auf:
+
+Am Anfang werden immer 3 Dateien includiert: +
+- VARIABLE.INC (enthält viele Atari Variablen) +
+- HARDWARE.INC (fast alle Hardware-Adressen) +
+- MACROS.INC (ein paar Macros) +
+da Macros und wichtige Variablen vom Assembler
 als erstes bekannt sein müssen.
 
 * TODO: einige Macros nutzen Parameter, es gibt eine Möglichkeit
 auf Anzahl der Parameter zu prüfen, mal einsetzen.
 
-Am Ende können mehrere Dateien includiert werden. Diese Dateien enthalten
-alle in Assembler geschriebenen Hilfsroutinen, wie @PRINT_STRING, @DECOUT, ...
+Am Ende können beliebig viele Dateien includiert werden.
+Diese Dateien enthalten dann alle in Assembler
+geschriebenen Hilfsroutinen,
+wie @PRINT_STRING, @DECOUT, ...
 
 * TODO: Herausfinden, warum die `.if .ref name` nicht funktioniert.
 
-Ganz am Ende wird eine RUNTIME.INC automatisch geladen. Diese wird nicht explizit
-mit angegeben. Das muss die letzte Datei sein, dort ist der Heap-Pointer untergebracht.
+Ganz am Ende wird immer eine RUNTIME.INC mit includiert.
+Diese wird nicht explizit mit angegeben.
+Da es die letzte Datei sein muss. Setzt der Compiler das hier selbst.
+Da drin ist der Code für die rudimentäre Initialisierung.
+Als letzes ist dort der Heap-Pointer untergebracht.
 
 === Block
 
-Ein Block definiert globale Variablen, beliebig viele Proceduren und oder Funktionen und
+Ein Block definiert globale Variablen,
+beliebig viele Proceduren und oder Funktionen und
 am Ende genau ein Statement.
 
 `[ GLOBAL_VARIABLES * ]`::
@@ -74,8 +101,9 @@ am Ende genau ein Statement.
 
 `STATEMENT`::
 
-Mittlerweile ist der Block etwas aufgeweicht,
-es können vor jeder Procedure/Funktion globale Variablen angelegt werden.
+Mittlerweile ist der strikte Block etwas aufgeweicht,
+es können vor jeder Procedure/Funktion globale Variablen
+angelegt werden.
 
 === GLOBAL_VARIABLES
 Variablen nehmen Werte entgegen.
@@ -83,84 +111,118 @@ Aktuell werden 2 Arten unterstützt,
 Word und Byte jeweils auch als Arrays.
 Strings gibt es auch, das sind aber eigentlich byte arrays.
 
-`byte name,name2`::  Eine Integer Variable mit 1 byte, durch Komma getrennt eine weitere Variable
+`byte name [,name2]*`::  Eine Integer Variable mit 1 byte, durch Komma getrennt sind weitere Variablen möglich.
+
 `byte COLPF2=710`::  Eine byte Integer-Variable dessen Adresse bei 710 liegt
 
-Achtung: Mit dem `=` weist man einer Variablen dessen Speicherort zu, damit
-kann man dann hier später die Farbe vom Playfield 2 ändern, also
-auf einem 8-bit Atari die blaue Farbe
-von Graphics 0.
+**Achtung:** Mit dem `=` weist man einer Variablen dessen
+Speicherort zu, nicht dessen Wert.
+Damit kann man dann hier später die Farbe vom Playfield 2 ändern,
+also auf einem 8-bit Atari die blaue Farbe von Graphics 0.
 
-`word name,name2`::   Eine Integer Variable mit 2 Bytes, durch Komma getrennt eine weitere Variable.
+`byte RAMTOP=@`:: weist einer Variable einen Speicherort zu. Hier RAMTOP (106). Diese Variable ist schon in der Datei VARIABLE.INC oder der Datei HARDWARE.INC definiert. Der Compiler kennt die Atari Variablen per default nicht. In den beiden genannten Dateien sind aber schon viele Adressen zugewiesen, allerdings nicht alle.
+
+`word name [,name2]*`::   Eine Integer Variable mit 2 Bytes, durch Komma getrennt sind weitere Variablen möglich.
+
+`word SAVMSC=88`:: wie bei Bytes.
+`word SAVMSC=@`:: wie bei Bytes.
+
+`const VARIABLE=123` um den vielen "Magic Numbers" Herr zu werden, wurde eine simple Definition für Konstanten hinzugefügt.
+Die Variable kann überall eingesetzt werden,
+wo eigentlich Zahlen eingesetzt werden.
+Hiermit vergibt man einen Namen.
 
 ==== Arrays
 * Array Zugriff erfolgt mit eckigen Klammern, wie in Java/C es
-sind nur eindimensionale Arrays möglich.
+sind aktuell nur eindimensionale Arrays möglich.
+Der Einfachheit halber wird die Anzahl nicht geprüft.
 
 `byte array name[anzahl bytes]`:: Ein Byte Array mit einer gewissen Anzahl
 an Werten, ist die Anzahl < 256, wird einfach der Indirekte Zugriff
-mit dem Y-Register verwendet. Mit STA (name),Y damit kann man sehr schnell auf
-den Speicher zugreifen.
-Bei Anzahl > 255 wird es als FAT_BYTE_ARRAY gehandhabt, der Zugriff
-ist etwas langsamer weil er erst berechnet werden muss.
+mit dem Y-Register verwendet.
+Mit STA (name),Y damit kann man sehr schnell auf den Speicher zugreifen.
+Bei Anzahl > 255 wird es als FAT_BYTE_ARRAY gehandhabt, der Zugriff erfolgt
+über ein Macro und ist etwas langsamer weil
+die Position im Speicher erst berechnet werden muss.
 
-Da intern keinerlei Ränder geprüft werden, muss die Länge eines Arrays nicht
-exakt angegeben werden.
+**Achtung:** Da intern keinerlei Array-Ränder geprüft werden,
+muss die Länge eines Arrays nicht exakt angegeben werden.
 
 `byte array dlist[0]=48160`::
-Auch hier wird dlist die Adresse zugewiesen.
+Hier wird der Variablen dlist die Adresse zugewiesen.
 Wenn man sich in Graphics 0 befindet und peek(106)=192 ist, dann liegt hier
 die Displaylist und man kann darauf zugreifen und diese manipulieren.
-Leider gibt es aktuell keine einfache Möglichkeit diesen Wert aus DPEEK(560) indirekt
-auszulesen.
+Leider gibt es aktuell keine einfache Möglichkeit diesen Wert aus DPEEK(560) indirekt auszulesen.
+
 TODO: Werte indirekt zugreifbar machen.
 
 `byte array direct[10]=[ 0,2,4,6,8,10,12,14,16,18 ]`::
-Legt 10 Byte Werte
-direkt im Speicher ab.
+Legt 10 Byte Werte direkt im Speicher ab.
 
 `byte array direct[256]=[ ganz viele Werte ]`::
-Legt ein Byte array an, dessen Zugriff über eine kleine
-Berechnungsroutine läuft, damit kann man auf mehr als 256 Werte
-schnell zugreifen. Intern wird das als FAT_BYTE_ARRAY gehandhabt.
+Legt ein Byte array an, dessen Zugriff über ein Macro läuft,
+damit kann man auf mehr als 256 Werte schnell zugreifen.
+Intern wird das als FAT_BYTE_ARRAY gehandhabt.
 
 `byte array einString[1]=[ 'Hallo Welt' ]`::
-Ist eine Möglichkeit einen String im
-Speicher abzulegen. Strings werden immer mit $FF terminiert.
+Ist eine Möglichkeit einen String im Speicher abzulegen.
+Strings werden immer mit $FF terminiert.
+Warum ausgerechnet $FF? Is so, fertig.
 
 `string einString = ['Hallo Welt']`::
-Ist eine weitere Möglichkeit einen String im
-Speicher abzulegen. Spart nur Tipparbeit, das Resultat ist ähnlich ein Byte Array.
+Ist eine weitere Möglichkeit einen String im Speicher abzulegen.
+Spart nur Tipparbeit, das Resultat ist ähnlich ein Byte Array.
 Da es ein byte array ist funktioniert einString[0] auch hier.
 
 `word array bigw[3]`::
-Das ganze auch für word Werte (2 Byte) Der Zugriff
-funktioniert hier nie indirekt über Y-Register.
-Ist dadurch um Längen langsamer.
+Das ganze auch für word Werte (2 Byte)
+Damit die word arrays auch etwas schneller arbeiten,
+gibt es sog. Splitt-Arrays.
+Dabei wird das word array in low byte und high byte aufgespalten.
+Hier also intern in byte array bigw_low und byte array bigw_high,
+also eigentlich 2 byte arrays angelegt.
+Der Zugriff erfolgt wie beim byte Array recht flott.
+Man muss nur selbst dafür Sorge tragen den Index < 256 zu lassen.
+
+Braucht man mal größere word arrays,
+muss leider auf einen extrem langsamen indizierten Zugriff
+umgeschaltet werden.
+Also besser versuchen word arrays < 256 zu halten und
+den Index-Zugriff verwenden.
+
+Damit man doch weiß, wie groß ein Array nun ist, erstellt
+der Compiler zusätzlich eine Konstante mit dem Namen des Arrays+'_LENGTH'.
+Also hier eine Konstante `bigw_length`
 
 Liste von Strings::
-----
+```
 // Die einzelnen String
 string eins=['eins']
 string zwei=['zwo']
 
 // list[] enthaelt jetzt die Strings
 word array list[1] = [eins, zwei]
-----
-Zwei Strings, die in einer Liste abgelegt sind. Über list[0] kommt man an den ersten String ('eins')
-So sind Listen von Strings möglich. Hier kann auf den Adressenprefix "adr:" verzichtet werden.
-adr:eins, adr:zwei geht trotzdem und wird überlesen, ist nur mehr Tipparbeit.
+```
+Zwei Strings, die in einer Liste abgelegt sind.
+Über list[0] kommt man an den ersten String ('eins') heran.
+So sind Listen von Strings möglich.
+Ein Feature, das es in Basic nicht gibt.
+Hier kann auf den Adressenprefix "adr:" verzichtet werden.
+adr:eins, adr:zwei geht trotzdem und wird überlesen,
+ist nur mehr Tipparbeit.
 
 [source]
 word array list[1] = ['eins', 'zwei']
 
-Das direkte angeben von Strings in word listen funktioniert auch.
+Das direkte Angeben von Strings in word Listen funktioniert auch.
 
 === PROCEDURE
-Eine Procedure definiert ein Unterprogramm ohne Rückgabewert, das von irgendwo anders
-aufgerufen werden kann. Die übergebenen Variablen müssen global existieren.
-Die aktuellen globalen Werte werden aber im Heap zwischengespeichert und am
-Ende wieder hergestellt. Somit sind die Variablen innerhalb der Procedure dann lokal anzusehen.
+Eine Procedure definiert ein Unterprogramm ohne Rückgabewert,
+das von irgendwo anders aufgerufen werden kann.
+Die übergebenen Variablen müssen global existieren.
+Die aktuellen globalen Werte werden aber im Heap zwischengespeichert
+und am Ende wieder hergestellt.
+Somit sind die Variablen innerhalb der Procedure dann lokal anzusehen.
 Es gibt in einer Procedure exakt ein Statement.
 
 `[GLOBAL_VARIABLES *]`::
@@ -169,7 +231,8 @@ Es gibt in einer Procedure exakt ein Statement.
 
 `STATEMENT`::
 
-Eine Procedure ist ein Unterprogramm, es hat einen Namen und beliebige Parameter.
+Eine Procedure ist ein Unterprogramm,
+es hat einen Namen und beliebige Parameter.
 Die Parameter werden 'call by value' übergeben, auf dem Heap gesichert und
 sind innerhalb der Procedure lokal, weitere lokale Variablen können
 mit `LOCAL` name,... angelegt werden, auch diese Variablen landen auf dem Heap.
@@ -183,14 +246,15 @@ der Wert muss angegeben werden, wird aber nicht weiter ausgewertet.
 
 `STATEMENT`::
 
-Eine Function ist ein Unterprogramm _mit_ einem Rückgabewert, es hat einen Namen
-und beliebige Parameter. Die Parameter werden 'call by value' übergeben,
+Eine Function ist ein Unterprogramm _mit_ einem Rückgabewert,
+es hat einen Namen und beliebige Parameter.
+Die Parameter werden 'call by value' übergeben,
 auf dem Heap gesichert und sind innerhalb der Funktion lokal,
 weitere lokale Variablen können mit `LOCAL` name,... angelegt
 werden, auch diese Variablen landen auf dem Heap.
 Die Variablen müssen aber auch schon global existieren.
 Funktion können an beliebiger Stelle mit `RETURN wert` verlassen werden,
-der Wert muss immer angegeben werden und wird einer Variablen zugewiesen,
+der Wert muss angegeben werden und wird einer Variablen zugewiesen,
 damit das klappt, muss der Funktionsname mit '@' beginnen.
 void Funktionen wie in C, gibt es nicht, dafür sind die Proceduren.
 
@@ -200,37 +264,42 @@ Diese sind auch erst ab dann gültig. Das prüft aber nur der Compiler.
 === STATEMENT
 Ein Statement ist das eigentliche Arbeitspferd, es kann immer nur genau
 ein Statement angegeben werden.
+Allerdings ist `begin STATEMENT [STATEMENT]* end` auch ein Statement.
 
 `if CONDITION then STATEMENT else STATEMENT`::
 
 If-then-else mit dem berühmten https://en.wikipedia.org/wiki/Dangling_else[Dangling-else].
-Ist die condition true, wird das 1. Statement ausgeführt, sonst das Statement hinter dem else.
+Ist die condition true, wird das 1. Statement ausgeführt,
+sonst das Statement hinter dem else.
 
 `while CONDITION do STATEMENT`::
 
-Schleife um ein Statement. Die Schleife wird ausgeführt, solange die Condition true ist.
+Schleife um ein Statement.
+Die Schleife wird ausgeführt, solange die Condition true ist.
 Ist die Condition gleich false,
 wird das Statement überhaupt nicht ausgeführt.
 
 `repeat [STATEMENT]* until CONDITION`::
 // weitere Schleife
 
-Schleife um Statements!
+Schleife um Statements (plural)!
 Die Schleife wird solange ausgeführt, bis die Condition true ist.
 Die Schleife wird min. einmal durchlaufen.
-Zwischen `repeat` und `until` können beliebig viele Statements angegeben werden.
+Zwischen `repeat` und `until` können beliebig viele Statements angegeben
+werden.
 
 `for var := EXPRESSION (to|downto) EXPRESSION do STATEMENT`::
 
 `for` startet eine Zählschleife, die eine Variable mit einem Startwert
-initialisiert und das Statement solange wiederholt, bis ein Endwert erreicht wird.
-Dabei wird die Variable bei
-`to` in jedem Durchlauf um 1 erhöht
+initialisiert und das Statement solange wiederholt,
+bis ein Endwert erreicht wird.
+Dabei wird die Variable bei `to` in jedem Durchlauf um 1 erhöht
 und bei `downto` um 1 runtergezählt.
 Eine For-Schleife `for i:=0 to 3 do Statement` hat 4 Durchläufe.
 
 Man kann die Variable im Statement anpassen, das sollte man aber lassen.
-Möchte man unterschiedliche Steps simulieren, sollte auf `while` oder `repeat` ausgewichen werden.
+Möchte man unterschiedliche Steps simulieren,
+sollte auf `while` oder `repeat` ausgewichen werden.
 
 `assert(CONDITION, FEHLER-STRING)`::
 Ist ein fest eingebautes Test-Statement.
@@ -294,9 +363,10 @@ Der erste Procedureaufruf ist ein Sonderfall, hier wird der Heap-Pointer
 nicht manipuliert, das passiert erst, wenn eine Procedure eine weitere
 Procedure aufruft.
 
-Der Stack des 6502 wird nur vom JSR verwendet. Somit sind in Basic ca. 112
+Der Stack des 6502 wird nur vom JSR verwendet.
+Sollte das Programm von Basic gestartet werden, sind ca. 112
 rekursive Aufrufe möglich (getestet).
-Bleiben wir in reinem Assembler max 120. (ungeprüft)
+Bleiben wir in reinem Assembler ca 120. (ungeprüft)
 
 Bei einem `FUNCTION_CALL` kann zusätzlich ein Wert per `RETURN wert` zurückgegeben werden.
 
@@ -314,16 +384,16 @@ Punktrechnung vor Strichrechnung gilt. Desweiteren werden einfache Zahlen immer 
 Word, damit ist die Berechnung von _großen_ Zahlen einfacher.
 
 Wir prüfen zuerst, ob es sich um einen String handelt und geben dann
-die Adresse des Strings zurück. Damit kann man überall wo Expressions erlaubt sind
-auch Strings einsetzen.
+die Adresse des Strings zurück.
+Damit kann man überall wo Expressions erlaubt sind auch Strings einsetzen.
 
 Intern wird der mathematische Ausdruck in eine UPN Notation umgesetzt.
 Dabei findet am Ende noch eine Optimierung statt,
-es wird das ein oder andere pull push aus dem UPN Stack entfernt.
+es wird das ein oder andere push pull aus dem UPN Stack entfernt.
 Bei einer bestimmten Konstellation wird statt adc ein inc verwendet.
 
 * Multiplikation, Division und Modulo sind als Funktionen extern definiert, bei Verwendung
-muss die Datei MATH.INC includiert werden.
+muss die Datei MATH_MUL.INC und oder MATH_DIV.INC includiert werden.
 Eine funktionierende Optimierung ist die Möglichkeit über Shift.
 Dazu muss der rechts stehende Faktor oder Quotient diese Werte (2,4,8,16,32,64,128,(256), 512,...)
 enthalten.
@@ -331,6 +401,8 @@ Der Sonderfall hier ist 256. Bei der Multiplikation mit 256 wird einfach das unt
 Bei der Division mit 256 wird einfach der obere Byte zum unteren Byte.
 
 * HINWEIS: Die IMULT/IDIV Routinen arbeiten mit negativen Werten richtig, aber Shift nicht.
+
+Für die schnellere Multiplikation gibt es die Datei VERYFASTMATH_MUL.INC, darin wird die 8bit Multiplikation mittelx ((x+y)^2)/4 - ((x-y)^2)/4 durchgeführt nebst großer Tabelle. Als Tipp, verzichtet einfach auf Dultiplikationen/Divisionen und nutzt vorberechnete Tabellen.
 
 Einfache Zahlen (`number`) werden immer als type word interpretiert, sonst
 funktionieren evtl. mult und div nicht richtig.
@@ -373,8 +445,8 @@ Weil zu kompliziert, Klammern von and/or funktionieren hier auch nicht.
 TODO: Hier nochmal etwas Gehirnschmalz investieren für bessere Verarbeitung
 
 === GET_PARAMETER
-Ist für den Procedure/Functions Aufruf gedacht, Jedes Ergebnis einer EXPRESSION wird
-auf dem Heap abgelegt.
+Ist für den Procedure/Functions Aufruf gedacht,
+Jedes Ergebnis einer EXPRESSION wird auf dem Heap abgelegt.
 [SOURCE]
  GET_PARAMETER ::= (nil | EXPRESSION (',' EXPRESSION)* )
 
@@ -385,15 +457,24 @@ TODO: Prüfung der Anzahl der Parameter wurde wieder ausgebaut, weil zu teuer (P
 
 Der Compiler ist immer noch sehr rudimentär und gibt nur wenige Fehlermeldungen aus.
 Manchmal ist leider genaueres Hinsehen nötig.
-Das ist nicht schön, aber ein relikt aus der Zeit, als der
-Compiler noch in Basic geschrieben war.
+Das ist nicht schön, aber ein Relikt aus der Zeit, als der
+Compiler noch in Turbo-Basic geschrieben war.
 
 
 == Illegale Variablennamen
+Der Compiler erzeugt keinen Binärcode, sondern Assembler-Source-Code.
+Dieser muss erst noch durch einen Assembler wie den atasm.
+
+Dieser Assembler hat im Umgang mit kurzen Variablen ein paar Problem.
+Der Compiler verlängert diese Variablen einfach. Sollte man nur
+in seinen eigenen Assembler-Routinen nicht vergessen.
+
 * A
 * ARR
+* W
 
-A ist jetzt möglich, wird intern zu 'A__'
+A ist jetzt möglich, wird intern zu 'A__', W wird intern zu W__
+
 
 == technisches
 
@@ -405,8 +486,9 @@ kann ein übersetztes WNF-Programm (LOMEM richtig setzen) gefahrlos in (Turbo)Ba
 werden und kehrt auch sauber zum Basic zurück.
 Dazu ist aber unbedingt der LOMEM+3 Einstieg zu verwenden.
 Parameter vom Basic USR(adr, parameter1, parameter2, parameter-n...)
-landen in @REG, @REG+2, @REG+n, ... bis zu 8 Parameter sind möglich.
-Um einfacher auf die Parameter von `USR(adr, parameter1, parameter2...)` zuzugreifen
+
+landen auf dem Heap. Es sind beliebig viele Parameter erlaubt. (ungetestet).
+Um einfach auf die Parameter von `USR(adr, parameter1, parameter2...)` zuzugreifen
 
 `word array args[1] = @parameter`
 
@@ -421,14 +503,16 @@ geladen werden.
 
 === Rekursion
 Rekursive Procedure calls sind möglich, bis zu 112 Stufen, ab dann kann für nichts
-mehr garantiert werden, da der Atari nur 256 Bytes Stack hat. Parameter werden
-nicht auf dem Stack abgelegt sondern auf einem eigenen Heap.
+mehr garantiert werden, da der Atari nur 256 Bytes Stack hat.
+Parameter von Proceduren/Funktionen werden nicht auf dem Stack abgelegt
+sondern auf einem eigenen Heap.
 Da aber jede rekursive Funktion in eine imperative Funktion übersetzt werden kann,
 sollte das kein Problem darstellen.
 
 === Compiler erzeugt Assembler
-Der Compiler erzeugt kein fertiges Objekt-File sondern ein Assembler-File, das erst
-noch durch einen Assembler in ein Objekt-File übersetzt werden muss.
+Der Compiler erzeugt kein fertiges Objekt-File sondern
+Assembler-Source-Code, das erst noch durch einen Assembler in ein
+Atari-Objekt-File übersetzt werden muss.
 
 * Aktuell ist nur der atasm >=1.07 in der Lage das Assembler-File zu assemblieren.
 * Der Assembler-Code ist _fast_ MAC/65 kompatibel, wurde für diesen halt mal erstellt.
@@ -436,35 +520,76 @@ noch durch einen Assembler in ein Objekt-File übersetzt werden muss.
 ** Zeilennummern, die werden aktuell auch nicht eingefügt.
 
 === Fehlerhafter Code
-Durch viele Tests wurde sichergestellt, das der erstellte Code _meistens_ läuft,
+Durch sehr viele Tests wurde sichergestellt,
+das der erstellte Code _meistens_ läuft,
 es wurde auch ein Spiel damit erstellt, um die Richtigkeit zu beweisen.
 
 === Nicht optimaler Code
-Der erstellte Assembler-Code ist alles andere als optimal,
-aber es gibt halt Features
-(proceduren, conditions, expressions, Strings, mult/div/mod etc.) die es sonst nicht
-so einfach gibt.
+Der erstellte Assembler-Source-Code ist alles andere als optimal.
+Dafür ist er einfach gestrickt und es gibt halt Features
+(proceduren, conditions, expressions, Strings, mult/div/mod etc.)
+die es sonst nicht so einfach gibt.
 
 * Expressions beherrschen Punkt vor Strichrechnung,
-* Proceduren/Funktionen kennen Parameter und lokale Variablen.
-* Funktionen können selbst definiert und innerhalb von Expressions genutzt werden.
+* Zahlenformate zur Basis 2(%), 4(#), 10 und 16($) (binär, quadrat, dezimal, hexadezimal).
+Das Vierersystem ist bei der Atari-Grafik von Vorteil.
+* Byte Arrays auf die einfach über Index-Register zugegriffen wird
+* Word Arrays die bei einem Index < 257 in 2 Byte Arrays aufgesplittet werden.
+Dann funktioniert auch hier der schnelle Index-Register-Zugriff.
+* Proceduren mit Parametern und lokalen Variablen.
+* Funktionen mit Parametern, lokalen Variablen und Rückgabewert.
+Funktionen können innerhalb von Expressions genutzt werden.
 * Strings können direkt übergeben werden.
-* Es gibt eine Routine zur Ausgabe von Daten
-`@printf('Zahl:%d, String:%s, Char:%c\n', zahl, string, char)` macht das
-mal in Assembler...
-* Es existiert dazu eine sehr schnelle Version `@printff(...)`.
-* Es existiert ein Peephole Optimizer, der einige suboptimale Konstrukte des Compilers ausbügelt.
-Dieser ist aber nicht perfekt.
+* Es gibt String Arrays.
+* Es gibt eine eigene Routine zur Ausgabe von Daten, Zahlen und Strings und Characters.
+`@printf('Zahl:%d, String:%s, Char:%c\n', zahl, string, char)` macht das mal in Assembler...
+* Zusätzlich existiert eine sehr schnelle Version `@printff(...)`.
+Die direkt in eine festgelegte Adresse die Daten schreibt.
+* Eine kleine Grafikbibliothek die Linien und Kreis zeichnen kann.
+Unterschiedlich schnelle Line Algorithmen.
+* Unterschiedliche Multiplikations-Algorithmen
+* Alles ist sehr einfach erweiterbar durch selbst geschriebene Assembler-Routinen.
+* Es existiert ein Peephole-Optimizer, der einige wirklich suboptimale Konstrukte
+des Compilers ausbügelt. Dieser ist aber nicht perfekt.
 
-Damit ist es viel einfacher zu programmieren, als es in Assembler möglich wäre,
-dafür gibt es aber den Compiler-Overhead.
-Ok, die Programme sind etwas langsamer
-und größer als handoptimierter Assembler, aber nicht exorbitant größer und
-und auch der Speed ist gegenüber Turbo-Basic signifikant.
-Externe Funktionen können über includes eingebunden werden,
+Damit ist das Programmieren viel einfacher, als es in Assembler möglich ist,
+allerdings gibt es den "Compiler-Overhead".
+
+Die Programme laufen etwas langsamer als handoptimierter Assembler
+und sind etwas größer (mehr Bytes), aber nicht so exorbitant größer und trotzdem
+ist der Speed gegenüber Turbo-Basic mehr als signifikant.
+Da ausschließlich Integervariablen verwendet werden.
+Zudem können eigene Funktionen über includes eingebunden werden,
 leider funktioniert im atasm das '.if .ref' nicht wie es der MAC/65 versteht,
-deshalb gibt es viele kleine include-Dateien, diese müssen aktuell
-noch selbst eingebunden werden.
+deshalb gibt es viele kleine include-Dateien, diese müssen aktuell noch von Hand
+eingebunden werden.
+
+== Includes
+
+Der Compiler includiert aktuell immer 3 Dateien am Anfang, noch bevor die
+Origin-Start-Adresse gesetzt wird. (*=...)
+
+* `VARIABLE.INC` sollte nur Variablen des OS enthalten
+* `HARDWARE.INC` sollte nur Variablen der zugrunde liegenden Hardware enthalten.
+Adressen ab $D000 für GTIA, Pokey, PIA, Antic,
+* `MACROS.INC` enthält ein paar Macros für den Compiler
+Diese 3 Includes sollten deshalb keinen eigenen Code enthalten.
+
+Jetzt folgt der Code des eigentlichen Programms.
+
+Am Ende die eigenen Includes für eigene Routinen. In beliebiger Reihenfolge.
+
+Der Compiler includiert am Ende immer die `RUNTIME.INC`.
+Diese enthält nur die absolut nötigsten Hilfsroutinen für den Betrieb.
+Ganz am Ende wird der Heap_ptr gesetzt.
+Meist reichen 256 Bytes für den Heap, je nachdem wie viele Unterroutinen man verwendet.
+Ggf. muss es selbst ausprobiert werden, ob der Speicher reicht.
+
+Da der gesamte Code nebst Runtime komplett offen liegt, kann auf wirklich fast
+alles entsprechend Einfluß genommen werden.
+Am Ende werden Assembler-Dateien erzeugt (*.ASM oder *.INC),
+die nochmal durch einen Assembler zu Maschinen-Code übersetzt werden müssen.
+
 
 === Code-Größen
 ```
@@ -473,7 +598,7 @@ noch selbst eingebunden werden.
  end
 ```
 
-Diese leere Procedure benötigt exact 1 Byte. (RTS only)
+Diese leere Procedure benötigt exakt 1 Byte. (RTS only)
 
 ```
  procedure oneByte(einByte)

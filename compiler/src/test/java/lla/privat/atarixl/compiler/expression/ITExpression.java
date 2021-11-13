@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -24,6 +24,7 @@ public class ITExpression {
 
     Assert.assertEquals(SymbolEnum.noSymbol, symbol.getId());
 
+    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
   }
 
 }

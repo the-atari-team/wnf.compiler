@@ -42,21 +42,19 @@ The source-code-coverage of tests is more then 95%.
 
 
 == Installation
-After successful build, copy the compiler/target/wnf-compiler.jar to
-a directory, where a path in your $PATH variable shows to. Then
-create the following simple script like
+After successful build, copy the `compiler/target/wnf-compiler.jar` file
+to a directory, where a path in your $PATH variable shows to.
+Then create the following simple script like
 [source]
 #!/bin/bash
 SCRIPT=$(dirname $0)
 java -jar ${SCRIPT}/wnf-compiler.jar $@
 
-Rename this script to `wnfc` and give
-it execute flags like
-`chmod +x wnfc`. Now on console, call `wnfc`
-and you will get the usage information of the compiler.
+Rename this script to `wnfc` and give it execute flags like `chmod +x wnfc`.
+Now on console, call `wnfc` and you will get the usage information of the compiler.
 
-Here also a script exists. `./deploy.sh` but due to the fact that
-every user has a different environment, you shuld not use it.
+Here also a script exists.
+`./deploy.sh` but due to the fact that every user has a different environment, you should not use it.
 It is just for me to install this compiler on my Windows (mingw) PC
 and on my Linux PC. Maybe you find it useful.
 
@@ -71,10 +69,13 @@ OPTIONS::
 0 for no optimization,
 1 for normal optimization,
 2 for also branch optimizations.
+The wnfc compiler contains a very rudimentare peephole optimizer.
+Which takes a look into the generated assembler source and replace some constructs by faster one.
 
 -v level:: give the verbose level
 
--I path:: path where to search for include files. The current path is default.
+-I path:: path where to search for include files.
+The current path is default.
 
 -o path:: the output path, where to copy the generated ASM/INC files.
 
@@ -91,8 +92,9 @@ More include files to build other things will follow soon.
 
 == Sorry
 This Java Application has been created very fast out of my original
-compiler written in Turbo-Basic-XL. See link:[turbobasic/README.adoc].
+compiler written in Turbo-Basic-XL.
+See link:[turbobasic/README.adoc].
 Due to the fact it is a very old german project (over 30 years old), lot of comments
 also in the Java source are in german.
 
-You need this compiler named `wnfc` to build Oxygene Be from source.
+You need to name this compiler `wnfc` to build Oxygene Be from source, because there exists a Makefile in the sources which use wnfc as compiler.

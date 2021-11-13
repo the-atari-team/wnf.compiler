@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.source;
@@ -43,6 +43,8 @@ public class Source implements Enumeration<Symbol> {
   // Start address of program, default is $4000 (set in class Program)
   private String startAddress;
 
+  private boolean runAddress;
+
   private boolean showCode;
 
   private int verboseLevel;
@@ -62,14 +64,14 @@ public class Source implements Enumeration<Symbol> {
   private int nowinc = 0;
 
   // Ergebnis der letzten Expression
-  private Type ergebnis;
+  private Type typeOfLastExpression;
 
   private int countOfAsserts = 0;
 
   private String filename = "";
-  
+
   private boolean selfModifiedCode;
-  
+
   public Source(final String sourceCode) {
     this.showCode = false;
     this.programTokenizer = new SymbolTokenizer(sourceCode + " "); // TODO: Das Whitespace am Ende macht vieles einfacher!
@@ -81,6 +83,7 @@ public class Source implements Enumeration<Symbol> {
     this.verboseLevel = 0;
 
     this.includePaths = new ArrayList<>();
+    this.runAddress = false;
   }
 
   /**
@@ -133,6 +136,14 @@ public class Source implements Enumeration<Symbol> {
     this.startAddress = startAddress;
   }
 
+  public void setRunAd() {
+    this.runAddress = true;
+  }
+
+  public boolean isRunAd() {
+    return runAddress;
+  }
+  
   public boolean isProgram() {
     return isProgram;
   }
@@ -162,8 +173,8 @@ public class Source implements Enumeration<Symbol> {
     this.selfModifiedCode = selfModifiedCode;
   }
 
-  
-  
+
+
 //
 //                                                   OO        OOO                               OOOOOO                   OO
 //                                                   OO         OO                              OO    OO                  OO
@@ -195,7 +206,7 @@ public class Source implements Enumeration<Symbol> {
       assemblerCodeList.set(index, codeToReplace);
     }
   }
-  
+
   public List<String> getCode() {
     return assemblerCodeList;
   }
@@ -332,8 +343,27 @@ public class Source implements Enumeration<Symbol> {
     final VariableDefinition newVariable = new VariableDefinition(name, type, countArray);
     variables.put(name, newVariable);
     variableList.add(name);
-  }
 
+//    if (name.endsWith("_LENGTH")) return;
+//
+    if (isArrayType(type)) {
+      final String nameWithLength = name + "_LENGTH";
+      final VariableDefinition newConstVariable = new VariableDefinition(nameWithLength, Type.CONST, 0);
+      variables.put(nameWithLength, newConstVariable);
+      variableList.add(nameWithLength);
+      setVariableAddress(nameWithLength, String.valueOf(countArray));
+    }
+  }
+  
+  private boolean isArrayType(Type type) {
+    if (type.equals(Type.BYTE_ARRAY) ||
+        type.equals(Type.FAT_BYTE_ARRAY) ||
+        type.equals(Type.FAT_WORD_ARRAY) ||
+        type.equals(Type.WORD_ARRAY) ||
+        type.equals(Type.WORD_SPLIT_ARRAY))
+      return true;
+    return false;
+  }
   /**
    * liefert true, falls die Variable schon existiert
    *
@@ -383,6 +413,32 @@ public class Source implements Enumeration<Symbol> {
     return getVariable(name).getType();
   }
 
+  public Type getVariableOverType(String name) {
+    switch(getVariable(name).getType()) {
+    case BYTE:
+    case BYTE_ARRAY:
+    case FAT_BYTE_ARRAY:
+    case UINT8:
+      return Type.BYTE;
+
+    case INT8:
+      return Type.INT8;
+
+    case WORD:
+    case WORD_ARRAY:
+    case WORD_SPLIT_ARRAY:
+    case FAT_WORD_ARRAY:
+    case UINT16:
+      return Type.WORD;
+
+    case CONST:
+      return Type.CONST;
+      
+    default:
+        return Type.WORD;
+    }
+  }
+
   /**
    * liefert zu einer Variablen dessen sizeof
    *
@@ -419,7 +475,7 @@ public class Source implements Enumeration<Symbol> {
     }
     return 0;
   }
-  
+
   public String generateFunctionNameWithParameters(String name, int countOfParameters) {
     if (countOfParameters > 0) {
       StringBuilder nameBuilder = new StringBuilder();
@@ -472,7 +528,7 @@ public class Source implements Enumeration<Symbol> {
     if (!definition.isGenerated()) {
       String name = definition.getName();
       String address = definition.getAddress();
-      
+
       if (address != null) {
         if (!address.equals("@")) {
           code(name + " = " + address);
@@ -498,6 +554,8 @@ public class Source implements Enumeration<Symbol> {
       break;
 
     case BYTE:
+    case UINT8:
+    case INT8:
       if (definition.getAddress() != null) {
         code(name + " = " + definition.getAddress());
       }
@@ -512,6 +570,8 @@ public class Source implements Enumeration<Symbol> {
       break;
 
     case WORD:
+    case UINT16:
+    case INT16:
       if (definition.getAddress() != null) {
         code(name + " = " + definition.getAddress());
       }
@@ -533,6 +593,7 @@ public class Source implements Enumeration<Symbol> {
       code(" .BYTE " + StringHelper.makeDoubleQuotedString(name) + "," + STRING_END_MARK);
       break;
     case UNKNOWN:
+    case CONST:
       break;
 //    default:
     }
@@ -565,6 +626,7 @@ public class Source implements Enumeration<Symbol> {
       // TODO: This is not supported!
     }
     else if (!definition.getArrayContent().isEmpty()) {
+      code(name); // we will also generate a variable without '_low' and '_high'
       code(name+"_LOW");
       ByteListGenerator generatorlow = new ByteListGenerator(this) {
         @Override
@@ -584,6 +646,7 @@ public class Source implements Enumeration<Symbol> {
       generatorhigh.generateCode(definition.getArrayContent().size());
     }
     else {
+      code(name); // we will also generate a variable without '_low' and '_high'
       code(name+"_LOW");
       code(" *=*+" + definition.getSizeOfArray());
       code(name+"_HIGH");
@@ -656,6 +719,12 @@ public class Source implements Enumeration<Symbol> {
     }
   }
 
+  public void throwIfFunctionUndefined(String functionName) {
+    if (!hasVariable(functionName)) {
+      error(new Symbol(functionName, SymbolEnum.noSymbol), "function " + functionName + "() is not defined");
+    }
+  }
+
   public void throwIfVariableAlreadyDefined(String name) {
     if (hasVariable(name)) {
       error(new Symbol(name, SymbolEnum.noSymbol), "variable " + name + " is already defined");
@@ -680,6 +749,12 @@ public class Source implements Enumeration<Symbol> {
     }
   }
 
+  public void throwIfConstVariableHasNoValue(String name) {
+    if (getVariableAddress(name) == null) {
+      error(new Symbol(name, SymbolEnum.noSymbol), "Const Variable '" + name + "' must set with variable or integer");
+    }
+  }
+  
   public void error(Symbol symbol, String message) {
     programTokenizer.error(symbol, message);
   }
@@ -687,13 +762,19 @@ public class Source implements Enumeration<Symbol> {
   /**
    * give out warning
    */
+
+  public void warning(Symbol symbol, String message) {
+    programTokenizer.warning(symbol, message);
+  }
+
   public void warn(String message) {
     LOGGER.warn(message);
   }
-  
+
   public void warn(String message, Object arg) {
     LOGGER.warn(message, arg);
   }
+
 //
 //                                           OO
 //                                           OO
@@ -749,12 +830,22 @@ public class Source implements Enumeration<Symbol> {
 
   // TODO: rename to getLastErgebnis!
   // TODO: rename to getResultType()
-  public Type getErgebnis() {
-    return ergebnis;
+  public Type getTypeOfLastExpression() {
+    return typeOfLastExpression;
   }
 
-  public void setErgebnis(Type ergebnis) {
-    this.ergebnis = ergebnis;
+  public void setTypeOfLastExpression(Type ergebnis) {
+    this.typeOfLastExpression = ergebnis;
+  }
+
+  private int negativeCount = 0;
+
+  public int getNegativeCount() {
+    return negativeCount;
+  }
+
+  public void incrementNegativeCount() {
+    ++negativeCount;
   }
 
   public List<String> getIncludePaths() {
@@ -774,11 +865,11 @@ public class Source implements Enumeration<Symbol> {
   public void addBreakVariable(final String breakVariable) {
     this.breakVariable.push(breakVariable);
   }
-  
+
   public void clearBreakVariable() {
     breakVariable.pop();
   }
-  
+
   public String getBreakVariable() {
     if (breakVariable.isEmpty()) {
       error(new Symbol("BREAK", SymbolEnum.variable_name), "We are not inside a breakable stage.");

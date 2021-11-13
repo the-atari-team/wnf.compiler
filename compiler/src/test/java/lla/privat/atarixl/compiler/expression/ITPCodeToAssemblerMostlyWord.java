@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -31,8 +31,8 @@ public class ITPCodeToAssemblerMostlyWord {
   }
 
   @Test
-  public void testExpressionWord() {
-    Source source = new Source("123 ");
+  public void testExpressionResultWord() {
+    Source source = new Source("128 ");
     List<Integer> p_code = getPCodeOf(source);
 
     Type ergebnis = Type.WORD;
@@ -40,10 +40,30 @@ public class ITPCodeToAssemblerMostlyWord {
 
     pcodeGenerator.build();
     List<String> code = source.getCode();
-    int n = -1;
+
+    int n=-1;
     Assert.assertEquals("; (5)", code.get(++n));
-    Assert.assertEquals(" LDY #<123", code.get(++n));
-    Assert.assertEquals(" LDX #>123", code.get(++n));
+    Assert.assertEquals(" LDY #<128", code.get(++n));
+    Assert.assertEquals(" LDX #>128", code.get(++n));
+    Assert.assertEquals(3, code.size());
+  }
+
+  @Test
+  public void testExpressionResultUint16() {
+    Source source = new Source("1 ");
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.UINT16;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n=-1;
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<1", code.get(++n));
+    Assert.assertEquals(" LDX #>1", code.get(++n));
+    Assert.assertEquals(3, code.size());
   }
 
   @Test
@@ -68,7 +88,70 @@ public class ITPCodeToAssemblerMostlyWord {
   }
 
   @Test
-  public void testExpressionZahlAddX() {
+  public void testExpressionAddWithNegativ() {
+    Source source = new Source("-1 + -2 ");
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+    int n = -1;
+    Assert.assertEquals("; (3)", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA #<-1", code.get(++n));
+    Assert.assertEquals(" ADC #<-2", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA #>-1", code.get(++n));
+    Assert.assertEquals(" ADC #>-2", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+  }
+
+  @Test
+  public void testExpressionByteVariableX() {
+    Source source = new Source("X ");
+    source.addVariable("X", Type.BYTE);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(3, code.size());
+  }
+
+  @Test
+  public void testExpressionInt8VariableX() {
+    Source source = new Source("X ");
+    source.addVariable("X", Type.INT8);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" CPY #$80", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(" BCC *+4", code.get(++n));
+    Assert.assertEquals(" LDX #$FF", code.get(++n));
+    Assert.assertEquals(6, code.size());
+  }
+
+
+  @Test
+  public void testExpressionZahlAddByteX() {
     Source source = new Source("123 + X ");
     source.addVariable("X", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
@@ -199,16 +282,16 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" LDX #0", code.get(++n));
 
     Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" STX @OP", code.get(++n));
+    Assert.assertEquals(" STX @OP+1", code.get(++n));
 
     Assert.assertEquals(" ASL A", code.get(++n));
-    Assert.assertEquals(" ROL @OP", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));
-    Assert.assertEquals(" ROL @OP", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));
-    Assert.assertEquals(" ROL @OP", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" LDX @OP", code.get(++n));
+    Assert.assertEquals(" LDX @OP+1", code.get(++n));
   }
 
   @Test
@@ -251,7 +334,6 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" LDY X", code.get(++n));
     Assert.assertEquals(" LDX X+1", code.get(++n));
 
-    // Wir tauschen einfach das lowbyte mit dem highbyte
     Assert.assertEquals(" STY @OP", code.get(++n));
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" CMP #$80", code.get(++n));
@@ -282,11 +364,10 @@ public class ITPCodeToAssemblerMostlyWord {
     // Wir tauschen einfach das lowbyte mit dem highbyte
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" CPY #$80", code.get(++n));
+//    Assert.assertEquals(" CPY #$80", code.get(++n));
     Assert.assertEquals(" LDX #0", code.get(++n));
-    Assert.assertTrue(code.get(++n).startsWith(" BCC ?NOTNEG"));
-    Assert.assertEquals(" LDX #$FF", code.get(++n));
-    Assert.assertTrue(code.get(++n).startsWith("?NOTNEG"));
+//    Assert.assertEquals(" BCC *+4", code.get(++n));
+//    Assert.assertEquals(" LDX #$FF", code.get(++n));
   }
 
   @Test
@@ -333,11 +414,11 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" LDY #<2", code.get(++n));
     Assert.assertEquals(" LDX #>2", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" STX @OP", code.get(++n));
+    Assert.assertEquals(" STX @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n)); // * 2
-    Assert.assertEquals(" ROL @OP", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" LDX @OP", code.get(++n));
+    Assert.assertEquals(" LDX @OP+1", code.get(++n));
 
     Assert.assertEquals("; (7)", code.get(++n));
     Assert.assertEquals(" STY @OP", code.get(++n));
@@ -466,9 +547,8 @@ public class ITPCodeToAssemblerMostlyWord {
 
     Assert.assertEquals("; (8)", code.get(++n));
     Assert.assertEquals(" INY", code.get(++n));
-    Assert.assertEquals(" BNE ?NOWINC0", code.get(++n));
+    Assert.assertEquals(" BNE *+3", code.get(++n));
     Assert.assertEquals(" INX", code.get(++n));
-    Assert.assertEquals("?NOWINC0", code.get(++n));
 
   }
 
@@ -600,4 +680,110 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" JSR @IMULT", code.get(++n));
 
   }
+
+  @Test
+  public void testExpressionWordAAddByteB() {
+    Source source = new Source("A + B");
+    source.addVariable("A__", Type.WORD);
+    source.addVariable("B", Type.BYTE);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (3)", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA A__", code.get(++n));
+    Assert.assertEquals(" ADC B", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA A__+1", code.get(++n));
+    Assert.assertEquals(" ADC #0", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+  }
+
+  @Test
+  public void testExpressionWordAAddInt8B() {
+    Source source = new Source("A + B");
+    source.addVariable("A__", Type.WORD);
+    source.addVariable("B", Type.INT8);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (3)", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA A__", code.get(++n));
+    Assert.assertEquals(" ADC B", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA A__+1", code.get(++n));
+    Assert.assertEquals(" ADC #0", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+  }
+
+  @Test
+  public void testExpressionXMul2ExponentWord() {
+    Source source = new Source("X * 8 ");
+    source.addVariable("X", Type.BYTE);
+    List<Integer> p_code = getPCodeOf(source);
+    
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+    
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+    
+    int n=-1;
+    Assert.assertEquals("; (4)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" STX @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDX @OP+1", code.get(++n));
+    
+    Assert.assertEquals(13, code.size());
+  }
+
+  @Test
+  public void testExpressionAWordAddConstB() {
+    Source source = new Source("a + b ");
+    source.addVariable("A__", Type.WORD);
+    source.addVariable("B", Type.CONST);
+    source.setVariableAddress("B", "123");
+    
+    List<Integer> p_code = getPCodeOf(source);
+    
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+    
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+    
+    int n=-1;
+    Assert.assertEquals("; (3)", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));    
+    Assert.assertEquals(" LDA A__", code.get(++n));
+    Assert.assertEquals(" ADC #<123", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA A__+1", code.get(++n));
+    Assert.assertEquals(" ADC #>123", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+    Assert.assertEquals(8, code.size());
+  }
+  
 }

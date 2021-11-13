@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.source;
@@ -164,6 +164,50 @@ public class TestSource {
     int n = -1;
     Assert.assertEquals("HALLO", code.get(++n));
     Assert.assertEquals(" .BYTE \"Dies ist ein String\",255", code.get(++n));
+    Assert.assertEquals(2, code.size());
+
+    Assert.assertTrue(sourceSUT.hasVariable("HALLO_LENGTH"));
+  }
+
+  @Test
+  public void testGenerateVariables_byteArrayWithStringWithQuotesAndDoubleAtTheEnd() {
+    String program = "";
+    Source sourceSUT = new Source(program);
+
+    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10);
+    List<String> arrayValues = new ArrayList<>();
+    arrayValues.add("'String mit \\'Quotes\\' und \"DoubleQuotes\"'");
+    arrayValues.add("255");
+    sourceSUT.setVariableArray("HALLO", arrayValues);
+
+    sourceSUT.generateVariables();
+
+    List<String> code = sourceSUT.getCode();
+
+    int n = -1;
+    Assert.assertEquals("HALLO", code.get(++n));
+    Assert.assertEquals(" .BYTE \"String mit \",39,\"Quotes\",39,\" und \",34,\"DoubleQuotes\",34,255", code.get(++n));
+    Assert.assertEquals(2, code.size());
+  }
+
+  @Test
+  public void testGenerateVariables_byteArrayWithStringWithQuotes() {
+    String program = "";
+    Source sourceSUT = new Source(program);
+
+    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10);
+    List<String> arrayValues = new ArrayList<>();
+    arrayValues.add("'String mit \\'Quotes\\' und \"DoubleQuotes\" '");
+    arrayValues.add("255");
+    sourceSUT.setVariableArray("HALLO", arrayValues);
+
+    sourceSUT.generateVariables();
+
+    List<String> code = sourceSUT.getCode();
+
+    int n = -1;
+    Assert.assertEquals("HALLO", code.get(++n));
+    Assert.assertEquals(" .BYTE \"String mit \",39,\"Quotes\",39,\" und \",34,\"DoubleQuotes\",34,\" \",255", code.get(++n));
   }
 
   @Test
@@ -275,6 +319,7 @@ public class TestSource {
     List<String> code = sourceSUT.getCode();
 
     int n = -1;
+    Assert.assertEquals("HALLO", code.get(++n));
     Assert.assertEquals("HALLO_LOW", code.get(++n));
     Assert.assertEquals(" *=*+15", code.get(++n));
     Assert.assertEquals("HALLO_HIGH", code.get(++n));
@@ -295,6 +340,7 @@ public class TestSource {
     List<String> code = sourceSUT.getCode();
 
     int n = -1;
+    Assert.assertEquals("HALLO", code.get(++n));
     Assert.assertEquals("HALLO_LOW", code.get(++n));
     Assert.assertEquals(" .BYTE <1,<-1,<255", code.get(++n));
     Assert.assertEquals("HALLO_HIGH", code.get(++n));

@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.statement;
@@ -38,7 +38,7 @@ public class Return extends Code {
     nextSymbol = source.nextElement();
     nextSymbol = new Expression(source).expression(nextSymbol).build();
 
-    if (source.getErgebnis().getBytes() == 1) {
+    if (source.getTypeOfLastExpression().getBytes() == 1) {
       code(" ldx #0");
     }
     code(" jmp ?RETURN"+source.getReturnCount());

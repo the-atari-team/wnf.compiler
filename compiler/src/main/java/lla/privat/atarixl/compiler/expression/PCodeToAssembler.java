@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -22,7 +22,7 @@ import lla.privat.atarixl.compiler.source.Source;
  * --  move register to akku (TYA or TXA)
  * --  work on it
  * --  move akku back to register (TAY or TAX)
- * - the result is always that the word value stays in register (Y + 256 * X) 
+ * - the result is always that the word value stays in register (Y + 256 * X)
  * IMPORTANT:
  * - Do not try to optimize code here, use Peephole Optimizer for that
  */
@@ -40,6 +40,8 @@ public class PCodeToAssembler extends Code {
 
   private boolean sonderlocke_fat_byte_array = false;
 
+//  private static int condi;
+
   public PCodeToAssembler(final Source source, final List<Integer> p_code, Type ergebnis) {
     super(source);
 
@@ -56,11 +58,11 @@ public class PCodeToAssembler extends Code {
       try {
         p_code_to_assembler();
       } catch (IllegalStateException e) {
-        LOGGER.error("caught IllegalStateException {}", e);
+        LOGGER.error("caught IllegalStateException {}", e.getMessage());
       } catch (IndexOutOfBoundsException e) {
         // TODO: Warum tritt das hier auf?
         LOGGER.error("Line: {}", source.getLine());
-        LOGGER.error("Must not occur {}", e);
+        LOGGER.error("Must not occur {}", e.getMessage());
       }
     }
 
@@ -84,63 +86,82 @@ public class PCodeToAssembler extends Code {
   private void p_code_to_assembler() {
     int a = 0;
     int shiftValue = 0;
-    int x;
+    int operator;
     String mne$ = "";
     String a$ = "";
 
     do {
-      int currentPCode = p_code.get(a);
-      if (currentPCode == 0) {
+      PCode currentPCode = PCode.fromInt(p_code.get(a));
+      if (currentPCode == PCode.UNKNOWN) {
         throw new IllegalStateException("unhandled 0");
       }
 
-      int b = p_code.get(a + 1); // wert
-      if (currentPCode == PCode.INT_ZAHL.getValue() && p_code.get(a + 2) == PCode.PUSH.getValue()) {
+      final int value = p_code.get(a + 1); // wert
+      if (currentPCode == PCode.INT_ZAHL && p_code.get(a + 2) == PCode.PUSH.getValue()) {
         code(";#2 (1)"); // TEST VORHANDEN
-        code(" lda #<" + b); // ;" ;push zahl"
+        code(" lda #<" + value); // ;" ;push zahl"
         code(" pha");
         if (ergebnis != Type.BYTE) {
-          code(" lda #>" + b);
+          code(" lda #>" + value);
           code(" pha");
         }
         a = a + 3;
       }
 // -------------------------------
       else {
-        if (currentPCode == PCode.WORD.getValue() && p_code.get(a + 2) == PCode.PUSH.getValue()) {
-          a$ = source.getVariableAt(b);
+        if (currentPCode == PCode.WORD && p_code.get(a + 2) == PCode.PUSH.getValue()) {
+          a$ = source.getVariableAt(value);
           code(";#2 (2)"); // TEST VORHANDEN
           code(" lda " + a$); // ;" ;push var"
           code(" pha");
           if (ergebnis != Type.BYTE) {
-            mne$ = "lda";
-            get_typ(mne$, a$);
+            Type typ = source.getVariableType(a$);
+            if (typ == Type.INT8) {
+                code(" cmp #$80");    // switch carry flag
+                code(" lda #0");      // ldx will not change carry flag
+                code(" bcc *+4");     // jump 2 bytes forward
+                code(" lda #$FF");
+            }
+            else if (typ == Type.BYTE) {
+              code(" lda #0");
+            }
+            else {
+              code(" lda " + a$ + "+1");
+            }
             code(" pha");
           }
           a = a + 3;
         }
 // -------------------------------
         else {
-          x = p_code.get(a + 2);
-          if ((currentPCode == PCode.INT_ZAHL.getValue() || currentPCode == PCode.WORD.getValue())
-              && (x == PCode.IADD.getValue() || x == PCode.ISUB.getValue() || x == PCode.IOR.getValue()
-                  || x == PCode.IAND.getValue() || x == PCode.IXOR.getValue())) {
-            int c = p_code.get(a + 4);
+          operator = p_code.get(a + 2);
+
+          if ((currentPCode == PCode.INT_ZAHL || currentPCode == PCode.WORD)
+              && (
+              operator == PCode.IADD.getValue() ||
+              operator == PCode.ISUB.getValue() ||
+              operator == PCode.IOR.getValue()  ||
+              operator == PCode.IAND.getValue() ||
+              operator == PCode.IXOR.getValue())) {
+            // add, sub, or, and, xor
+            final int c = p_code.get(a + 4);
             code(";#2 (3)"); // TEST VORHANDEN
-            clc_sec(x);
+            prepareCarryFlag(operator);
             String b$ = "";
-            Type typ2;
-            if (currentPCode == PCode.INT_ZAHL.getValue()) { // low byte
-              code(" lda #<" + b); // ;" ;izahl"
-              typ2 = Type.BYTE;
+            Type typ1;
+            // aktuell gibt es INT(Konstante) oder WORD(variable)
+            if (currentPCode == PCode.INT_ZAHL) { // low byte
+              code(" lda #<" + value); // ;" ;izahl"
+// TODO: fehler! falsche Annahme
+              typ1 = Type.BYTE;
             }
             else {
-              a$ = source.getVariableAt(b);
+              a$ = source.getVariableAt(value);
               b$ = a$;
-              typ2 = source.getVariableType(a$);
+              typ1 = source.getVariableType(a$);
               code(" lda " + b$);
             }
-            mne$ = mne_is_add_sub_or_eor_and(x);
+            mne$ = mne_is_add_sub_or_eor_and(operator);
             if (p_code.get(a + 3) == PCode.INT_ZAHL.getValue()) {
               code(" " + mne$ + " #<" + c);
             }
@@ -149,12 +170,12 @@ public class PCodeToAssembler extends Code {
               code(" " + mne$ + " " + a$);
             }
             code(" tay");
-            if (ergebnis != Type.BYTE) {
-              if (currentPCode == PCode.INT_ZAHL.getValue()) { // high byte
-                code(" lda #>" + b);
+            if (ergebnis.getBytes() == 2) {
+              if (currentPCode == PCode.INT_ZAHL) { // high byte
+                code(" lda #>" + value);
               }
-              else {
-                if (typ2 == Type.BYTE) {
+              else { // ivar links
+                if (typ1 == Type.BYTE || typ1 == Type.INT8) {
                   code(" lda #0");
                 }
                 else {
@@ -164,8 +185,14 @@ public class PCodeToAssembler extends Code {
               if (p_code.get(a + 3) == PCode.INT_ZAHL.getValue()) {
                 code(" " + mne$ + " #>" + c);
               }
-              else {
-                get_typ(mne$, a$);
+              else { // ivar rechts
+                Type typ2 = source.getVariableType(a$);
+                if (typ2 == Type.BYTE || typ2 == Type.INT8) {
+                  code(" " + mne$ + " #0");
+                }
+                else {
+                  code(" " + mne$ + " " + a$ + "+1");
+                }
               }
               code(" tax");
             }
@@ -173,73 +200,116 @@ public class PCodeToAssembler extends Code {
           }
 // -------------------------------
           else {
-            if ((currentPCode == PCode.INT_ZAHL.getValue() || currentPCode == PCode.WORD.getValue())
-                && (p_code.get(a + 2) == PCode.IMULT.getValue() || p_code.get(a + 2) == PCode.IDIV.getValue()
-                    || p_code.get(a + 2) == PCode.IMOD.getValue())) {
-              int c = p_code.get(a + 4);
+            if ((currentPCode == PCode.INT_ZAHL || currentPCode == PCode.WORD)
+                && (
+                    p_code.get(a + 2) == PCode.IMULT.getValue() ||
+                    p_code.get(a + 2) == PCode.IDIV.getValue()  ||
+                    p_code.get(a + 2) == PCode.IMOD.getValue())) {
+              final int c = p_code.get(a + 4);
               shiftValue = -1;
               code(";#2 (4)"); // TEST FEHLERHAFT
 
-              if (currentPCode == PCode.INT_ZAHL.getValue()) {
-                code(" ldy #<" + b); // ;" ;izahl"
-                if (ergebnis != Type.BYTE) {
-                  code(" ldx #>" + b);
+              if (currentPCode == PCode.INT_ZAHL) {
+                code(" ldy #<" + value); // ;" ;izahl"
+                if (ergebnis != Type.BYTE && ergebnis != Type.INT8) {
+                  code(" ldx #>" + value);
                 }
               }
               else { // ivar
-                a$ = source.getVariableAt(b);
+                a$ = source.getVariableAt(value);
                 code(" ldy " + a$); // ;" ;ivar"
                 if (ergebnis != Type.BYTE) {
-                  mne$ = "ldx";
-                  get_typ(mne$, a$);
+                  Type typ = source.getVariableType(a$);
+                  if (typ == Type.INT8) {
+                      code(" cpy #$80");    // switch carry flag
+                      code(" ldx #0");      // ldx will not change carry flag
+                      code(" bcc *+4");     // jump 2 bytes forward
+                      code(" ldx #$FF");
+                  }
+                  else if (typ == Type.BYTE) {
+                    code(" ldx #0");
+                  }
+                  else {
+                    code(" ldx " + a$ + "+1");
+                  }
                 }
               }
               if (p_code.get(a + 3) == PCode.INT_ZAHL.getValue()) {
-                x = c;
-                int y = p_code.get(a + 2);
-                shiftValue = mul_div_with_shift(x, y);
+                operator = c;
+                PCode pcode = PCode.fromInt(p_code.get(a + 2));
+                shiftValue = mul_div_with_shift(operator, pcode);
               }
               else { // ivar
                 a$ = source.getVariableAt(c);
                 code(" lda " + a$);
                 code(" sta @op");
                 if (ergebnis != Type.BYTE) {
-                  mne$ = "lda";
-                  get_typ(mne$, a$);
+                  Type typ = source.getVariableType(a$);
+                  if (typ == Type.INT8) {
+                      code(" cmp #$80");    // switch carry flag
+                      code(" lda #0");      // ldx will not change carry flag
+                      code(" bcc *+4");     // jump 2 bytes forward
+                      code(" lda #$FF");
+                  }
+                  else if (typ == Type.BYTE) {
+                    code(" lda #0");
+                  }
+                  else {
+                    code(" lda " + a$ + "+1");
+                  }
                   code(" sta @op+1");
                 }
               }
-              x = p_code.get(a + 2);
-              mul_div_or_mod(x, shiftValue);
+              operator = p_code.get(a + 2);
+              mul_div_or_mod(operator, shiftValue);
               a = a + 5;
             }
 // -------------------------------
             else {
-              if (currentPCode == PCode.INT_ZAHL.getValue()) {
+              if (currentPCode == PCode.INT_ZAHL) {
                 code(";#2 (5)"); // TEST VORHANDEN
-                code(" ldy #<" + b); // ;" ;izahl"
-                if (ergebnis == Type.BYTE && b > 255) {
-                  code(" ldx #>" + b); // Sonderlocke für z.B. FAT_BYTE_ARRAY
+                code(" ldy #<" + value); // ;" ;izahl"
+                if (ergebnis == Type.BYTE && value > 255) {
+                  code(" ldx #>" + value); // Sonderlocke für z.B. FAT_BYTE_ARRAY
                   sonderlocke_fat_byte_array = true;
                 }
-                if (ergebnis != Type.BYTE) {
-                  code(" ldx #>" + b);
+                if (ergebnis == Type.WORD || ergebnis == Type.UINT16) {
+                  code(" ldx #>" + value);
                 }
                 a = a + 2;
               }
 // -------------------------------
               else { // ivar
-                if (currentPCode == PCode.WORD.getValue()) {
-                  a$ = source.getVariableAt(b);
+                if (currentPCode == PCode.WORD) {
+                  a$ = source.getVariableAt(value);
+                  Type typOfa$ = source.getVariableType(a$);
                   code(";#2 (6)");
                   code(" ldy " + a$); // ;" ;ivar"
                   if (ergebnis == Type.BYTE && source.getVariableSize(a$) == 2) {
                     code(" ldx " + a$ + "+1"); // Sonderlocke für z.B. FAT_BYTE_ARRAY
                     sonderlocke_fat_byte_array = true;
                   }
-                  if (ergebnis != Type.BYTE) {
-                    mne$ = "ldx";
-                    get_typ(mne$, a$);
+                  // word a$==INT8
+                  // word a$==BYTE
+                  // word a$==WORD UINT16
+
+                  if (ergebnis == Type.WORD && typOfa$ == Type.INT8) {
+                    code(" cpy #$80");    // switch carry flag
+                    code(" ldx #0");      // ldx will not change carry flag
+                    code(" bcc *+4");     // jump 2 bytes forward
+                    code(" ldx #$FF");
+                  }
+                  else if (ergebnis == Type.WORD && typOfa$ == Type.BYTE) {
+                    code(" ldx #0");
+                  }
+                  else if (ergebnis == Type.WORD && typOfa$ == Type.WORD) {
+                    code(" LDX " + a$ + "+1");
+                  }
+                  else if (ergebnis == Type.BYTE || ergebnis == Type.INT8) {
+
+                  }
+                  else {
+
                   }
                   a = a + 2;
                 }
@@ -250,9 +320,10 @@ public class PCodeToAssembler extends Code {
       }
 
 // -------------------------------
-      if (currentPCode == PCode.PULL.getValue()) {
+      if (currentPCode == PCode.PULL) {
         code(";#2 (7)"); // TEST VORHANDEN
         code(" sty @op"); // ;movepull"
+// TODO: testen mit word + byte + word?
         if (ergebnis != Type.BYTE) {
           code(" stx @op+1");
           code(" pla");
@@ -261,68 +332,74 @@ public class PCodeToAssembler extends Code {
         code(" pla");
         code(" tay");
         // -------------------------------
-        x = p_code.get(a + 1);
+        operator = p_code.get(a + 1);
         shiftValue = -1;
-        if (x == PCode.UPN_ADD.getValue() ||
-            x == PCode.UPN_SUB.getValue() ||
-            x == PCode.UPN_OR.getValue() ||
-            x == PCode.UPN_XOR.getValue() ||
-            x == PCode.UPN_AND.getValue()) {
-          clc_sec(x);
-          mne$ = mne_is_add_sub_or_eor_and(x);
+        if (operator == PCode.UPN_ADD.getValue() ||
+            operator == PCode.UPN_SUB.getValue() ||
+            operator == PCode.UPN_OR.getValue() ||
+            operator == PCode.UPN_XOR.getValue() ||
+            operator == PCode.UPN_AND.getValue()) {
+          prepareCarryFlag(operator);
+          mne$ = mne_is_add_sub_or_eor_and(operator);
           add_sub(mne$);
         }
         else { // -------------------------------
-          if (x == PCode.UPN_MUL.getValue() ||
-              x == PCode.UPN_DIV.getValue() ||
-              x == PCode.UPN_MODULO.getValue()) { // mult or div
-            x = x + 8;
-            mul_div_or_mod(x, shiftValue);
+          if (operator == PCode.UPN_MUL.getValue() ||
+              operator == PCode.UPN_DIV.getValue() ||
+              operator == PCode.UPN_MODULO.getValue()) { // mult or div
+            operator = operator + 8;
+            mul_div_or_mod(operator, shiftValue);
           }
         }
         a = a + 2;
       }
 // -------------------------------
-      x = currentPCode;
+      operator = currentPCode.getValue();
       int y = p_code.get(a + 1);
-      if (x == PCode.IADD.getValue() ||
-          x == PCode.ISUB.getValue() ||
-          x == PCode.IOR.getValue() ||
-          x == PCode.IXOR.getValue() ||
-          x == PCode.IAND.getValue()) { // add/sub/or/xor/and
-        b = p_code.get(a + 2);
+      if (operator == PCode.IADD.getValue() ||
+          operator == PCode.ISUB.getValue() ||
+          operator == PCode.IOR.getValue() ||
+          operator == PCode.IXOR.getValue() ||
+          operator == PCode.IAND.getValue()) { // add/sub/or/xor/and
+        final int value2 = p_code.get(a + 2);
         code(";#2 (8)"); // TEST VORHANDEN
-        if (x == PCode.IADD.getValue() && b == 1 && y == PCode.INT_ZAHL.getValue()) {
-          if (x == PCode.IADD.getValue()) {
+        if (operator == PCode.IADD.getValue() && value2 == 1 && y == PCode.INT_ZAHL.getValue()) {
+          if (operator == PCode.IADD.getValue()) {
             code(" iny");
             if (ergebnis != Type.BYTE) { // must be WORD or WORD_ARRAY
-              code(" bne ?nowinc" + source.getNowinc());
+              code(" bne *+3");
               code(" inx");
-              code("?nowinc" + source.getNowinc());
               source.incrementNowinc();
             }
           }
           // if (x == 17 ) { ?#kan;" dey" mne$="sbc" }
         }
         else {
-          clc_sec(x);
+          prepareCarryFlag(operator);
           code(" tya");
-          mne$ = mne_is_add_sub_or_eor_and(x);
+          mne$ = mne_is_add_sub_or_eor_and(operator);
           if (y == PCode.INT_ZAHL.getValue()) {
-            code(" " + mne$ + " #<" + b);
+            code(" " + mne$ + " #<" + value2);
           }
           else {
-            a$ = source.getVariableAt(b);
+            a$ = source.getVariableAt(value2);
             code(" " + mne$ + " " + a$);
           }
           code(" tay");
           if (ergebnis != Type.BYTE) {
             code(" txa");
             if (y == PCode.INT_ZAHL.getValue()) {
-              code(" " + mne$ + " #>" + b);
+              code(" " + mne$ + " #>" + value2);
             }
             else {
-              get_typ(mne$, a$);
+              Type typ = source.getVariableType(a$);
+              if (typ == Type.BYTE) {
+                code(" " + mne$ + " #0");
+              }
+              else {
+                code(" " + mne$ + " " + a$ + "+1");
+              }
+
             }
             code(" tax");
           }
@@ -331,38 +408,48 @@ public class PCodeToAssembler extends Code {
       }
 // -------------------------------
       else {
-        if (currentPCode == PCode.IMULT.getValue() ||
-            currentPCode == PCode.IDIV.getValue() ||
-            currentPCode == PCode.IMOD.getValue()) {
-          b = p_code.get(a + 2);
+        if (currentPCode == PCode.IMULT ||
+            currentPCode == PCode.IDIV ||
+            currentPCode == PCode.IMOD) {
+          final int value3 = p_code.get(a + 2);
           shiftValue = -1;
           code(";#2 (9)");
           if (p_code.get(a + 1) == PCode.INT_ZAHL.getValue()) {
-            x = b;
-            y = currentPCode;
-            shiftValue = mul_div_with_shift(x, y);
+            operator = value3;
+            shiftValue = mul_div_with_shift(operator, currentPCode);
           }
           else {
-            a$ = source.getVariableAt(b);
+            a$ = source.getVariableAt(value3);
             code(" lda " + a$);
             code(" sta @op");
             if (ergebnis != Type.BYTE) {
-              mne$ = "lda";
-              get_typ(mne$, a$);
+              Type typ = source.getVariableType(a$);
+              if (typ == Type.INT8) {
+                  code(" cmp #$80");    // switch carry flag
+                  code(" lda #0");      // ldx will not change carry flag
+                  code(" bcc *+4");     // jump 2 bytes forward
+                  code(" lda #$FF");
+              }
+              else if (typ == Type.BYTE) {
+                code(" lda #0");
+              }
+              else {
+                code(" lda " + a$ + "+1");
+              }
               code(" sta @op+1");
             }
           }
-          x = currentPCode;
-          mul_div_or_mod(x, shiftValue);
+          operator = currentPCode.getValue();
+          mul_div_or_mod(operator, shiftValue);
           a = a + 3;
         }
       }
 // -------------------------------
-      if (currentPCode == PCode.NOP.getValue()) {
+      if (currentPCode == PCode.NOP) {
         a = a + 1;
       }
 // -------------------------------
-      if (currentPCode == PCode.PUSH.getValue()) {
+      if (currentPCode == PCode.PUSH) {
         code(";#2 (10)"); // TEST VORHANDEN
         code(" tya"); // ;push"
         code(" pha");
@@ -373,12 +460,12 @@ public class PCodeToAssembler extends Code {
         a = a + 1;
       }
 // -------------------------------
-      else if (currentPCode == PCode.WORD_ARRAY.getValue()) {
+      else if (currentPCode == PCode.WORD_ARRAY) {
         code(";#2 (11)"); // TEST VORHANDEN
         int num = p_code.get(a + 1);
         a$ = source.getVariableAt(num);
         if (ergebnis == Type.BYTE) {
-          code(" ldx #0");
+          code(" ldx #0"); // word_array
         }
         code(" tya");
         code(" getarrayw " + a$); // ;" ;word-array"
@@ -387,7 +474,7 @@ public class PCodeToAssembler extends Code {
         a = a + 2;
       }
       // -------------------------------
-      else if (currentPCode == PCode.WORD_SPLIT_ARRAY.getValue()) {
+      else if (currentPCode == PCode.WORD_SPLIT_ARRAY) {
         code("; (11.2)"); // TEST VORHANDEN
         int num = p_code.get(a + 1);
         a$ = source.getVariableAt(num);
@@ -400,13 +487,14 @@ public class PCodeToAssembler extends Code {
         // y+256*x are set
         a = a + 2;
       }
-      // -------------------------------        
-      else if (currentPCode == PCode.FAT_BYTE_ARRAY.getValue()) {
+      // -------------------------------
+      else if (currentPCode == PCode.FAT_BYTE_ARRAY) {
         code(";#2 (12.2)"); // TEST VORHANDEN
         int num = p_code.get(a + 1);
         a$ = source.getVariableAt(num);
         if (ergebnis == Type.BYTE && sonderlocke_fat_byte_array == false) {
-          code(" ldx #0");
+// TODO: verstehen!
+          code(" ldx #0"); // fat_byte_array
         }
         code(" tya");
         code(" getarrayb " + a$); // ;" ;fat-byte-array"
@@ -416,7 +504,7 @@ public class PCodeToAssembler extends Code {
         a = a + 2;
       }
 // -------------------------------
-      else if (currentPCode == PCode.BYTE_ARRAY.getValue()) {
+      else if (currentPCode == PCode.BYTE_ARRAY) {
         code(";#2 (12)"); // TEST VORHANDEN
         int num = p_code.get(a + 1);
         a$ = source.getVariableAt(num);
@@ -425,11 +513,11 @@ public class PCodeToAssembler extends Code {
           code(" lda " + a$ + ",y"); // ;b.array short"
           code(" tay");
         }
-// DEAD Code!        
+// DEAD Code!
 //        else {
 //          // TODO: diesen Fall unterstützen wir gerade nicht!
 //          if (ergebnis == Type.BYTE) {
-//            code(" ldx #0");
+//            code(" ldx #0"); // dead
 //          }
 //          code(" getarrayb " + a$); // ;" ;byte-array"
 //          code(" tay");
@@ -440,7 +528,7 @@ public class PCodeToAssembler extends Code {
         a = a + 2;
       }
 // -------------------------------
-      else if (currentPCode == PCode.ADDRESS.getValue()) {
+      else if (currentPCode == PCode.ADDRESS) {
         code(";#2 (13)");
         int num = p_code.get(a + 1);
         a$ = source.getVariableAt(num);
@@ -448,17 +536,37 @@ public class PCodeToAssembler extends Code {
         code(" ldx #>" + a$);
         a = a + 2;
       }
+   // -------------------------------
+      else if (currentPCode == PCode.TOWORD) {
+        code(";#2 (19)");
+        int num = p_code.get(a + 1);
+        a$ = source.getVariableAt(num);
+        code(" ldy " + a$);   // ;" ;load byte"
+        Type typ = source.getVariableType(a$);
+        if (typ == Type.BYTE) {
+            code(" ldx #0");
+        }
+        else if (typ == Type.INT8) {
+          code(" cpy #$80");    // switch carry flag
+          code(" ldx #0");      // ldx will not change carry flag
+          code(" bcc *+4");
+          code(" ldx #$ff");
+        }
+        else {
+        }
+        a = a + 2;
+      }
 // -------------------------------
-      else if (currentPCode == PCode.FUNCTION.getValue()) {
+      else if (currentPCode == PCode.FUNCTION) {
         code(";#2 (14)");
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
         int parameterCount = p_code.get(a+2);
         a$ = source.getVariableAt(num);
-        String functionName = source.generateFunctionNameWithParameters(a$, parameterCount); 
+        String functionName = source.generateFunctionNameWithParameters(a$, parameterCount);
         code(" jsr " + functionName); // ;" ; -->func"
         a = a + 3;
       }
-      else if (currentPCode == PCode.FUNCTION_POINTER.getValue()) {
+      else if (currentPCode == PCode.FUNCTION_POINTER) {
         code(";#2 (14 ptr)");
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
         a$ = source.getVariableAt(num);
@@ -467,7 +575,7 @@ public class PCodeToAssembler extends Code {
         code(" jsr @function_pointer"); // ;" ; --> func ptr"
         a = a + 3;
       }
-      else if (currentPCode == PCode.STRING.getValue()) {
+      else if (currentPCode == PCode.STRING) {
         code(";#2 (15)");
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
         a$ = source.getVariableAt(num);
@@ -475,7 +583,7 @@ public class PCodeToAssembler extends Code {
         code(" ldx #>" + a$);
         a = a + 2;
       }
-      else if (currentPCode == PCode.PARAMETER_PUSH.getValue()) {
+      else if (currentPCode == PCode.PARAMETER_PUSH) {
         code(";#2 (16)");
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
         code(" tya"); // ; ummodeln x,y in parameter->heap"
@@ -485,13 +593,17 @@ public class PCodeToAssembler extends Code {
           code(" txa");
         }
         else {
+          // TODO Kontrolle!!!!!
+          code(" cmp #$80");
           code(" lda #0");
+          code(" bcs *+4");
+          code(" lda #$ff");
         }
         code(" iny");
         code(" sta (@heap_ptr),y");
         a = a + 2;
       }
-      else if (currentPCode == PCode.PARAMETER_START_ADD_TO_HEAP_PTR.getValue()) {
+      else if (currentPCode == PCode.PARAMETER_START_ADD_TO_HEAP_PTR) {
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
         if (num != 0) {
           code(";#2 (17)");
@@ -499,7 +611,7 @@ public class PCodeToAssembler extends Code {
         }
         a = a + 2;
       }
-      else if (currentPCode == PCode.PARAMETER_END_SUB_FROM_HEAP_PTR.getValue()) {
+      else if (currentPCode == PCode.PARAMETER_END_SUB_FROM_HEAP_PTR) {
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
         if (num != 0) {
           code(";#2 (18)");
@@ -524,10 +636,9 @@ public class PCodeToAssembler extends Code {
     }
   }
 
-  private static int condi;
 // -------------------------------
-  public int mul_div_with_shift(int value, int pcode) {
-    ++condi;
+  public int mul_div_with_shift(int value, PCode pcode) {
+      // ++condi;
     int exponent;
     if (value > 1) {
       exponent = Long.valueOf(Math.round(Math.log(value) / 0.69314718 + 1.0e-05)).intValue(); // log(x)/log(2)
@@ -535,21 +646,20 @@ public class PCodeToAssembler extends Code {
     else {
       exponent = -1;
     }
-    if (exponent > 0 && Math.pow(2, exponent) == value && pcode != 23) { // nicht modulo
+    if (exponent > 0 && Math.pow(2, exponent) == value && pcode != PCode.IMOD) { // nicht modulo
 //    code("; shiften um ";d;" bits"
       if (exponent > 7) {
-        if (pcode == PCode.IDIV.getValue()) {
-          // TODO: make shifts negativable              
-          
+        if (pcode == PCode.IDIV) {
+          // TODO: make shifts negativable
+
           code(" txa"); // ;hohe zahl in kleine zahl"
           code(" tay");
-          code(" cpy #$80");
+//          code(" cpy #$80");
           code(" ldx #0");
-          code(" bcc ?notneg"+condi);
-          code(" ldx #$ff");
-          code("?notneg"+condi);
+//          code(" bcc *+4");
+//          code(" ldx #$ff");
         }
-        if (pcode == PCode.IMULT.getValue()) {
+        if (pcode == PCode.IMULT) {
           code(" tya"); // ;kleine zahl in hohe zahl"
           code(" tax");
           code(" ldy #0");
@@ -558,33 +668,33 @@ public class PCodeToAssembler extends Code {
       }
 
       if (exponent > 0) {
-        if (pcode == PCode.IMULT.getValue()) {
+        if (pcode == PCode.IMULT) {
           if (ergebnis == Type.BYTE) { // ;mul shiften"
             code(" tya");
             for (int z = 0; z < exponent; z++) {
               code(" asl a");
-            }         
+            }
             code(" tay");
           }
           else {
-            code(" tya"); 
-            code(" stx @op");
-            
+            code(" tya");
+            code(" stx @op+1");
+
             for (int z = 0; z < exponent; z++) {
               code(" asl a");
-              code(" rol @op");
+              code(" rol @op+1");
             }
             code(" tay");
-            code(" ldx @op");            
+            code(" ldx @op+1");
           }
         }
-        else if (pcode == PCode.IDIV.getValue()) {
+        else if (pcode == PCode.IDIV) {
           if (ergebnis == Type.BYTE) { // ;div shiften"
             code(" tya");
             for (int z = 0; z < exponent; z++) {
                 code(" lsr a");
             }
-            code(" tay");         
+            code(" tay");
           }
 
           else {
@@ -638,16 +748,16 @@ public class PCodeToAssembler extends Code {
     }
   }
 
-// -------------------------------
-  public void get_typ(String mne$, String a$) {
-    Type typ = source.getVariableType(a$);
-    if (typ == Type.BYTE) {
-      code(" " + mne$ + " #0");
-    }
-    else {
-      code(" " + mne$ + " " + a$ + "+1");
-    }
-  }
+// // -------------------------------
+//   public void get_typ(String mne$, String a$) {
+//     Type typ = source.getVariableType(a$);
+//     if (typ == Type.BYTE) {
+//       code(" " + mne$ + " #0");
+//     }
+//     else {
+//       code(" " + mne$ + " " + a$ + "+1");
+//     }
+//   }
 
 // -------------------------------
   public String mne_is_add_sub_or_eor_and(int x) {
@@ -673,7 +783,7 @@ public class PCodeToAssembler extends Code {
   }
 
 // -------------------------------
-  public void clc_sec(int x) { // carry
+  public void prepareCarryFlag(int x) { // carry
     switch (x & 7) {
     case 0:
       code(" clc"); // ;addition"

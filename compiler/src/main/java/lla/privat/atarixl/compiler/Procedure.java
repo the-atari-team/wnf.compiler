@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -51,9 +51,9 @@ public class Procedure extends Code {
     source.match(leftParenthesis, "(");
 
     final String name = procedureName.get();
-    // the simple name  
+    // the simple name
     code(name);
-    
+
     // the name with '_i*' if the procedure contains parameters
     int namePosition = code("; " + name);
 

@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -26,14 +26,18 @@ public class Expression extends Code {
 
   private Type ergebnis;
 
-
+  private boolean precalculationPossible;
+  private int countArithmeticSymbols;
+  
   public Expression(Source source) {
     super(source);
 
     this.source = source;
     p_code = new ArrayList<>();
     parameterCount = 0;
-    ergebnis = Type.WORD;
+    ergebnis = Type.BYTE;
+    precalculationPossible = true;
+    countArithmeticSymbols = 0;
   }
 
   public List<Integer> getPCode() {
@@ -42,15 +46,11 @@ public class Expression extends Code {
 
   /**
    * If we would like a byte expression, set width to 1, all other is 2
+   * 
    * @param width
    */
-  public Expression setWidth(int width) {
-    if (width == 1) {
-      ergebnis = Type.BYTE;
-    }
-    else {
-      ergebnis = Type.WORD;
-    }
+  public Expression setType(Type type) {
+    ergebnis = type;
     return this;
   }
 
@@ -66,10 +66,10 @@ public class Expression extends Code {
    * @param symbol
    * @return
    */
-  private boolean isUnaryAddOrSub(Symbol symbol) {
-    final String mayBeUnaryOperator = symbol.get();
-    return mayBeUnaryOperator.equals("+") || mayBeUnaryOperator.equals("-");
-  }
+//  private boolean isUnaryAddOrSub(Symbol symbol) {
+//    final String mayBeUnaryOperator = symbol.get();
+//    return mayBeUnaryOperator.equals("+") || mayBeUnaryOperator.equals("-");
+//  }
 
   public int code(final String sourcecodeline) {
     LOGGER.debug(sourcecodeline);
@@ -81,9 +81,13 @@ public class Expression extends Code {
     code(";#3 vor optimierung");
     code(";#3 <P-Code> " + joinedPCode());
 
+    if (getCountArithmeticSymbols() > 0) {
+      if (isPrecalculationPossible()) {
+        source.warning(Symbol.noSymbol(), "Expression could be precalculated!");
+      }
+    }
+    
     optimisation();
-
-    source.setErgebnis(ergebnis);
 
     LOGGER.debug("PCode is " + joinedPCode());
     code(";#3 <P-Code> " + joinedPCode());
@@ -94,6 +98,17 @@ public class Expression extends Code {
   }
 
   /**
+   * @return true, if compiler could calculate the result completely
+   */
+  boolean isPrecalculationPossible() {
+    return precalculationPossible;
+  }
+
+  int getCountArithmeticSymbols() {
+    return countArithmeticSymbols;
+  }
+  
+  /**
    * Expression Etwas, das wir addieren oder subtrahieren, die Strichrechnung
    *
    * @param symbol enthält erstes Symbol
@@ -102,7 +117,8 @@ public class Expression extends Code {
   public Expression expression(Symbol symbol) {
     Symbol nextSymbol = new Symbol("", SymbolEnum.noSymbol);
 
-    // Strings with length or 1 ('a') has intern length of 3 can act like a 'a Value 97
+    // Strings with length or 1 ('a') has intern length of 3 can act like a 'a Value
+    // 97
     if (symbol.getId() == SymbolEnum.string && symbol.get().length() > 3) {
       p_code.add(PCode.STRING.getValue());
       source.addVariable(symbol.get(), Type.STRING);
@@ -112,14 +128,14 @@ public class Expression extends Code {
     }
     else {
       // Mathematischer Ausdruck
-      if (isUnaryAddOrSub(symbol)) { // unary - or + => 0 - expression oder 0 + expression
-        p_code.add(PCode.ZAHL.getValue());
-        p_code.add(0);
-        nextSymbol = symbol; // kein Symbol neu laden, einfach als Operator verwenden!
-      }
-      else {
+//      if (isUnaryAddOrSub(symbol)) { // unary - or + => 0 - expression oder 0 + expression
+//        p_code.add(PCode.ZAHL.getValue());
+//        p_code.add(0);
+//        nextSymbol = symbol; // kein Symbol neu laden, einfach als Operator verwenden!
+//      }
+//     else {
         nextSymbol = term(symbol);
-      }
+//      }
 
       String operator = nextSymbol.get();
       while (operator.equals("+") || operator.equals("-") || operator.equals("&") || operator.equals("!")
@@ -143,6 +159,7 @@ public class Expression extends Code {
           break;
         }
         operator = nextSymbol.get();
+        ++countArithmeticSymbols;
       }
     }
     lastSymbol = nextSymbol;
@@ -176,6 +193,7 @@ public class Expression extends Code {
         break;
       }
       operator = nextSymbol.get();
+      ++countArithmeticSymbols;
     }
     return nextSymbol;
   }
@@ -198,15 +216,25 @@ public class Expression extends Code {
       nextSymbol = number(symbol);
     }
     else if (id == SymbolEnum.symbol && symbol.get().equals("-")) {
-      nextSymbol = source.nextElement();
-      Symbol negativValue = new Symbol("-" + nextSymbol.get(), SymbolEnum.number);
-      nextSymbol = number(negativValue);
+      nextSymbol = source.peekSymbol();
+      if (nextSymbol.getId() == SymbolEnum.number) {
+        nextSymbol = source.nextElement();
+        Symbol negativValue = new Symbol("-" + nextSymbol.get(), SymbolEnum.number);
+        nextSymbol = number(negativValue);
+      }
+      else if (nextSymbol.getId() == SymbolEnum.variable_name) {
+        p_code.add(PCode.ZAHL.getValue());
+        p_code.add(0);
+        p_code.add(PCode.PUSH.getValue());
+        nextSymbol = substract(symbol);
+        precalculationPossible = false; // negative variable not precalculateable
+      }
     }
     else if (id == SymbolEnum.string && symbol.get().length() == 3) {
       nextSymbol = numberFromString(symbol);
     }
     else if (id == SymbolEnum.symbol && symbol.get().equals("@(")) {
-      nextSymbol = identifier(symbol);      
+      nextSymbol = identifier(symbol);
     }
     else if (id == SymbolEnum.variable_name) {
       nextSymbol = identifier(symbol);
@@ -223,9 +251,11 @@ public class Expression extends Code {
     else if (id == SymbolEnum.symbol && symbol.get().equals("[")) {
       // TODO: Hier sollten wir einen Typen setzen im pcode, dann können wir im pcode
       // entscheiden, welcher Type gefordert wird!
+      // TODO: innerhalb eckiger Klammern sollten wir unsigned rechnen!
       nextSymbol = source.nextElement();
       nextSymbol = expression(nextSymbol).getLastSymbol();
       match(nextSymbol, "]");
+      precalculationPossible = false;
     }
     else {
       source.error(symbol, "unknown factor value");
@@ -238,10 +268,24 @@ public class Expression extends Code {
     p_code.add(PCode.ZAHL.getValue());
     int value = convertNumberValue(symbol.get());
     p_code.add(Integer.valueOf(value));
-    if (value > 255) {
-      ergebnis = Type.WORD;
+    if (ergebnis == Type.INT8) {
+      if (value < -128 || value > 127) {
+        source.warning(symbol, "We leave INT8 value range [-128, 127]");
+        // TODO: konversion gefordert!
+        ergebnis = Type.WORD;
+      }
     }
-
+    else if (ergebnis == Type.BYTE) {
+      if (value < 0 || value > 255) {
+        source.warning(symbol, "We leave BYTE value range [0, 255]");
+        ergebnis = Type.WORD;
+      }
+    }
+    else {
+      // if (value < -128 || value > 255) {
+      ergebnis = Type.WORD;
+      // }
+    }
     return source.nextElement();
   }
 
@@ -249,9 +293,9 @@ public class Expression extends Code {
     p_code.add(PCode.ZAHL.getValue());
     int value = Integer.valueOf(symbol.get().charAt(1));
     p_code.add(value);
-    if (value > 255) {
-      ergebnis = Type.WORD;
-    }
+//    if (value > 255) {
+//      ergebnis = Type.WORD;
+//    }
 
     return source.nextElement();
   }
@@ -281,27 +325,64 @@ public class Expression extends Code {
       Symbol namePtr = source.nextElement();
       Symbol parentness = source.nextElement();
       source.match(parentness, ")");
-      
+
       peekSymbol = source.peekSymbol();
-      functionCallAccess(namePtr.get(), Type.FUNCTION_POINTER);      
+      functionCallAccess(namePtr.get(), Type.FUNCTION_POINTER);
+      precalculationPossible = false; // functioncall not precalculateable
     }
     else if (peekSymbol.get().equals("(")) {
       functionCallAccess(name, Type.FUNCTION);
+      precalculationPossible = false; // functioncall not precalculateable
     }
     else if (peekSymbol.get().equals(":")) {
-      addressAccess();
+      switch (name) {
+      case "ADR":
+        addressAccess();
+        break;
+      case "B2W":
+        toWord();
+        break;
+      default:
+        source.error(symbol, "Expect only ADR or B2W before ':' was: " + name);
+      }
     }
     else if (peekSymbol.get().equals("[")) {
       arrayAccess(name);
+      precalculationPossible = false; // arrayaccess not precalculateable
     }
     else {
-      p_code.add(PCode.WORD.getValue());
-      int variablePosition = source.getVariablePosition(name);
-      if (variablePosition==-1) {
-        source.throwIfVariableUndefined(name);
+      Type variableType = source.getVariableType(name);
+      if (variableType.equals(Type.CONST)) {
+        String strValue = source.getVariableAddress(name);
+        source.throwIfConstVariableHasNoValue(name);
+        if (strValue.charAt(0) >= '@' && strValue.charAt(0) <= 'Z') {
+          // strValue is a variable
+          p_code.add(PCode.NOP.getValue());
+          p_code.add(PCode.ADDRESS.getValue());
+          int variablePosition = source.getVariablePosition(strValue);
+          if (variablePosition == -1 ) {
+            source.throwIfVariableUndefined(name);
+          }
+          p_code.add(variablePosition);
+        }
+        else if (source.hasVariable(name)) {
+          p_code.add(PCode.ZAHL.getValue());          
+          p_code.add(convertNumberValue(strValue));
+        }
+        else {
+          source.throwIsValueNotANumber(symbol);
+        }
       }
-      p_code.add(variablePosition);
-      source.getVariable(name).setRead();
+      else {
+        p_code.add(PCode.WORD.getValue());
+        precalculationPossible = false; // variable access not precalculateable
+        int variablePosition = source.getVariablePosition(name);
+        if (variablePosition == -1) {
+          source.throwIfVariableUndefined(name);
+        }
+        p_code.add(variablePosition);
+        source.getVariable(name).setRead();
+      }
       if (source.getVariableSize(name) == 2 && ergebnis == Type.BYTE) {
         ergebnis = Type.WORD;
       }
@@ -309,81 +390,102 @@ public class Expression extends Code {
     return source.nextElement();
   }
 
-protected void functionCallAccess(String name, Type type) {
-  // we are a function call
-  Symbol nextSymbol = source.nextElement(); // "("
-  source.match(nextSymbol, "(");
-  ergebnis = Type.WORD; // Funktionen geben IMMER ein Word zurück
+  protected void functionCallAccess(String name, Type type) {
+    // we are a function call
+    Symbol nextSymbol = source.nextElement(); // "("
+    source.match(nextSymbol, "(");
+    ergebnis = Type.WORD; // Funktionen geben IMMER ein Word zurück
 
-  // make unknown function start with '@' possible
-  if (name.startsWith("@")) {
-    source.addVariable(name, Type.FUNCTION);
-  }
-  nextSymbol = source.nextElement();
-  int localParameterCount = 0;
-
-  p_code.add(PCode.PARAMETER_START_ADD_TO_HEAP_PTR.getValue());
-  p_code.add(parameterCount);
-
-  boolean isMoreParameter = true;
-  while (isMoreParameter) {
-    String mnemonic = nextSymbol.get();
-    if (!mnemonic.equals(")")) {
-      // Wir sind ein Parameter
-      // Wir setzen eine Parameter-Start-Marke, wenn dessen Wert != 0 ist,
-      // addieren wir etwas auf den HeapPointer, so überschreiben wir keine schon
-      // gesetzten Parameter
-
-      int oldParameterCount = parameterCount;
-      parameterCount = localParameterCount;
-
-      // Für den eigentlichen Parameter durchlaufen wir die expression rekursiv
-      // nochmal
-      nextSymbol = expression(nextSymbol).getLastSymbol();
-
-      parameterCount = oldParameterCount;
-
-      // Push Marke, damit schreiben wir (y,x) in den HeapPointer
-      p_code.add(PCode.PARAMETER_PUSH.getValue());
-      p_code.add(localParameterCount);
-      localParameterCount += 1; // next word!
+    // make unknown function start with '@' possible
+    if (name.startsWith("@")) {
+      source.addVariable(name, Type.FUNCTION);
     }
+    source.throwIfFunctionUndefined(name);
 
-    mnemonic = nextSymbol.get();
-    if (mnemonic.equals(",")) {
-      nextSymbol = source.nextElement();
+    nextSymbol = source.nextElement();
+    int localParameterCount = 0;
+
+    p_code.add(PCode.PARAMETER_START_ADD_TO_HEAP_PTR.getValue());
+    p_code.add(parameterCount);
+
+    boolean isMoreParameter = true;
+    while (isMoreParameter) {
+      String mnemonic = nextSymbol.get();
+      if (!mnemonic.equals(")")) {
+        // Wir sind ein Parameter
+        // Wir setzen eine Parameter-Start-Marke, wenn dessen Wert != 0 ist,
+        // addieren wir etwas auf den HeapPointer, so überschreiben wir keine schon
+        // gesetzten Parameter
+
+        int oldParameterCount = parameterCount;
+        parameterCount = localParameterCount;
+
+        // Für den eigentlichen Parameter durchlaufen wir die expression rekursiv
+        // nochmal
+        nextSymbol = expression(nextSymbol).getLastSymbol();
+
+        parameterCount = oldParameterCount;
+
+        // Push Marke, damit schreiben wir (y,x) in den HeapPointer
+        p_code.add(PCode.PARAMETER_PUSH.getValue());
+        p_code.add(localParameterCount);
+        localParameterCount += 1; // next word!
+      }
+
+      mnemonic = nextSymbol.get();
+      if (mnemonic.equals(",")) {
+        nextSymbol = source.nextElement();
+      }
+      else {
+        source.match(nextSymbol, ")");
+        isMoreParameter = false;
+      }
+    }
+    if (type.equals(Type.FUNCTION)) {
+      // Endlich der Funktionsaufruf
+      p_code.add(PCode.FUNCTION.getValue());
+      p_code.add(source.getVariablePosition(name));
+      p_code.add(localParameterCount);
+      source.getVariable(name).setRead();
+    }
+    else if (type.equals(Type.FUNCTION_POINTER)) {
+      p_code.add(PCode.FUNCTION_POINTER.getValue());
+      p_code.add(source.getVariablePosition(name));
+      p_code.add(localParameterCount);
+      source.getVariable(name).setRead();
     }
     else {
-      source.match(nextSymbol, ")");
-      isMoreParameter = false;
+      source.error(nextSymbol, "Unknown problem occur, nor function not function pointer call.");
+    }
+    if (parameterCount > 0) {
+      // sollte es Parameter geben und wir haben den HeapPointer manipuliert, hier
+      // wieder zurücksetzen
+      // das passiert über ein Macro, das die y,x Register nicht manipuliert, da drin
+      // steht der alte Wert.
+      p_code.add(PCode.PARAMETER_END_SUB_FROM_HEAP_PTR.getValue());
+      p_code.add(parameterCount);
     }
   }
-  if (type.equals(Type.FUNCTION)) {
-    // Endlich der Funktionsaufruf
-    p_code.add(PCode.FUNCTION.getValue());
-    p_code.add(source.getVariablePosition(name));
-    p_code.add(localParameterCount);
-    source.getVariable(name).setRead();
-  }
-  else if (type.equals(Type.FUNCTION_POINTER)) {
-    p_code.add(PCode.FUNCTION_POINTER.getValue());
-    p_code.add(source.getVariablePosition(name));
-    p_code.add(localParameterCount);
-    source.getVariable(name).setRead();    
-  }
-  else {
-    source.error(nextSymbol, "Unknown problem occur, nor function not function pointer call.");
-  }
-  if (parameterCount > 0) {
-    // sollte es Parameter geben und wir haben den HeapPointer manipuliert, hier
-    // wieder zurücksetzen
-    // das passiert über ein Macro, das die y,x Register nicht manipuliert, da drin
-    // steht der alte Wert.
-    p_code.add(PCode.PARAMETER_END_SUB_FROM_HEAP_PTR.getValue());
-    p_code.add(parameterCount);
-  }
 
-}
+  protected void toWord() {
+    Symbol peekSymbol = source.nextElement(); // ":"
+    source.match(peekSymbol, ":");
+
+    Symbol nameSymbol = source.nextElement(); // address of name
+    p_code.add(PCode.NOP.getValue());
+    p_code.add(PCode.TOWORD.getValue());
+    ergebnis = Type.WORD; // Egal was es vorher war, wir sind jetzt word breit!
+    String name = nameSymbol.get();
+    source.throwIfVariableUndefined(name);
+    if (Type.BYTE != source.getVariableType(name)) {
+      source.error(nameSymbol, "Only Variables of type BYTE allowed after W:<var>");
+    }
+    
+    int variablePosition = source.getVariablePosition(name);
+    p_code.add(variablePosition);
+    source.getVariable(nameSymbol.get()).setRead();
+  }
+  
   protected void addressAccess() {
     Symbol peekSymbol = source.nextElement(); // ":"
     source.match(peekSymbol, ":");
@@ -393,22 +495,28 @@ protected void functionCallAccess(String name, Type type) {
     p_code.add(PCode.ADDRESS.getValue());
     ergebnis = Type.WORD; // Egal was es vorher war, wir sind jetzt word breit!
     String name = nameSymbol.get();
+
     int variablePosition = source.getVariablePosition(name);
-    if (variablePosition == -1 && name.startsWith("@")) {
-      source.addVariable(name, Type.FUNCTION);
-      variablePosition = source.getVariablePosition(name);      
+    if (variablePosition == -1) {
+      if (name.startsWith("@")) {
+        source.addVariable(name, Type.FUNCTION);
+        variablePosition = source.getVariablePosition(name);
+      }
+      else {
+        source.throwIfVariableUndefined(name);
+      }
     }
     p_code.add(variablePosition);
     source.getVariable(nameSymbol.get()).setRead();
   }
-  
+
   protected void arrayAccess(String name) {
     // Array Access
     Symbol squareBracketOpen = source.nextElement();
     // "["
     source.match(squareBracketOpen, "[");
     source.throwIfVariableUndefined(name);
-    
+
     /* Symbol squareBrackedClose = */ factor(squareBracketOpen);
 
     VariableDefinition variable = source.getVariable(name);
@@ -421,8 +529,7 @@ protected void functionCallAccess(String name, Type type) {
       p_code.add(PCode.FAT_BYTE_ARRAY.getValue());
       p_code.add(source.getVariablePosition(name));
     }
-    else if (variable.getType() == Type.WORD_ARRAY ||
-        variable.getType() == Type.FAT_WORD_ARRAY) {
+    else if (variable.getType() == Type.WORD_ARRAY || variable.getType() == Type.FAT_WORD_ARRAY) {
       p_code.add(PCode.WORD_ARRAY.getValue());
       p_code.add(source.getVariablePosition(name));
       ergebnis = Type.WORD;
@@ -432,8 +539,11 @@ protected void functionCallAccess(String name, Type type) {
       p_code.add(source.getVariablePosition(name));
       ergebnis = Type.WORD;
     }
+    else {
+      source.error(new Symbol(name, null), "Type: " + variable.getType() + "is unhandled yet.");
+    }
   }
-  
+
   private void match(Symbol symbol, String expectedSymbol) {
     if (!symbol.get().equals(expectedSymbol)) {
       source.error(symbol, expectedSymbol + " expected");
@@ -509,17 +619,13 @@ protected void functionCallAccess(String name, Type type) {
   }
 
   public void optimisation() {
-    // TODO: versuchen sich zu erinnern, warum wir ZAHL zu INT_ZAHL wandeln mussten...
+    // TODO: versuchen sich zu erinnern, warum wir ZAHL zu INT_ZAHL wandeln
+    // mussten...
     for (int i = 0; i < p_code.size(); i++) {
-      if (p_code.get(i) == PCode.WORD.getValue() ||
-          p_code.get(i) == PCode.BYTE_ARRAY.getValue() ||
-          p_code.get(i) == PCode.FAT_BYTE_ARRAY.getValue() ||
-          p_code.get(i) == PCode.WORD_ARRAY.getValue() ||
-          p_code.get(i) == PCode.WORD_SPLIT_ARRAY.getValue() ||
-          p_code.get(i) == PCode.ADDRESS.getValue() ||
-          p_code.get(i) == PCode.FUNCTION.getValue() ||
-          p_code.get(i) == PCode.STRING.getValue()
-          ) {
+      if (p_code.get(i) == PCode.WORD.getValue() || p_code.get(i) == PCode.BYTE_ARRAY.getValue()
+          || p_code.get(i) == PCode.FAT_BYTE_ARRAY.getValue() || p_code.get(i) == PCode.WORD_ARRAY.getValue()
+          || p_code.get(i) == PCode.WORD_SPLIT_ARRAY.getValue() || p_code.get(i) == PCode.ADDRESS.getValue()
+          || p_code.get(i) == PCode.FUNCTION.getValue() || p_code.get(i) == PCode.STRING.getValue()) {
         ++i;
       }
       else if (p_code.get(i) == PCode.ZAHL.getValue()) {
@@ -530,6 +636,10 @@ protected void functionCallAccess(String name, Type type) {
 
     p_code.add(PCode.END.getValue());
 
+    // 168 0 162 168 1   163 8
+    //       a   a+1 a+2 a+3 a+4
+    // =>
+    // 168 0 16  168 1
     for (int a = 0; a < p_code.size(); a++) {
       if (p_code.get(a) == PCode.PUSH.getValue()) {
         int p1 = p_code.get(a + 1);
@@ -549,36 +659,73 @@ protected void functionCallAccess(String name, Type type) {
         }
       }
     }
-
+    
+    // 168   0 162  254 171  1   163  8      =>
+    //         a    a+1 a+2  a+3 a+4  a+5
+    // pzahl   push nop addr     pull arith
+    // 168   0 16   254 171  1
+    //                           c    c+1 c+2 
+//    for (int a = 0; a < p_code.size(); a++) {
+//      if (p_code.get(a) == PCode.PUSH.getValue()) {
+//        if (p_code.get(a+1) == PCode.NOP.getValue()) {
+//          int p1 = p_code.get(a + 2);
+//        
+//          if (p1 == PCode.ADDRESS.getValue()) {
+//            if (p_code.get(a + 4) == PCode.PULL.getValue()) {
+//              if ((p_code.get(a + 5) & 0xf8) == 8) { // arithmetik
+//                // P_CODE(A)=P_CODE(A+K4)&K7!k16
+//                p_code.set(a, p_code.get(a + 5) & 0x7 | 16);
+//
+//                // Anpassungen, Code zusammenziehen.
+//                for (int c = a + 4; c < p_code.size() - 2; c++) {
+//                  p_code.set(c, p_code.get(c + 2));
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    }
+    
     // Sonderfall für einfache Zahlen
     if (p_code.size() == 3) {
 
-      if (p_code.get(0) == PCode.INT_ZAHL.getValue() &&
-          p_code.get(1) >= 0 &&
-          p_code.get(1) < 256 &&
-          p_code.get(2) == PCode.END.getValue()) {
-
-        // wir sind eine Zahl, diese Zahl ist >= 0 und < 256
-        ergebnis = Type.BYTE;
-      }
-      if (p_code.get(0) == PCode.WORD.getValue() &&
-          p_code.get(2) == PCode.END.getValue()) {
-        // wir sind eine einfache Variable, das das Ergebnis auf dessen Type einstellen
+      // Das gilt nur fuer Zahlen zwischen 0 und 256!!!
+//      if (p_code.get(0) == PCode.INT_ZAHL.getValue() && p_code.get(2) == PCode.END.getValue()) {
+//        if (ergebnis.getBytes() == 1 ) {
+//          if (p_code.get(1) >= 0 && p_code.get(1) < 256) {
+//  
+//            // wir sind eine Zahl, diese Zahl ist >= 0 und < 256
+//            ergebnis = Type.BYTE;
+//          }
+//          if (p_code.get(1) >= -128 && p_code.get(1) < 0) {
+//  
+//            // wir sind eine Zahl, diese Zahl ist >= -128 und < 0
+//            ergebnis = Type.INT8;
+//          }
+//        }
+//      }
+      if (p_code.get(0) == PCode.WORD.getValue() && p_code.get(2) == PCode.END.getValue()) {
+        // wir sind eine einfache Variable, das Ergebnis auf dessen Type einstellen
         String name = source.getVariableAt(p_code.get(1));
         final Type type = source.getVariableType(name);
-        ergebnis = type;
+        if (type.equals(Type.CONST)) {
+          ergebnis = Type.WORD;
+        }
+        else {
+          ergebnis = type;
+        }
       }
     }
     else if (p_code.size() == 5) {
-        if ((p_code.get(0) == PCode.INT_ZAHL.getValue() || p_code.get(0) == PCode.WORD.getValue()) &&
-            (p_code.get(2) == PCode.BYTE_ARRAY.getValue() || p_code.get(2) == PCode.FAT_BYTE_ARRAY.getValue()) &&
-            p_code.get(4) == PCode.END.getValue()) {
+      if ((p_code.get(0) == PCode.INT_ZAHL.getValue() || p_code.get(0) == PCode.WORD.getValue())
+          && (p_code.get(2) == PCode.BYTE_ARRAY.getValue() || p_code.get(2) == PCode.FAT_BYTE_ARRAY.getValue())
+          && p_code.get(4) == PCode.END.getValue()) {
 
-          // wir sind ein (FAT_)BYTE_ARRAY
-          ergebnis = Type.BYTE;
-        }
+        // wir sind ein (FAT_)BYTE_ARRAY
+        ergebnis = Type.BYTE;
+      }
     }
-
 
     ArrayList<Integer> optimizedPCode = new ArrayList<>();
     int i = 0;
@@ -596,6 +743,8 @@ protected void functionCallAccess(String name, Type type) {
     optimizedPCode.add(0);
 
     p_code = optimizedPCode;
+    
+    source.setTypeOfLastExpression(ergebnis);
   }
 
   /**

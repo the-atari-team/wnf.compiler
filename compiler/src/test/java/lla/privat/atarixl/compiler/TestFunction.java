@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -102,7 +102,7 @@ public class TestFunction {
     Assert.assertEquals(";", code.get(++n));
     Assert.assertEquals("; function name(one, two) begin end", code.get(++n));
     Assert.assertEquals(";", code.get(++n));
-    
+
     Assert.assertEquals("NAME", code.get(++n));
     Assert.assertEquals("NAME_II", code.get(++n));
     Assert.assertEquals(" LDX ONE", code.get(++n));
@@ -194,7 +194,7 @@ public class TestFunction {
 
     Assert.assertEquals("?RETURN1", code.get(++n));
     Assert.assertEquals(" STY @REG+2", code.get(++n));
-    
+
     Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
 
     Assert.assertEquals(" LDY #1", code.get(++n));

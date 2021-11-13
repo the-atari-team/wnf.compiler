@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.statement;
@@ -49,6 +49,10 @@ public class For extends Code {
    * <li>FOR variable := start-expression TO end-expression DO statement
    * <li>FOR variable := start-expression DOWNTO end-expression DO statement
    *
+   * Arbeitet jetzt Vorzeichenbehaftet
+   *
+   * moegliche Schleife von -128 to 127 oder -32768 to 32767
+   *
    * @param symbol
    * @return
    */
@@ -75,7 +79,8 @@ public class For extends Code {
     else {
       source.error(toOrDownto, "TO or DOWNTO expected");
     }
-    nextSymbol = new Expression(source).expression(nextSymbol).build();
+
+    nextSymbol = new Expression(source).setType(typ).expression(nextSymbol).build();
     source.match(nextSymbol, "DO");
 
     source.incrementLoopCount();
@@ -83,37 +88,106 @@ public class For extends Code {
 
     // Zuweisung an y,x variable
     code(" sty ?for" + condi);
-    if (typ == Type.WORD) {
-      if (source.getErgebnis().getBytes() == 1) {
+    if (typ == Type.WORD) { // signed
+      //
+      // TODO: here we should decide unsigned or signed
+      // HERE
+      //
+      if (source.getTypeOfLastExpression().getBytes() == 1) {
         code(" ldx #0");
       }
       code(" stx ?for" + condi + "+1");
     }
 
     if (step == 1) {
-      code(" ldy ?for" + condi);
-      code(" cpy " + variable);
+      // ?for > variable --> ?go
       if (typ == Type.BYTE) {
+        code(" ldy ?for" + condi);
+        code(" cpy " + variable);
         code(" bcs ?go" + condi);
       }
-      else {
+      else if (typ == Type.INT8) {
+        code(" lda ?for" + condi);
+        code(" sec"); // prepare carry for SBC
+        code(" sbc " + variable); // A-NUM
+        code(" bvc *+4"); // if V is 0, N eor V = N, otherwise N eor V = N eor 1
+        code(" eor #$80"); // A = A eor $80, and N = N eor 1
+        code(" bpl ?go" + condi);
+      }
+      else if (typ == Type.UINT16) {
+        code(" ldy ?for" + condi);
+        code(" cpy " + variable);
         code(" lda ?for" + condi + "+1");
         code(" sbc " + variable + "+1");
         code(" bcs ?go" + condi);
       }
+      else if (typ == Type.WORD) {
+        code(" lda ?for" + condi);
+        code(" cmp " + variable);
+        code(" lda ?for" + condi + "+1");
+        code(" sbc " + variable + "+1");
+        code(" bvc *+4"); // if V is 0, N eor V = N, otherwise N eor V = N eor 1
+        code(" eor #$80"); // A = A eor $80, and N = N eor 1
+        code(" bpl ?go" + condi);
+      }
+      else {
+        source.error(variableSymbol, "Variable type not supported");
+      }
+// // ?for > variable --> ?go (unsigned)
+//      code(" ldy ?for" + condi);
+//      code(" cpy " + variable);
+//      if (typ == Type.BYTE) {
+//        code(" bcs ?go" + condi);
+//      }
+//      else {
+//        code(" lda ?for" + condi + "+1");
+//        code(" sbc " + variable + "+1");
+//        code(" bcs ?go" + condi);
+//      }
     }
     else {
       // step == -1
-      code(" ldy " + variable);
-      code(" cpy ?for" + condi);
       if (typ == Type.BYTE) {
+        code(" ldy " + variable);
+        code(" cpy ?for" + condi);
         code(" bcs ?go" + condi);
       }
-      else {
+      else if (typ == Type.INT8) {
+        code(" lda " + variable);
+        code(" sec"); // prepare carry for SBC
+        code(" sbc ?for" + condi); // A-NUM
+        code(" bvc *+4"); // if V is 0, N eor V = N, otherwise N eor V = N eor 1
+        code(" eor #$80"); // A = A eor $80, and N = N eor 1
+        code(" bpl ?go" + condi);
+      }
+      else if (typ == Type.UINT16) {
+        code(" ldy " + variable);
+        code(" cpy ?for" + condi);
         code(" lda " + variable + "+1");
         code(" sbc ?for" + condi + "+1");
         code(" bcs ?go" + condi);
       }
+      else if (typ == Type.WORD) {
+        code(" lda " + variable);
+        code(" cmp ?for" + condi);
+        code(" lda " + variable + "+1");
+        code(" sbc ?for" + condi + "+1");
+        code(" bvc *+4"); // if V is 0, N eor V = N, otherwise N eor V = N eor 1
+        code(" eor #$80"); // A = A eor $80, and N = N eor 1
+        code(" bpl ?go" + condi);
+      }
+
+// // ?for < variable --> ?go (unsigned)
+//      code(" ldy " + variable);
+//      code(" cpy ?for" + condi);
+//      if (typ == Type.BYTE) {
+//        code(" bcs ?go" + condi);
+//      }
+//      else {
+//        code(" lda " + variable + "+1");
+//        code(" sbc ?for" + condi + "+1");
+//        code(" bcs ?go" + condi);
+//      }
     }
     final String exitVariable = "?exit" + condi;
     code(" jmp "+exitVariable);

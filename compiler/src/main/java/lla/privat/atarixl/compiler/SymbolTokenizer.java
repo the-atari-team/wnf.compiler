@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -111,7 +111,7 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
       sourceCodeLine = getCodeLine();
       showCode = false;
     }
- 
+
     oldZeiger = zeiger;
     if (ch == '@' && program.charAt(zeiger+1) == '(') {
       String value = "@(";
@@ -180,9 +180,16 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
     // Strings, starts with ' and ends with '
     else if (ch == '\'') {
       int p1 = zeiger;
-      ch = program.charAt(++zeiger);
-      while (ch != '\'') {
+      char chold = ' ';
+      ch = program.charAt(zeiger);
+      boolean endQuote = false;
+      // TODO: Erkennung '' oder \'
+      while (!endQuote) {
+        chold = ch;
         ch = program.charAt(++zeiger);
+        if (ch == '\'' && chold != '\\') {
+          endQuote = true;
+        }
       }
       String str = program.substring(p1, zeiger + 1);
       ++zeiger;
@@ -195,15 +202,20 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
     if (symbol.get().equals("A")) {
       symbol.changeValue("A__");
     }
+    if (symbol.get().equals("W")) {
+      symbol.changeValue("W__");
+    }
     if (symbol.getId() == SymbolEnum.variable_name && prefix.length() > 0) {
       String variable = symbol.get();
       if (!variable.startsWith("@")) {
         symbol.changeValue(prefix + "_" + variable);
       }
     }
-    if (symbol.getId() == SymbolEnum.reserved_word && symbol.get().equals("ADR")) { // TODO: prüfen ob ADR eine variable
-                                                                                    // sein muss
-      symbol.changeId(SymbolEnum.variable_name);
+    if (symbol.getId() == SymbolEnum.reserved_word) {
+      if (symbol.get().equals("ADR") ||
+          symbol.get().equals("B2W")) { // TODO: prüfen ob ADR eine variable sein muss
+        symbol.changeId(SymbolEnum.variable_name);
+      }
     }
     return symbol;
   }
@@ -319,10 +331,19 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
    */
   public void error(Symbol symbol, String message) {
 
-    String errorMessage = String.format("Occured in Line number: %d%nCode-content: '%s'%nSymbol => '%s'%nMessage: %s",
-        getLineNumber(), getCodeLine(),symbol.get(), message);
+    final String errorMessage =createErrorMessage(symbol, message);
     LOGGER.error(errorMessage);
     throw new IllegalStateException(errorMessage);
+  }
+
+  public void warning(Symbol symbol, String message) {
+    LOGGER.warn(createErrorMessage(symbol, message));
+  }
+
+  private String createErrorMessage(Symbol symbol, String message) {
+    final String errorMessage = String.format("Occured in Line number: %d%nCode-content: '%s'%nSymbol => '%s'%nMessage: %s",
+        getLineNumber(), getCodeLine(),symbol.get(), message);
+    return errorMessage;
   }
 
   public String getPrefix() {

@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.optimization;
@@ -199,6 +199,7 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(2, source.getCode().size());
+    Assert.assertEquals(" INC A ; (17)", source.getCode().get(0));
   }
 
   @Test
@@ -460,7 +461,7 @@ public class TestPeepholeOptimizer {
 
     Assert.assertEquals(2, source.getCode().size());
   }
-  
+
   @Test
   public void testword_index_sub() {
     List<String> list = new ArrayList<>();
@@ -478,9 +479,9 @@ public class TestPeepholeOptimizer {
     peepholeOptimizerSUT.setLevel(2).optimize().build();
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
-    Assert.assertEquals(8, source.getCode().size());    
+    Assert.assertEquals(8, source.getCode().size());
   }
-  
+
   @Test
   public void testByte_index_sub() {
     List<String> list = new ArrayList<>();
@@ -497,9 +498,9 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(5, source.getCode().size());
-    
+
   }
-  
+
   @Test
   public void testJsrRts1() {
     List<String> list = new ArrayList<>();
@@ -641,7 +642,7 @@ public class TestPeepholeOptimizer {
     peepholeOptimizerSUT.setLevel(2).optimize().build();
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
-    Assert.assertEquals(4, source.getCode().size());    
+    Assert.assertEquals(4, source.getCode().size());
   }
 
   @Test
@@ -658,7 +659,7 @@ public class TestPeepholeOptimizer {
     peepholeOptimizerSUT.setLevel(2).optimize().build();
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
-    Assert.assertEquals(4, source.getCode().size());    
+    Assert.assertEquals(4, source.getCode().size());
   }
 
   @Test
@@ -674,7 +675,7 @@ public class TestPeepholeOptimizer {
     peepholeOptimizerSUT.setLevel(2).optimize().build();
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
-    Assert.assertEquals(3, source.getCode().size());    
+    Assert.assertEquals(3, source.getCode().size());
   }
 
   @Test
@@ -705,9 +706,9 @@ public class TestPeepholeOptimizer {
     peepholeOptimizerSUT.setLevel(2).optimize().build();
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
-    Assert.assertEquals(3, source.getCode().size());    
+    Assert.assertEquals(3, source.getCode().size());
   }
-  
+
   @Test
   public void testldy_sty_putarray_lda_ldx_putarray_sta() {
     List<String> list = new ArrayList<>();
@@ -737,9 +738,9 @@ public class TestPeepholeOptimizer {
     peepholeOptimizerSUT.setLevel(2).optimize().build();
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
-    Assert.assertEquals(3, source.getCode().size());    
+    Assert.assertEquals(3, source.getCode().size());
   }
-  
+
   @Test
   public void testclc_lda_x_adc_1_sta_y() {
     List<String> list = new ArrayList<>();
@@ -753,10 +754,35 @@ public class TestPeepholeOptimizer {
     peepholeOptimizerSUT.setLevel(2).optimize().build();
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
-    Assert.assertEquals(4, source.getCode().size());    
+    Assert.assertEquals(4, source.getCode().size());
+    Assert.assertEquals(" LDY J ; (40)", source.getCode().get(0));
+    Assert.assertEquals(" INY", source.getCode().get(1));
+    Assert.assertEquals(" STY J1", source.getCode().get(2));
+    Assert.assertEquals(" ...", source.getCode().get(3));
   }
 
-  
+  @Test
+  public void testclc_lda_x_adc_13_sta_y() {
+    List<String> list = new ArrayList<>();
+    list.add(" CLC");
+    list.add(" LDA J");
+    list.add(" ADC #<13");
+    list.add(" STA J1 ; (11)");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(0, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(5, source.getCode().size());
+    Assert.assertEquals(" CLC", source.getCode().get(0));
+    Assert.assertEquals(" LDA J", source.getCode().get(1));
+    Assert.assertEquals(" ADC #<13", source.getCode().get(2));
+    Assert.assertEquals(" STA J1 ; (11)", source.getCode().get(3));
+    Assert.assertEquals(" ...", source.getCode().get(4));
+  }
+
+
   @Test
   public void testParameterUebergabe() {
     List<String> list = new ArrayList<>();
@@ -768,13 +794,13 @@ public class TestPeepholeOptimizer {
     list.add(" TXA");
     list.add(" INY");
     list.add(" STA (@HEAP_PTR),Y");
-    
+
     list.add(" ...");
     source.resetCode(list);
 
     peepholeOptimizerSUT.setLevel(2).optimize().build();
     Assert.assertEquals(2, peepholeOptimizerSUT.getUsedOptimisations());
-    
+
     List<String> code = source.getCode();
 
     int n = -1;
@@ -786,5 +812,21 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals(" ...", code.get(++n));
   }
-  
+
+  @Test
+  public void test_ldy_ldx_tya() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY A");
+    list.add(" LDX A");
+    list.add(" TYA");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(3, source.getCode().size());
+  }
+
+
 }

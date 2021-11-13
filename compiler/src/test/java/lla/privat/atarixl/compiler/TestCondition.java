@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -53,6 +53,37 @@ public class TestCondition {
 //    Assert.assertEquals(" BNE ?FA1", code.get(++n));
 //    Assert.assertEquals(" JMP ?TRUE", code.get(++n));
 //    Assert.assertEquals("?FA1", code.get(++n));
+  }
+
+  @Test
+  public void testEqualsWithWordX() {
+    Source source = new Source("x==1234").setVerboseLevel(2);
+    Symbol symbol = source.nextElement();
+    source.addVariable("X", Type.BYTE);
+
+    Symbol nextSymbol = new Condition(source, "?TRUE").condition(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    List<String> code = source.getCode();
+    int n=-1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" STY @ERG", code.get(++n));
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<1234", code.get(++n));
+    Assert.assertEquals(" LDX #>1234", code.get(++n));
+    Assert.assertEquals("; Bedingung (a==b)", code.get(++n));
+    Assert.assertEquals(" LDA #0", code.get(++n));
+    Assert.assertEquals(" STA @ERG+1", code.get(++n));
+    
+    Assert.assertEquals(" CPY @ERG", code.get(++n));
+    Assert.assertEquals(" BNE ?FA1", code.get(++n));
+    Assert.assertEquals(" CPX @ERG+1", code.get(++n));
+    Assert.assertEquals(" BNE ?FA1", code.get(++n));
+    Assert.assertEquals(" JMP ?TRUE", code.get(++n));
+    Assert.assertEquals("?FA1", code.get(++n));
   }
 
   @Test
@@ -232,4 +263,43 @@ public class TestCondition {
     Assert.assertEquals(" JMP ?TRUE", code.get(++n));
     Assert.assertEquals("?FA1", code.get(++n));
   }
+
+  @Test
+  public void testEqualsVariableAndConst() {
+    Source source = new Source("x & up == up").setVerboseLevel(2);
+    Symbol symbol = source.nextElement();
+    source.addVariable("X", Type.BYTE);
+    source.addVariable("UP", Type.CONST);
+    source.setVariableAddress("UP", "1");
+
+    Symbol nextSymbol = new Condition(source, "?TRUE").condition(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    List<String> code = source.getCode();
+    int n=-1;
+    Assert.assertEquals("; (3)", code.get(++n));
+    Assert.assertEquals(" LDA X", code.get(++n));
+    Assert.assertEquals(" AND #<1", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+
+//    Assert.assertEquals(" LDA #0", code.get(++n));
+//    Assert.assertEquals(" AND #>1", code.get(++n));
+//    Assert.assertEquals(" TAX", code.get(++n));
+    
+    Assert.assertEquals(" STY @ERG", code.get(++n));
+//    Assert.assertEquals(" STX @ERG+1", code.get(++n));
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<1", code.get(++n));
+//    Assert.assertEquals(" LDX #>1", code.get(++n));
+    Assert.assertEquals("; Bedingung (a==b)", code.get(++n));
+    Assert.assertEquals(" CPY @ERG", code.get(++n));
+    Assert.assertEquals(" BNE ?FA1", code.get(++n));
+//    Assert.assertEquals(" CPX @ERG+1", code.get(++n));
+//    Assert.assertEquals(" BNE ?FA1", code.get(++n));
+    Assert.assertEquals(" JMP ?TRUE", code.get(++n));
+    Assert.assertEquals("?FA1", code.get(++n));
+  }
+
 }

@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -95,7 +95,7 @@ public class VariableDefinition {
   public void setType(Type type) {
     this.type = type;
   }
-  
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -130,6 +130,9 @@ public class VariableDefinition {
   }
 
   public void setWrite() {
+    if (type.equals(Type.CONST)) {
+      throw new IllegalStateException("CONST Variable "+name+" can't be written.");
+    }
     artOfUsage = artOfUsage.getAtLeastUsage(ArtOfUsageEnum.WRITE);
   }
 
@@ -161,6 +164,10 @@ public class VariableDefinition {
     return address;
   }
 
+  public boolean hasAddress() {
+    return address != null;
+  }
+  
   public void setArray(List<String> arrayContent) {
     for (String item : arrayContent) {
       this.arrayContent.add(item);

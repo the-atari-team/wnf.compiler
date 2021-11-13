@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -58,6 +58,10 @@ public class Block extends Code {
       code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("HARDWARE.INC")));
       code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("MACROS.INC")));
 
+      if (source.isRunAd()) {
+        code(" .bank");
+        code(" .set 6,0");
+      }
       code(" *=" + source.getLomem());
 
       code(" JMP @MAIN");
@@ -82,6 +86,12 @@ public class Block extends Code {
       source.generateVariables();
 
       includes(nextSymbol);
+      if (source.isRunAd()) {
+        code(" .bank");
+        code(" .set 6,0");
+        code(" *=736");
+        code(" .word " + source.getLomem());
+      }
     }
     else {
       source.generateVariables();
@@ -94,7 +104,14 @@ public class Block extends Code {
     Symbol nextSymbol = symbol;
     while (couldBeProcedureOrVariableInit) {
       String mnemonic = nextSymbol.get();
-      if (mnemonic.equals("BYTE") || mnemonic.equals("WORD") || mnemonic.equals("STRING")) {
+      if (mnemonic.equals("BYTE") ||
+          mnemonic.equals("CONST") ||
+          mnemonic.equals("UINT8") ||
+          mnemonic.equals("INT8") ||
+          mnemonic.equals("WORD") ||
+          mnemonic.equals("UINT16") ||
+          mnemonic.equals("INT16") ||
+          mnemonic.equals("STRING")) {
         nextSymbol = new Variable(source).variable(nextSymbol).build();
       }
       else if (mnemonic.equals("PROCEDURE")) {

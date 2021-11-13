@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -54,27 +54,37 @@ public class Assignment extends Code {
         Symbol squaredBracketOpen = source.nextElement();
         source.match(squaredBracketOpen, "[");
 
-        int width = source.getVariableSize(name);
-
+//        int width = source.getVariableSize(name);
+        // The wishedType here is the type between the [ ] squared brackets
+        // fat_byte is more than 256 bytes long byte array
+        // word array is more then 512 bytes long word array
+        // fat_word_array is equal to word_array
+        // word_split_array is max 512 bytes word array with 2 256 byte long arrays
+        Type wishedType = source.getVariableType(name);
         if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY ||
             source.getVariableType(name) == Type.WORD_ARRAY ||
             source.getVariableType(name) == Type.FAT_WORD_ARRAY) {
-          width = 2;
+          wishedType = Type.WORD;
         }
-        if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY) {
-          width = 1;
+        if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY ||
+            source.getVariableType(name) == Type.BYTE_ARRAY) {
+          wishedType = Type.BYTE;
         }
+        // TODO we should not support signed here!
+        // This must convert to unsigned at first
         Symbol arrayAccess = source.nextElement();
-        Symbol squaredBracketClose = new Expression(source).setWidth(width).expression(arrayAccess).build();
+        Symbol squaredBracketClose = new Expression(source).setType(wishedType).expression(arrayAccess).build();
         source.match(squaredBracketClose, "]");
         isArray = true;
-
+        if (source.getTypeOfLastExpression() != Type.WORD && source.getTypeOfLastExpression() != Type.BYTE) {
+          source.error(arrayAccess, "The array pointer must be WORD or BYTE only. Please convert before.");
+        }
         if (source.getVariableType(name) == Type.BYTE_ARRAY) {
           code(" sty @putarray");
         }
         else if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY) {
-          if (source.getErgebnis().getBytes() == 1) {
-            code(" ldx #0");
+          if (source.getTypeOfLastExpression().getBytes() == 1) {
+            code(" ldx #0"); // fat_byte_array
           }
           code(" tya");
           code(" putarrayb " + name);
@@ -84,8 +94,8 @@ public class Assignment extends Code {
         }
         else if (source.getVariableType(name) == Type.WORD_ARRAY ||
             source.getVariableType(name) == Type.FAT_WORD_ARRAY ) {
-          if (source.getErgebnis().getBytes() == 1) {
-            code(" ldx #0");
+          if (source.getTypeOfLastExpression().getBytes() == 1) {
+            code(" ldx #0"); // word_array
           }
           code(" tya");
           code(" putarrayw " + name);
@@ -94,6 +104,7 @@ public class Assignment extends Code {
           source.error(arrayAccess, String.format("Given variable '{%s}' is not of type array.", name));
         }
       }
+
       if (source.peekSymbol().get().equals(":=")) {
         Symbol assignment = source.nextElement();
         source.match(assignment, ":=");
@@ -101,15 +112,23 @@ public class Assignment extends Code {
         source.getVariable(name).setWrite();
 
         Symbol rightHand = source.nextElement();
-        int width = source.getVariableSize(name);
-        nextSymbol = new Expression(source).setWidth(width).expression(rightHand).build();
+        Type wishedType = source.getVariableOverType(name);
+        nextSymbol = new Expression(source).setType(wishedType).expression(rightHand).build();
 
         LOGGER.debug("(y,x) zuweisen an {}", name);
         if (!isArray) {
           code(" sty " + name);
           if (source.getVariableSize(name) == 2) {
-            if (source.getErgebnis().getBytes() == 1) {
-              code(" ldx #0");
+            if (source.getTypeOfLastExpression().getBytes() == 1) {
+              if (source.getTypeOfLastExpression() == Type.BYTE || source.getTypeOfLastExpression() == Type.UINT8 ) {
+                code(" ldx #0");
+              }
+              if (source.getTypeOfLastExpression() == Type.INT8) {
+                code(" cpy #$80");
+                code(" ldx #0");
+                code(" bcc *+4");
+                code(" ldx #$FF");
+              }
             }
             code(" stx " + name + "+1");
           }
@@ -125,8 +144,16 @@ public class Assignment extends Code {
           code(" sta (@putarray),y");
         }
         else if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY) {
-          if (source.getErgebnis() == Type.BYTE) {
-            code(" ldx #0");
+          if (source.getTypeOfLastExpression().getBytes() == 1) {
+            if (source.getTypeOfLastExpression() == Type.BYTE || source.getTypeOfLastExpression() == Type.UINT8 ) {
+              code(" ldx #0");
+            }
+            if (source.getTypeOfLastExpression() == Type.INT8) {
+              code(" cpy #$80");
+              code(" ldx #0");
+              code(" bcc *+4");
+              code(" ldx #$FF");
+            }
           }
           // y/x contains value should copied to name,x and name,x
           code(" stx @putarray+1"); // zwischenspeichern
@@ -147,7 +174,7 @@ public class Assignment extends Code {
           code(" sta (@putarray),y");
           if (source.getVariableSize(name) == 2) {
             code(" iny");
-            if (source.getErgebnis().getBytes() == 2) {
+            if (source.getTypeOfLastExpression() == Type.WORD) {
               code(" txa");
             }
             else {

@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2020
+// cdw by 'The Atari Team' 2021
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -113,7 +113,7 @@ public class ITMain {
     File file = new File(tempPath + "/OXYGENBE.ASM");
     Assert.assertTrue(file.exists());
 
-    Assert.assertEquals(1036, main.getUsedOptimisations());
+    Assert.assertEquals(1027, main.getUsedOptimisations());
   }
 
   @Test
