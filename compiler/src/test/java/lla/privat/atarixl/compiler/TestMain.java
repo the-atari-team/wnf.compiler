@@ -24,6 +24,10 @@ public class TestMain {
     mainSUT = new Main();
   }
 
+  
+  // HINT: Mehr Tests für class Main in ITMain.java
+  
+  
   @Test
   public void test() throws IOException {
     Assert.assertEquals("lla.privat.atarixl.compiler.Main", mainSUT.getClass().getCanonicalName());

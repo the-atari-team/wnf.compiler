@@ -215,7 +215,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("'Dies ist ein String'", Type.STRING);
+    sourceSUT.addVariable("'Dies ist ein String'", Type.STRING_ANONYM);
 
     sourceSUT.generateVariables();
 
@@ -281,6 +281,7 @@ public class TestSource {
     sourceSUT.addVariable("HALLO", Type.WORD_ARRAY, 10);
     sourceSUT.setVariableAddress("HALLO", "123");
 
+    sourceSUT.generateAllNotAlreadyGeneratedEquatesVariables();
     sourceSUT.generateVariables();
 
     List<String> code = sourceSUT.getCode();
@@ -345,6 +346,49 @@ public class TestSource {
     Assert.assertEquals(" .BYTE <1,<-1,<255", code.get(++n));
     Assert.assertEquals("HALLO_HIGH", code.get(++n));
     Assert.assertEquals(" .BYTE >1,>-1,>255", code.get(++n));
+  }
+
+  @Test
+  public void testGenerateVariables_wordSplitArrayWithStrings() {
+    String program = "";
+    Source sourceSUT = new Source(program);
+
+    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 10);
+    sourceSUT.addVariable("'one'", Type.STRING_ANONYM);
+    sourceSUT.addVariable("'two'", Type.STRING_ANONYM);
+
+    List<String> arrayValues = Arrays.asList("'one'", "'two'");
+    sourceSUT.setVariableArray("HALLO", arrayValues);
+
+    sourceSUT.generateVariables();
+
+    List<String> code = sourceSUT.getCode();
+
+    int n = -1;
+    Assert.assertEquals("HALLO", code.get(++n));
+    Assert.assertEquals("HALLO_LOW", code.get(++n));
+    Assert.assertEquals(" .BYTE <?STRING2,<?STRING3", code.get(++n));
+    Assert.assertEquals("HALLO_HIGH", code.get(++n));
+    Assert.assertEquals(" .BYTE >?STRING2,>?STRING3", code.get(++n));
+  }
+
+  @Test
+  public void testGenerateVariables_wordSplitArrayWithVariableAssignment() {
+    String program = "";
+    Source sourceSUT = new Source(program);
+
+    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, -1);
+    sourceSUT.setVariableAddress("HALLO", "@VARIABLE");
+
+    sourceSUT.generateAllNotAlreadyGeneratedEquatesVariables();
+
+    List<String> code = sourceSUT.getCode();
+
+    int n = -1;
+    Assert.assertEquals("HALLO = @VARIABLE", code.get(++n));
+    Assert.assertEquals("HALLO_LOW = @VARIABLE_LOW", code.get(++n));
+    Assert.assertEquals("HALLO_HIGH = @VARIABLE_HIGH", code.get(++n));
+    Assert.assertEquals("HALLO_LENGTH = -1", code.get(++n));
   }
 
 }

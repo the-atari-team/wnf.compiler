@@ -60,8 +60,10 @@ public class PeepholeOptimizer {
     TAY_TYA,
     TAX_STX,
     TAY_STY,
+    LDY_TAX_TYA,
     LDY_TYA,
     LDY_LDX_TYA,
+    LDX_NTAX_TXA,
     COMPARE_WORD,
     WINC,
     WDEC,
@@ -146,6 +148,7 @@ public class PeepholeOptimizer {
       removeComments();
 
       ldy_tya(); // (6) (10) (11)
+      ldx_x_txa();
       removeComments();
 
       compare_word_ldy_ldx_sty_stx_ldy_ldx_cpy_txa_sbc(); // (8)
@@ -314,7 +317,38 @@ public class PeepholeOptimizer {
     // @formatter:on
   }
 
+  private void ldx_x_txa() {
+    for (int i = 0; i < codeList.size() - 3; i++) {
+      ldx_ntax_txa(i, PeepholeType.LDX_NTAX_TXA);
+    }
+  }
+
+  private void ldx_ntax_txa(int index, PeepholeType type) {
+    // @formatter:off
+    if (codeList.get(index).startsWith(" LDX") &&
+        codeList.get(index + 2).startsWith(" TXA")) {
+      
+      if (!codeList.get(index + 1).startsWith(" CPY")) {
+
+        LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+        String newLoad = codeList.get(index).replace(" LDX", " LDA");
+        String between = codeList.get(index + 1);
+      
+        codeList.set(index, between);
+        codeList.set(index + 1, newLoad + " ; (6.2)");
+        codeList.set(index + 2, ";opt TXA ; (6.2)");
+        incrementStatus(type);
+      }
+    }
+    // @formatter:on
+  }
+  
   private void ldy_tya() {
+    for (int i = 0; i < codeList.size() - 3; i++) {
+      ldy_tax_tya(i, PeepholeType.LDY_TAX_TYA);
+    }
+
+    // now, we know, that x can never be TAX
     for (int i = 0; i < codeList.size() - 2; i++) {
       ldy_x_tya(i, PeepholeType.LDY_TYA);
     }
@@ -340,6 +374,22 @@ public class PeepholeOptimizer {
       codeList.set(index, newLoad + " ; (6)");
 
       codeList.set(index + 2, ";opt TYA ; (6)");
+      incrementStatus(type);
+    }
+    // @formatter:on
+  }
+
+  private void ldy_tax_tya(int index, PeepholeType type) {
+    // @formatter:off
+    if (codeList.get(index).startsWith(" LDY") &&
+        codeList.get(index + 1).startsWith(" TAX") &&
+        codeList.get(index + 2).startsWith(" TYA")) {
+      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+      String newLoad = codeList.get(index).replace(" LDY", " LDA");
+      // we switch TAX and LDA
+      codeList.set(index, " TAX");
+      codeList.set(index + 1, newLoad + " ; (6.1)");
+      codeList.set(index + 2, ";opt TYA ; (6.1)");
       incrementStatus(type);
     }
     // @formatter:on
@@ -1600,7 +1650,7 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
   }
 
   private void ldx_ldx() {
-    for (int i = 0; i < codeList.size() - 4; i++) {
+    for (int i = 1; i < codeList.size() - 2; i++) {
       ldx_ldx(i, PeepholeType.LDX_LDX);
     }
   }
@@ -1610,12 +1660,16 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
     if (codeList.get(index).    startsWith(" LDX") &&
         codeList.get(index + 1).startsWith(" LDX ")) {
 
-      String newStore = codeList.get(index).replace(" LDX", ";opt LDX");
-      codeList.set(index, newStore);
-      String newStore2 = codeList.get(index+1);
-      codeList.set(index+1, newStore2 + " ; (45)");
+      // We need to realize, that int8 always use a BCC *+4 before LDX
+      String maybeBcc = codeList.get(index-1);
+      if (!maybeBcc.startsWith(" BCC *+4")) { 
+        String newStore = codeList.get(index).replace(" LDX", ";opt LDX");
+        codeList.set(index, newStore);
+        String newStore2 = codeList.get(index+1);
+        codeList.set(index+1, newStore2 + " ; (45)");
 
-      incrementStatus(type);
+        incrementStatus(type);
+      }
     }
   }
   

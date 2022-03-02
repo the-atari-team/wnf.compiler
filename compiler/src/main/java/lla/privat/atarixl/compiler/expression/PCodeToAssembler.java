@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import lla.privat.atarixl.compiler.Symbol;
 import lla.privat.atarixl.compiler.SymbolEnum;
+import lla.privat.atarixl.compiler.expression.multiplication.StarChain;
 import lla.privat.atarixl.compiler.source.Code;
 import lla.privat.atarixl.compiler.source.Source;
 
@@ -101,7 +102,7 @@ public class PCodeToAssembler extends Code {
         code(";#2 (1)"); // TEST VORHANDEN
         code(" lda #<" + value); // ;" ;push zahl"
         code(" pha");
-        if (ergebnis != Type.BYTE) {
+        if (ergebnis.getBytes() == 2) {
           code(" lda #>" + value);
           code(" pha");
         }
@@ -114,7 +115,7 @@ public class PCodeToAssembler extends Code {
           code(";#2 (2)"); // TEST VORHANDEN
           code(" lda " + a$); // ;" ;push var"
           code(" pha");
-          if (ergebnis != Type.BYTE) {
+          if (ergebnis.getBytes() == 2) {
             Type typ = source.getVariableType(a$);
             if (typ == Type.INT8) {
                 code(" cmp #$80");    // switch carry flag
@@ -211,14 +212,14 @@ public class PCodeToAssembler extends Code {
 
               if (currentPCode == PCode.INT_ZAHL) {
                 code(" ldy #<" + value); // ;" ;izahl"
-                if (ergebnis != Type.BYTE && ergebnis != Type.INT8) {
+                if (ergebnis.getBytes() == 2) {
                   code(" ldx #>" + value);
                 }
               }
               else { // ivar
                 a$ = source.getVariableAt(value);
                 code(" ldy " + a$); // ;" ;ivar"
-                if (ergebnis != Type.BYTE) {
+                if (ergebnis.getBytes() == 2) {
                   Type typ = source.getVariableType(a$);
                   if (typ == Type.INT8) {
                       code(" cpy #$80");    // switch carry flag
@@ -302,14 +303,15 @@ public class PCodeToAssembler extends Code {
                   else if (ergebnis == Type.WORD && typOfa$ == Type.BYTE) {
                     code(" ldx #0");
                   }
-                  else if (ergebnis == Type.WORD && typOfa$ == Type.WORD) {
+                  else if (ergebnis == Type.WORD && typOfa$.getBytes() == 2) {
                     code(" LDX " + a$ + "+1");
                   }
                   else if (ergebnis == Type.BYTE || ergebnis == Type.INT8) {
 
                   }
                   else {
-
+                    String message = "Ergebnis: " + ergebnis + " typeOfa$ " + typOfa$;
+                    throw new IllegalStateException("ivar falsch: " + message);
                   }
                   a = a + 2;
                 }
@@ -324,7 +326,7 @@ public class PCodeToAssembler extends Code {
         code(";#2 (7)"); // TEST VORHANDEN
         code(" sty @op"); // ;movepull"
 // TODO: testen mit word + byte + word?
-        if (ergebnis != Type.BYTE) {
+        if (ergebnis.getBytes() == 2) {
           code(" stx @op+1");
           code(" pla");
           code(" tax");
@@ -366,7 +368,7 @@ public class PCodeToAssembler extends Code {
         if (operator == PCode.IADD.getValue() && value2 == 1 && y == PCode.INT_ZAHL.getValue()) {
           if (operator == PCode.IADD.getValue()) {
             code(" iny");
-            if (ergebnis != Type.BYTE) { // must be WORD or WORD_ARRAY
+            if (ergebnis.getBytes() == 2) { // must be WORD or WORD_ARRAY
               code(" bne *+3");
               code(" inx");
               source.incrementNowinc();
@@ -386,14 +388,15 @@ public class PCodeToAssembler extends Code {
             code(" " + mne$ + " " + a$);
           }
           code(" tay");
-          if (ergebnis != Type.BYTE) {
+          
+          if (ergebnis.getBytes() != 1) {
             code(" txa");
             if (y == PCode.INT_ZAHL.getValue()) {
               code(" " + mne$ + " #>" + value2);
             }
             else {
               Type typ = source.getVariableType(a$);
-              if (typ == Type.BYTE) {
+              if (typ.getBytes() == 1 ) {
                 code(" " + mne$ + " #0");
               }
               else {
@@ -422,7 +425,7 @@ public class PCodeToAssembler extends Code {
             a$ = source.getVariableAt(value3);
             code(" lda " + a$);
             code(" sta @op");
-            if (ergebnis != Type.BYTE) {
+            if (ergebnis.getBytes() != 1) {
               Type typ = source.getVariableType(a$);
               if (typ == Type.INT8) {
                   code(" cmp #$80");    // switch carry flag
@@ -453,7 +456,7 @@ public class PCodeToAssembler extends Code {
         code(";#2 (10)"); // TEST VORHANDEN
         code(" tya"); // ;push"
         code(" pha");
-        if (ergebnis != Type.BYTE) {
+        if (ergebnis.getBytes() == 2) {
           code(" txa");
           code(" pha");
         }
@@ -464,7 +467,7 @@ public class PCodeToAssembler extends Code {
         code(";#2 (11)"); // TEST VORHANDEN
         int num = p_code.get(a + 1);
         a$ = source.getVariableAt(num);
-        if (ergebnis == Type.BYTE) {
+        if (ergebnis.getBytes() == 1) {
           code(" ldx #0"); // word_array
         }
         code(" tya");
@@ -509,7 +512,7 @@ public class PCodeToAssembler extends Code {
         int num = p_code.get(a + 1);
         a$ = source.getVariableAt(num);
         Type typ = source.getVariableType(a$);
-        if (typ == Type.BYTE_ARRAY) {
+        if (typ == Type.BYTE_ARRAY || typ == Type.STRING) {
           code(" lda " + a$ + ",y"); // ;b.array short"
           code(" tay");
         }
@@ -522,7 +525,7 @@ public class PCodeToAssembler extends Code {
 //          code(" getarrayb " + a$); // ;" ;byte-array"
 //          code(" tay");
 //        }
-        if (ergebnis == Type.WORD) {
+        if (ergebnis.getBytes() == 2) {
           code(" ldx #0");
         }
         a = a + 2;
@@ -589,7 +592,7 @@ public class PCodeToAssembler extends Code {
         code(" tya"); // ; ummodeln x,y in parameter->heap"
         code(" ldy #" + String.valueOf(num * 2 + 1));
         code(" sta (@heap_ptr),y");
-        if (ergebnis == Type.WORD) {
+        if (ergebnis == Type.WORD || ergebnis == Type.UINT16) {
           code(" txa");
         }
         else {
@@ -607,7 +610,8 @@ public class PCodeToAssembler extends Code {
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
         if (num != 0) {
           code(";#2 (17)");
-          code(" ADD_TO_HEAP_PTR " + String.valueOf(num * 2 + 1));
+          // code(" ADD_TO_HEAP_PTR " + String.valueOf(num * 2 + 1));
+          source.add_to_heap_ptr(num*2+1);
         }
         a = a + 2;
       }
@@ -615,7 +619,8 @@ public class PCodeToAssembler extends Code {
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
         if (num != 0) {
           code(";#2 (18)");
-          code(" SUB_FROM_HEAP_PTR " + String.valueOf(num * 2 + 1));
+          // code(" SUB_FROM_HEAP_PTR " + String.valueOf(num * 2 + 1));
+          source.sub_from_heap_ptr(num*2+1);
         }
         a = a + 2;
       }
@@ -646,6 +651,10 @@ public class PCodeToAssembler extends Code {
     else {
       exponent = -1;
     }
+    if  (!source.isShiftMultDiv()) {
+      exponent = -1;      
+    }
+
     if (exponent > 0 && Math.pow(2, exponent) == value && pcode != PCode.IMOD) { // nicht modulo
 //    code("; shiften um ";d;" bits"
       if (exponent > 7) {
@@ -677,6 +686,7 @@ public class PCodeToAssembler extends Code {
             code(" tay");
           }
           else {
+            // Type WORD, IMULT
             code(" tya");
             code(" stx @op+1");
 
@@ -716,12 +726,18 @@ public class PCodeToAssembler extends Code {
       }
     }
     else {
-      exponent = -1; // keine rotation
-      code(" lda #<" + value); // ;" ;mul/div/modulo"
-      code(" sta @op");
-      if (ergebnis != Type.BYTE) {
-        code(" lda #>" + value);
-        code(" sta @op+1");
+      if (pcode == PCode.IMULT && source.isStarChainMult()) {
+        new StarChain(source).domult(value).build();
+        exponent = 47;
+      }
+      else {
+        exponent = -1; // keine rotation
+        code(" lda #<" + value); // ;" ;div/modulo"
+        code(" sta @op");
+        if (ergebnis != Type.BYTE) {
+          code(" lda #>" + value);
+          code(" sta @op+1");
+        }
       }
     }
     return exponent;

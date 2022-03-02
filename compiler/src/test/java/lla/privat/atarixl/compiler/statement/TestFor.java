@@ -36,6 +36,8 @@ public class TestFor {
     Assert.assertEquals(" LDY #<10", code.get(++n));
     Assert.assertEquals(" STY ?FOR1", code.get(++n));
 
+    Assert.assertEquals("?FORLOOP1", code.get(++n));
+    
     Assert.assertEquals(" LDY ?FOR1", code.get(++n)); // check ob nicht schon am Ende
     Assert.assertEquals(" CPY I", code.get(++n));
     Assert.assertEquals(" BCS ?GO1", code.get(++n));
@@ -43,12 +45,12 @@ public class TestFor {
     Assert.assertEquals("?GO1", code.get(++n));
     // statement in for loop
 
-    Assert.assertEquals(" LDA I", code.get(++n));     // check end
-    Assert.assertEquals(" CMP ?FOR1", code.get(++n));
-    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
+//    Assert.assertEquals(" LDA I", code.get(++n));     // check end
+//    Assert.assertEquals(" CMP ?FOR1", code.get(++n));
+//    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
 //    Assert.assertEquals("?NEXT1", code.get(++n)); // typ=word only!
     Assert.assertEquals(" INC I", code.get(++n));
-    Assert.assertEquals(" JMP ?GO1", code.get(++n));
+    Assert.assertEquals(" JMP ?FORLOOP1", code.get(++n));
     Assert.assertEquals("?EXIT1", code.get(++n));
   }
 
@@ -74,6 +76,8 @@ public class TestFor {
     Assert.assertEquals(" LDY #<10", code.get(++n));
     Assert.assertEquals(" STY ?FOR1", code.get(++n));
 
+    Assert.assertEquals("?FORLOOP1", code.get(++n));
+
     Assert.assertEquals(" LDA ?FOR1", code.get(++n)); // check ob nicht schon am Ende
     Assert.assertEquals(" SEC", code.get(++n));
     Assert.assertEquals(" SBC I", code.get(++n));
@@ -84,12 +88,12 @@ public class TestFor {
     Assert.assertEquals("?GO1", code.get(++n));
     // statement in for loop
 
-    Assert.assertEquals(" LDA I", code.get(++n));     // check end
-    Assert.assertEquals(" CMP ?FOR1", code.get(++n));
-    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
+//    Assert.assertEquals(" LDA I", code.get(++n));     // check end
+//    Assert.assertEquals(" CMP ?FOR1", code.get(++n));
+//    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
 //    Assert.assertEquals("?NEXT1", code.get(++n)); // typ=word only!
     Assert.assertEquals(" INC I", code.get(++n));
-    Assert.assertEquals(" JMP ?GO1", code.get(++n));
+    Assert.assertEquals(" JMP ?FORLOOP1", code.get(++n));
     Assert.assertEquals("?EXIT1", code.get(++n));
   }
 
@@ -133,6 +137,8 @@ public class TestFor {
 
     Assert.assertEquals(" STX ?FOR1+1", code.get(++n));
 
+    Assert.assertEquals("?FORLOOP1", code.get(++n));
+
     Assert.assertEquals(" LDA ?FOR1", code.get(++n)); // check ob nicht schon am Ende
     Assert.assertEquals(" CMP I", code.get(++n));
     Assert.assertEquals(" LDA ?FOR1+1", code.get(++n));
@@ -144,18 +150,66 @@ public class TestFor {
     Assert.assertEquals("?GO1", code.get(++n));
     // statement in for loop
 
-    Assert.assertEquals(" LDA I+1", code.get(++n));     // check end
-    Assert.assertEquals(" CMP ?FOR1+1", code.get(++n));
-    Assert.assertEquals(" BNE ?NEXT1", code.get(++n));
-    Assert.assertEquals(" LDA I", code.get(++n));
-    Assert.assertEquals(" CMP ?FOR1", code.get(++n));
-    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
-    Assert.assertEquals("?NEXT1", code.get(++n)); // typ=word only!
+//    Assert.assertEquals(" LDA I+1", code.get(++n));     // check end
+//    Assert.assertEquals(" CMP ?FOR1+1", code.get(++n));
+//    Assert.assertEquals(" BNE ?NEXT1", code.get(++n));
+//    Assert.assertEquals(" LDA I", code.get(++n));
+//    Assert.assertEquals(" CMP ?FOR1", code.get(++n));
+//    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
+//    Assert.assertEquals("?NEXT1", code.get(++n)); // typ=word only!
     Assert.assertEquals(" INC I", code.get(++n));
     Assert.assertEquals(" BNE ?LOOP1", code.get(++n));
     Assert.assertEquals(" INC I+1", code.get(++n));
     Assert.assertEquals("?LOOP1", code.get(++n));
-    Assert.assertEquals(" JMP ?GO1", code.get(++n));
+    Assert.assertEquals(" JMP ?FORLOOP1", code.get(++n));
+    Assert.assertEquals("?EXIT1", code.get(++n));
+  }
+
+  @Test
+  public void testForUINT16ToDo() {
+    Source source = new Source("for i:=65530 to 65534 do begin end").setVerboseLevel(2);
+    source.addVariable("I", Type.UINT16);
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new For(source).statement(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    List<String> code = source.getCode();
+
+    int n=-1;
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<65530", code.get(++n));
+    Assert.assertEquals(" LDX #>65530", code.get(++n));
+    Assert.assertEquals(" STY I", code.get(++n));
+
+    Assert.assertEquals(" STX I+1", code.get(++n));
+
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<65534", code.get(++n));
+    Assert.assertEquals(" LDX #>65534", code.get(++n));
+    Assert.assertEquals(" STY ?FOR1", code.get(++n));
+
+    Assert.assertEquals(" STX ?FOR1+1", code.get(++n));
+
+    Assert.assertEquals("?FORLOOP1", code.get(++n));
+
+    Assert.assertEquals(" LDY ?FOR1", code.get(++n)); // check ob nicht schon am Ende
+    Assert.assertEquals(" CPY I", code.get(++n));
+    Assert.assertEquals(" LDA ?FOR1+1", code.get(++n));
+    Assert.assertEquals(" SBC I+1", code.get(++n));
+    Assert.assertEquals(" BCS ?GO1", code.get(++n));
+    Assert.assertEquals(" JMP ?EXIT1", code.get(++n));
+    Assert.assertEquals("?GO1", code.get(++n));
+
+    // statement in for loop
+
+    Assert.assertEquals(" INC I", code.get(++n));
+    Assert.assertEquals(" BNE ?LOOP1", code.get(++n));
+    Assert.assertEquals(" INC I+1", code.get(++n));
+    Assert.assertEquals("?LOOP1", code.get(++n));
+    Assert.assertEquals(" JMP ?FORLOOP1", code.get(++n));
     Assert.assertEquals("?EXIT1", code.get(++n));
   }
 
@@ -180,6 +234,8 @@ public class TestFor {
     Assert.assertEquals(" LDY #<0", code.get(++n));
     Assert.assertEquals(" STY ?FOR1", code.get(++n));
 
+    Assert.assertEquals("?FORLOOP1", code.get(++n));
+
     Assert.assertEquals(" LDA I", code.get(++n)); // check ob nicht schon am Ende
     Assert.assertEquals(" SEC", code.get(++n));
     Assert.assertEquals(" SBC ?FOR1", code.get(++n));
@@ -189,11 +245,11 @@ public class TestFor {
 
     Assert.assertEquals(" JMP ?EXIT1", code.get(++n));
     Assert.assertEquals("?GO1", code.get(++n));
-    Assert.assertEquals(" LDA ?FOR1", code.get(++n));
-    Assert.assertEquals(" CMP I", code.get(++n));
-    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
+//    Assert.assertEquals(" LDA ?FOR1", code.get(++n));
+//    Assert.assertEquals(" CMP I", code.get(++n));
+//    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
     Assert.assertEquals(" DEC I", code.get(++n));
-    Assert.assertEquals(" JMP ?GO1", code.get(++n));
+    Assert.assertEquals(" JMP ?FORLOOP1", code.get(++n));
     Assert.assertEquals("?EXIT1", code.get(++n));
   }
 
@@ -218,17 +274,19 @@ public class TestFor {
     Assert.assertEquals(" LDY #<0", code.get(++n));
     Assert.assertEquals(" STY ?FOR1", code.get(++n));
 
+    Assert.assertEquals("?FORLOOP1", code.get(++n));
+
     Assert.assertEquals(" LDY I", code.get(++n)); // check ob nicht schon am Ende
     Assert.assertEquals(" CPY ?FOR1", code.get(++n));
     Assert.assertEquals(" BCS ?GO1", code.get(++n));
 
     Assert.assertEquals(" JMP ?EXIT1", code.get(++n));
     Assert.assertEquals("?GO1", code.get(++n));
-    Assert.assertEquals(" LDA ?FOR1", code.get(++n));
-    Assert.assertEquals(" CMP I", code.get(++n));
-    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
+//    Assert.assertEquals(" LDA ?FOR1", code.get(++n));
+//    Assert.assertEquals(" CMP I", code.get(++n));
+//    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
     Assert.assertEquals(" DEC I", code.get(++n));
-    Assert.assertEquals(" JMP ?GO1", code.get(++n));
+    Assert.assertEquals(" JMP ?FORLOOP1", code.get(++n));
     Assert.assertEquals("?EXIT1", code.get(++n));
   }
 
@@ -272,6 +330,8 @@ public class TestFor {
 
     Assert.assertEquals(" STX ?FOR1+1", code.get(++n));
 
+    Assert.assertEquals("?FORLOOP1", code.get(++n));
+
     Assert.assertEquals(" LDA I", code.get(++n)); // check ob nicht schon am Ende
     Assert.assertEquals(" CMP ?FOR1", code.get(++n));
     Assert.assertEquals(" LDA I+1", code.get(++n));
@@ -283,20 +343,20 @@ public class TestFor {
     Assert.assertEquals(" JMP ?EXIT1", code.get(++n));
     Assert.assertEquals("?GO1", code.get(++n));
 
-    Assert.assertEquals(" LDA I+1", code.get(++n));
-    Assert.assertEquals(" CMP ?FOR1+1", code.get(++n));
-    Assert.assertEquals(" BNE ?NEXT1", code.get(++n));
-    Assert.assertEquals(" LDA ?FOR1", code.get(++n));
-    Assert.assertEquals(" CMP I", code.get(++n));
-    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
-
-    Assert.assertEquals("?NEXT1", code.get(++n));
+//    Assert.assertEquals(" LDA I+1", code.get(++n));
+//    Assert.assertEquals(" CMP ?FOR1+1", code.get(++n));
+//    Assert.assertEquals(" BNE ?NEXT1", code.get(++n));
+//    Assert.assertEquals(" LDA ?FOR1", code.get(++n));
+//    Assert.assertEquals(" CMP I", code.get(++n));
+//    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
+//
+//    Assert.assertEquals("?NEXT1", code.get(++n));
     Assert.assertEquals(" LDA I", code.get(++n));
     Assert.assertEquals(" BNE ?LOOP1", code.get(++n));
     Assert.assertEquals(" DEC I+1", code.get(++n));
     Assert.assertEquals("?LOOP1", code.get(++n));
     Assert.assertEquals(" DEC I", code.get(++n));
-    Assert.assertEquals(" JMP ?GO1", code.get(++n));
+    Assert.assertEquals(" JMP ?FORLOOP1", code.get(++n));
     Assert.assertEquals("?EXIT1", code.get(++n));
   }
 
@@ -332,6 +392,58 @@ public class TestFor {
 
     Assert.assertEquals("", nextSymbol.get());
     Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+  }
+
+  @Test
+  public void testForBYTEToStep2Do() {
+    Source source = new Source("for i:=0 to 10 step 2 do begin end").setVerboseLevel(2);
+    source.addVariable("I", Type.BYTE);
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new For(source).statement(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    List<String> code = source.getCode();
+
+    int n=-1;
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<0", code.get(++n));
+    Assert.assertEquals(" STY I", code.get(++n));
+
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<2", code.get(++n));
+    Assert.assertEquals(" STY ?FORSTEP1", code.get(++n));
+    
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<10", code.get(++n));
+    Assert.assertEquals(" STY ?FOR1", code.get(++n));
+
+
+    Assert.assertEquals("?FORLOOP_AFTERSTEP1", code.get(++n));
+    
+    Assert.assertEquals(" LDY ?FOR1", code.get(++n)); // check ob nicht schon am Ende
+    Assert.assertEquals(" CPY I", code.get(++n));
+    Assert.assertEquals(" BCS ?GO1", code.get(++n));
+    Assert.assertEquals(" JMP ?EXIT1", code.get(++n));
+    Assert.assertEquals("?GO1", code.get(++n));
+
+    // statement in for loop
+
+//    Assert.assertEquals(" LDA I", code.get(++n));     // check end
+//    Assert.assertEquals(" CMP ?FOR1", code.get(++n));
+//    Assert.assertEquals(" BCS ?EXIT1", code.get(++n));
+//    Assert.assertEquals("?NEXT1", code.get(++n)); // typ=word only!
+//    Assert.assertEquals(" INC I", code.get(++n));
+
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA I", code.get(++n));
+    Assert.assertEquals(" ADC ?FORSTEP1", code.get(++n));
+    Assert.assertEquals(" STA I", code.get(++n));
+    
+    Assert.assertEquals(" JMP ?FORLOOP_AFTERSTEP1", code.get(++n));
+    Assert.assertEquals("?EXIT1", code.get(++n));
   }
 
 }

@@ -146,6 +146,8 @@ public class ITPCodeToAssemblerMostlyByte {
   @Test
   public void testExpressionDivXZahl2erKomplement() {
     Source source = new Source("X / 2 ");
+    source.setStarChainMult(true);
+
     source.addVariable("X", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
 
@@ -214,7 +216,7 @@ public class ITPCodeToAssemblerMostlyByte {
     source.addVariable("X", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
 
-    Type ergebnis = Type.INT8;
+    Type ergebnis = Type.WORD;
     PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
 
     pcodeGenerator.build();
@@ -349,6 +351,8 @@ public class ITPCodeToAssemblerMostlyByte {
   @Test
   public void testExpressionXMul2ExponentByte() {
     Source source = new Source("X * 16 ");
+    source.setStarChainMult(true);
+
     source.addVariable("X", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
     

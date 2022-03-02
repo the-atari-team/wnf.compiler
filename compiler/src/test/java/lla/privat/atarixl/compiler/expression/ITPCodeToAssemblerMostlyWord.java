@@ -244,6 +244,7 @@ public class ITPCodeToAssemblerMostlyWord {
   @Test
   public void testExpressionXMulZahl() {
     Source source = new Source("X * 123 ");
+    source.setStarChainMult(true);
     source.addVariable("X", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
 
@@ -257,16 +258,65 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals("; (4)", code.get(++n));
     Assert.assertEquals(" LDY X", code.get(++n));
     Assert.assertEquals(" LDX #0", code.get(++n));
-    Assert.assertEquals(" LDA #<123", code.get(++n));
-    Assert.assertEquals(" STA @OP", code.get(++n));
-    Assert.assertEquals(" LDA #>123", code.get(++n));
-    Assert.assertEquals(" STA @OP+1", code.get(++n));
-    Assert.assertEquals(" JSR @IMULT", code.get(++n));
+
+//    Assert.assertEquals(" STY @OP", code.get(++n));    // Rw = R1
+    Assert.assertEquals(" TYA", code.get(++n));    // Rw = R1
+    Assert.assertEquals(" STX @OP+1", code.get(++n));
+    Assert.assertEquals(" STA @PRODUKT", code.get(++n));
+    Assert.assertEquals(" STX @PRODUKT+1", code.get(++n));
+
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n)); // Rw *= 32
+
+    Assert.assertEquals(" SEC", code.get(++n));
+//    Assert.assertEquals(" LDA @OP", code.get(++n));
+    Assert.assertEquals(" SBC @PRODUKT", code.get(++n));
+//    Assert.assertEquals(" STA @OP", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA @OP+1", code.get(++n));
+    Assert.assertEquals(" SBC @PRODUKT+1", code.get(++n));
+    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1
+    Assert.assertEquals(" TYA", code.get(++n));
+    
+    Assert.assertEquals(" ASL A", code.get(++n)); 
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n)); // * 4
+
+    Assert.assertEquals(" SEC", code.get(++n));
+//    Assert.assertEquals(" LDA @OP", code.get(++n));
+    Assert.assertEquals(" SBC @PRODUKT", code.get(++n));
+//    Assert.assertEquals(" STA @OP", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA @OP+1", code.get(++n));
+    Assert.assertEquals(" SBC @PRODUKT+1", code.get(++n));
+    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1   
+    Assert.assertEquals(" TYA", code.get(++n));
+
+//    Assert.assertEquals(" LDY @OP", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDX @OP+1", code.get(++n));
+    
+//    Assert.assertEquals(" LDA #<123", code.get(++n));
+//    Assert.assertEquals(" STA @OP", code.get(++n));
+//    Assert.assertEquals(" LDA #>123", code.get(++n));
+//    Assert.assertEquals(" STA @OP+1", code.get(++n));
+//    Assert.assertEquals(" JSR @IMULT", code.get(++n));
   }
 
   @Test
   public void testExpressionXMulZahl2erKomplement() {
     Source source = new Source("X * 8 ");
+    source.setStarChainMult(true);
+
     source.addVariable("X", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
 
@@ -295,8 +345,110 @@ public class ITPCodeToAssemblerMostlyWord {
   }
 
   @Test
+  public void testExpressionXMulZahl7StarChain() {
+    Source source = new Source("X * 7 ");
+    source.setStarChainMult(true);
+
+    source.addVariable("X", Type.BYTE);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (4)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" STX @OP+1", code.get(++n));
+
+    Assert.assertEquals(" STA @PRODUKT", code.get(++n));
+    Assert.assertEquals(" STX @PRODUKT+1", code.get(++n));
+
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    
+//    LDA %1+0       ;Test if the LSB is zero
+//    BNE SKIP       ;If it isn't we can skip the next instruction
+//    DEC %1+1       ;Decrement the MSB when the LSB will underflow
+//SKIP  DEC %1+0       ;Decrement the LSB
+
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" SBC @PRODUKT", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA @OP+1", code.get(++n));
+    Assert.assertEquals(" SBC @PRODUKT+1", code.get(++n));
+    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1   
+    Assert.assertEquals(" TYA", code.get(++n));
+    
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDX @OP+1", code.get(++n));
+
+    Assert.assertEquals(21, n);
+  }
+
+  @Test
+  public void testExpressionXMulZahl5StarChain() {
+    Source source = new Source("X * 5 ");
+    source.setStarChainMult(true);
+
+    source.addVariable("X", Type.BYTE);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (4)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" STX @OP+1", code.get(++n));
+
+    Assert.assertEquals(" STA @PRODUKT", code.get(++n));
+    Assert.assertEquals(" STX @PRODUKT+1", code.get(++n));
+
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    
+//    LDA %1+0       ;Test if the LSB is zero
+//    BNE SKIP       ;If it isn't we can skip the next instruction
+//    DEC %1+1       ;Decrement the MSB when the LSB will underflow
+//SKIP  DEC %1+0       ;Decrement the LSB
+
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" ADC @PRODUKT", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA @OP+1", code.get(++n));
+    Assert.assertEquals(" ADC @PRODUKT+1", code.get(++n));
+    Assert.assertEquals(" STA @OP+1", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDX @OP+1", code.get(++n));
+
+    Assert.assertEquals(19, n);
+  }
+
+  @Test
   public void testExpressionXMul256Zahl2erKomplement() {
     Source source = new Source("X * 256 ");
+    source.setStarChainMult(true);
+
     source.addVariable("X", Type.WORD);
     List<Integer> p_code = getPCodeOf(source);
 
@@ -320,6 +472,8 @@ public class ITPCodeToAssemblerMostlyWord {
   @Test
   public void testExpressionXDiv2Zahl2erKomplement() {
     Source source = new Source("X / 2 ");
+    source.setStarChainMult(true);
+
     source.addVariable("X", Type.WORD);
     List<Integer> p_code = getPCodeOf(source);
 
@@ -343,10 +497,62 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" TAX", code.get(++n));
   }
 
+  @Test
+  public void testExpressionZahlMult2ByShift() {
+    Source source = new Source("2 * 4 ");
+
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+    int n = -1;
+    Assert.assertEquals("; (4)", code.get(++n));
+    Assert.assertEquals(" LDY #<2", code.get(++n));
+    Assert.assertEquals(" LDX #>2", code.get(++n));
+
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" STX @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n)); // * 2
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n)); // * 2
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDX @OP+1", code.get(++n));
+  }
+
+  @Test
+  public void testExpressionZahlMult2ByMult() {
+    Source source = new Source("2 * 4 ");
+    source.setShiftMultDiv(false);
+    source.setStarChainMult(false);
+    
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+    int n = -1;
+    Assert.assertEquals("; (4)", code.get(++n));
+    Assert.assertEquals(" LDY #<2", code.get(++n));
+    Assert.assertEquals(" LDX #>2", code.get(++n));
+
+    Assert.assertEquals(" LDA #<4", code.get(++n));
+    Assert.assertEquals(" STA @OP", code.get(++n));
+    Assert.assertEquals(" LDA #>4", code.get(++n));
+    Assert.assertEquals(" STA @OP+1", code.get(++n));
+    Assert.assertEquals(" JSR @IMULT", code.get(++n));
+  }
 
   @Test
   public void testExpressionXDiv256Zahl2erKomplement() {
     Source source = new Source("X / 256 ");
+    source.setStarChainMult(true);
+
     source.addVariable("X", Type.WORD);
     List<Integer> p_code = getPCodeOf(source);
 
@@ -394,8 +600,36 @@ public class ITPCodeToAssemblerMostlyWord {
   }
 
   @Test
+  public void testExpressionXMulZahlNoStarChain() {
+    Source source = new Source("X * 123 ");
+    source.setStarChainMult(false);
+    
+    source.addVariable("X", Type.WORD);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (4)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" LDX X+1", code.get(++n));
+    Assert.assertEquals(" LDA #<123", code.get(++n));
+    Assert.assertEquals(" STA @OP", code.get(++n));
+    Assert.assertEquals(" LDA #>123", code.get(++n));
+    Assert.assertEquals(" STA @OP+1", code.get(++n));
+    Assert.assertEquals(" JSR @IMULT", code.get(++n));
+  }
+
+
+  @Test
   public void testExpressionZahlAddZahlMulZahl() {
     Source source = new Source("2 + 2 * 2 ");
+    source.setStarChainMult(true);
+
     List<Integer> p_code = getPCodeOf(source);
 
     Type ergebnis = Type.WORD;
@@ -439,6 +673,8 @@ public class ITPCodeToAssemblerMostlyWord {
   @Test
   public void testExpressionVariableAddZahlMulZahl() {
     Source source = new Source("X + 2 * 3 ");
+    source.setStarChainMult(true);
+
     source.addVariable("X", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
 
@@ -458,11 +694,32 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" LDY #<2", code.get(++n));
     Assert.assertEquals(" LDX #>2", code.get(++n));
 
-    Assert.assertEquals(" LDA #<3", code.get(++n));
-    Assert.assertEquals(" STA @OP", code.get(++n));
-    Assert.assertEquals(" LDA #>3", code.get(++n));
-    Assert.assertEquals(" STA @OP+1", code.get(++n));
-    Assert.assertEquals(" JSR @IMULT", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" STX @OP+1", code.get(++n));
+    Assert.assertEquals(" STA @PRODUKT", code.get(++n));
+    Assert.assertEquals(" STX @PRODUKT+1", code.get(++n));
+
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ROL @OP+1", code.get(++n));
+
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" SBC @PRODUKT", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA @OP+1", code.get(++n));
+    Assert.assertEquals(" SBC @PRODUKT+1", code.get(++n));
+    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1   
+    Assert.assertEquals(" TYA", code.get(++n));
+    
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDX @OP+1", code.get(++n));
+
+//    Assert.assertEquals(" LDA #<3", code.get(++n));
+//    Assert.assertEquals(" STA @OP", code.get(++n));
+//    Assert.assertEquals(" LDA #>3", code.get(++n));
+//    Assert.assertEquals(" STA @OP+1", code.get(++n));
+//    Assert.assertEquals(" JSR @IMULT", code.get(++n));
 
     /*
      * ; Wuerde voraussetzen, das die Daten rückwärts auf den Stack kommen sty @op
@@ -732,6 +989,8 @@ public class ITPCodeToAssemblerMostlyWord {
   @Test
   public void testExpressionXMul2ExponentWord() {
     Source source = new Source("X * 8 ");
+    source.setStarChainMult(true);
+
     source.addVariable("X", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
     

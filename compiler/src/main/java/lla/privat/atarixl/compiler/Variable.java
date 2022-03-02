@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import lla.privat.atarixl.compiler.expression.Type;
 import lla.privat.atarixl.compiler.source.Source;
+import lla.privat.atarixl.compiler.source.StringHelper;
 
 /**
  * class Variable dient ausschließlich dem Auslesen der Variablen im
@@ -76,7 +77,7 @@ public class Variable {
       lastType = Type.UINT16;
     }
     else if (mnemonic.equals("STRING")) {
-      lastType = Type.BYTE_ARRAY;
+      lastType = Type.STRING; // old BYTE_ARRAY
     }
     else if (mnemonic.equals("CONST")) {
       lastType = Type.CONST;
@@ -89,6 +90,7 @@ public class Variable {
 
     boolean isVariables = true;
     while (isVariables) {
+      boolean isWordArraySplitForced = false;
       mnemonic = nextSymbol.get();
       if (nextSymbol.getId() == SymbolEnum.variable_name) {
         name = nextSymbol.get();
@@ -103,7 +105,20 @@ public class Variable {
         Symbol nameSymbol = source.nextElement();
         name = nameSymbol.get();
         Symbol arrayCount = arrayCount();
-        int n = Integer.parseInt(arrayCount.get());
+        int n = 1;
+        if (arrayCount.id == SymbolEnum.variable_name) {
+          String value = arrayCount.get();
+          if (value.equals("@SPLIT")) {
+            n = -1;
+            isWordArraySplitForced = true;
+          }
+        }
+        else if (arrayCount.id == SymbolEnum.number) {
+            n = Integer.parseInt(arrayCount.get());
+          }
+        else {
+          source.error(nextSymbol, "unexpected array size, number or '@SPLIT' expected.");          
+        }
         lastType = makeArrayType(lastType, n);
         source.addVariable(name, lastType, n);
         nextSymbol = source.nextElement();
@@ -122,13 +137,16 @@ public class Variable {
           if (lastType == Type.WORD_SPLIT_ARRAY) {
             VariableDefinition definition = source.getVariable(name);
             definition.setType(Type.FAT_WORD_ARRAY);
+            if (isWordArraySplitForced == true) {
+              source.error(squaredBrackedOpenOrNumber, "A number can't force (with @SPLIT) to be a word split array.");
+            }
           }
           String number = squaredBrackedOpenOrNumber.get();
           source.setVariableAddress(name, number);
           nextSymbol = source.nextElement();
         }
         else if (squaredBrackedOpenOrNumber.getId() == SymbolEnum.variable_name) {
-          if (lastType == Type.WORD_SPLIT_ARRAY) {
+          if (lastType == Type.WORD_SPLIT_ARRAY && isWordArraySplitForced == false) {
             VariableDefinition definition = source.getVariable(name);
             definition.setType(Type.FAT_WORD_ARRAY);
           }
@@ -228,13 +246,19 @@ public class Variable {
         ++localValues;
         String string = valueSymbol.get();
         if (lastType == Type.WORD_ARRAY || lastType == Type.WORD_SPLIT_ARRAY) {
-          source.addVariable(string, Type.STRING);
+          source.addVariable(string, Type.STRING_ANONYM);
           String name = "?STRING" + source.getVariablePosition(string);
           arrayValues.add(name);
         }
-        else if (lastType == Type.BYTE_ARRAY) {
+        else if (lastType == Type.STRING || lastType == Type.BYTE_ARRAY) {
           arrayValues.add(string);
           arrayValues.add("255");
+          // Do not create _LENGTH, if we are an anonymous String
+          if (! StringHelper.isSingleQuotedString(name)) {
+            // Sonderfall String in byte array, redefine the _LENGTH Variable
+            final String sizeAsString = String.valueOf(string.length()-2);
+            source.setVariableAddress(name + "_LENGTH", sizeAsString);
+          }
         }
         else {
           throw new IllegalStateException("Direct String is not allowed here.");

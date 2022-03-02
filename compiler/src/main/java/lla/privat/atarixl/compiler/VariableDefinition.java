@@ -16,13 +16,17 @@ import lla.privat.atarixl.compiler.expression.Type;
 public class VariableDefinition {
   private final String name;
   private Type type;
-
+  private String prefix;
+  
   private String address;
   private int sizeOfArray;
   private final List<String> arrayContent;
 
   private boolean generated;
 
+  // Hier ablegen, aus welcher Datei die Definition kommt, so kann ich Fehler besser verfolgen
+  private final String sourcecode_filename;
+  
   private enum ArtOfUsageEnum {
     UNDEFINED(0), READ(1), WRITE(2), ALL(3);
 
@@ -71,20 +75,25 @@ public class VariableDefinition {
 
   private ArtOfUsageEnum artOfUsage;
 
-  public VariableDefinition(String name, Type type) {
-    this(name, type, 0);
+  public VariableDefinition(String name, Type type, String sourcecode_filename) {
+    this(name, type, 0, sourcecode_filename);
   }
 
-  public VariableDefinition(String name, Type type, int sizeOfArray) {
+  public VariableDefinition(String name, Type type, int sizeOfArray, String sourcecode_filename) {
     this.name = name;
     this.type = type;
     this.sizeOfArray = sizeOfArray;
     this.arrayContent = new ArrayList<>();
     this.artOfUsage = ArtOfUsageEnum.UNDEFINED;
+    this.sourcecode_filename = sourcecode_filename;
     generated = false;
+    this.prefix = "";
   }
 
   public String getName() {
+    if (prefix.length() > 0) {
+      return prefix + "_" + name;
+    }
     return name;
   }
 
@@ -189,4 +198,11 @@ public class VariableDefinition {
     this.generated = generated;
   }
 
+  public String getFilename() {
+    return sourcecode_filename;
+  }
+
+  public void resetNameWithPrefix(String prefix) {
+    this.prefix = prefix;
+  }
 }

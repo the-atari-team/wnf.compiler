@@ -20,7 +20,9 @@ public enum Type {
   FUNCTION(2, false),
   FUNCTION_POINTER(2, false),
   PROCEDURE(2, false),
-  STRING(2, false);
+  STRING(2, false),
+  STRING_ANONYM(2, false)
+  ;
 
   private final int countOfBytes;
 

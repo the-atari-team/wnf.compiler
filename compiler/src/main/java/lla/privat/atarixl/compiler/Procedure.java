@@ -86,6 +86,7 @@ public class Procedure extends Code {
     return this;
   }
 
+    
   private void freeLocalVariables() {
     if (localVariableCount > 1) {
       yregistersafe = false;
@@ -93,7 +94,8 @@ public class Procedure extends Code {
         code(" sty @reg+2");
         yregistersafe = true;
       }
-      code(" sub_from_heap_ptr " + localVariableCount);
+      source.sub_from_heap_ptr(localVariableCount);
+      
       while (localVariableCount > 1) {
         String variable = localVariables.pop();
         Type typ = source.getVariableType(variable);
@@ -101,7 +103,7 @@ public class Procedure extends Code {
         code(" ldy #" + localVariableCount);
         code(" lda (@heap_ptr),y");
         code(" sta " + variable);
-        if (typ == Type.WORD) {
+        if (typ.getBytes() == 2) {
           code(" iny");
           code(" lda (@heap_ptr),y");
           code(" sta " + variable + "+1");
@@ -116,8 +118,8 @@ public class Procedure extends Code {
         code(" sty @reg+2");
         yregistersafe = true;
       }
-      code(" sub_from_heap_ptr " + innerCallParameterPosition);
-
+      source.sub_from_heap_ptr(innerCallParameterPosition);
+      
       while (innerCallParameterPosition > 1) {
         String variable = callVariables.pop();
         Type typ = source.getVariableType(variable);
@@ -125,7 +127,7 @@ public class Procedure extends Code {
         code(" ldy #" + innerCallParameterPosition);
         code(" lda (@heap_ptr),y");
         code(" sta " + variable);
-        if (typ == Type.WORD) {
+        if (typ.getBytes() == 2) {
           code(" iny");
           code(" lda (@heap_ptr),y");
           code(" sta " + variable + "+1");
@@ -144,13 +146,13 @@ public class Procedure extends Code {
         source.throwIfVariableUndefined(variable);
 
         Type typ = source.getVariableType(variable);
-        if (typ != Type.BYTE && typ != Type.WORD) {
-          source.error(nextSymbol, "in LOCAL variable " + variable + " must be BYTE of WORD");
+        if (typ.getBytes() > 2) {
+          source.error(nextSymbol, "LOCAL variable " + variable + " must be 1 or 2 bytes long, no arrays");
         }
         code(" lda " + variable);
         code(" ldy #" + localVariableCount);
         code(" sta (@heap_ptr),y");
-        if (typ == Type.WORD) {
+        if (typ.getBytes() == 2) {
           code(" iny");
           code(" lda " + variable + "+1");
           code(" sta (@heap_ptr),y");
@@ -168,7 +170,7 @@ public class Procedure extends Code {
       }
     }
     if (localVariableCount > 1) {
-      code(" add_to_heap_ptr " + localVariableCount);
+        source.add_to_heap_ptr(localVariableCount);
     }
     return nextSymbol;
   }
@@ -193,7 +195,7 @@ public class Procedure extends Code {
         code(" sta " + variable);
         code(" txa");
         code(" sta (@heap_ptr),y");
-        if (source.getVariableType(variable) == Type.WORD) {
+        if (source.getVariableType(variable).getBytes() == 2) {
           code(" iny");
           code(" ldx " + variable + "+1");
           code(" lda (@heap_ptr),y");
@@ -216,7 +218,7 @@ public class Procedure extends Code {
       }
     }
     if (innerCallParameterPosition > 1) {
-      code(" add_to_heap_ptr " + innerCallParameterPosition);
+        source.add_to_heap_ptr(innerCallParameterPosition);
     }
 
     if (countOfParameters > 0) {

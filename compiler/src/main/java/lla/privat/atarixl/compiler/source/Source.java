@@ -13,6 +13,7 @@ import java.util.Stack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import lla.privat.atarixl.compiler.Options;
 import lla.privat.atarixl.compiler.Symbol;
 import lla.privat.atarixl.compiler.SymbolEnum;
 import lla.privat.atarixl.compiler.SymbolTokenizer;
@@ -37,6 +38,8 @@ public class Source implements Enumeration<Symbol> {
   private final SymbolTokenizer programTokenizer;
   private String programOrIncludeName;
 
+  private Options options;
+  
   // true when we are a program, else we are an include
   private boolean isProgram;
 
@@ -46,8 +49,6 @@ public class Source implements Enumeration<Symbol> {
   private boolean runAddress;
 
   private boolean showCode;
-
-  private int verboseLevel;
 
   private final List<String> includePaths;
 
@@ -61,31 +62,39 @@ public class Source implements Enumeration<Symbol> {
   private List<String> assemblerCodeList;
 
   // Global Counter
-  private int nowinc = 0;
+  private int nowinc;
 
   // Ergebnis der letzten Expression
   private Type typeOfLastExpression;
 
-  private int countOfAsserts = 0;
+  private int countOfAsserts;
 
-  private String filename = "";
+  private String filename;
 
-  private boolean selfModifiedCode;
-
+//  private boolean starChainMult;
+  
   public Source(final String sourceCode) {
     this.showCode = false;
+    this.options = new Options();
+    
     this.programTokenizer = new SymbolTokenizer(sourceCode + " "); // TODO: Das Whitespace am Ende macht vieles einfacher!
     variables = new HashMap<>();
 
     variableList = new ArrayList<>();
 
     assemblerCodeList = new ArrayList<>();
-    this.verboseLevel = 0;
 
     this.includePaths = new ArrayList<>();
     this.runAddress = false;
+    countOfAsserts=0;
+    this.filename = "";
+    nowinc = 0;
   }
 
+  public void setOptions(Options options) {
+    this.options = options;
+  }
+  
   /**
    * Der Name des zu erstellenden Programs kommt aus der 1. Zeile PROGRAM <name>
    *
@@ -157,24 +166,37 @@ public class Source implements Enumeration<Symbol> {
   }
 
   public int getVerboseLevel() {
-    return verboseLevel;
+    return options.getVerboseLevel();
   }
-
-  public Source setVerboseLevel(int verboseLevel) {
-    this.verboseLevel = verboseLevel;
+  public Source setVerboseLevel(int level) {
+    this.options.setVerboseLevel(level);
     return this;
   }
-
+  
   public boolean isSelfModifiedCode() {
-    return selfModifiedCode;
+    return options.isSelfModifiedCode();
   }
 
   public void setSelfModifiedCode(boolean selfModifiedCode) {
-    this.selfModifiedCode = selfModifiedCode;
+    this.options.setSelfModifiedCode(selfModifiedCode);
   }
 
+  public boolean isStarChainMult() {
+    return options.isStarChainMult();
+  }
 
+  public void setStarChainMult(boolean starChainMult) {
+    this.options.setStarChainMult(starChainMult);
+  }
 
+  public boolean isShiftMultDiv() {
+    return options.isShiftMultDiv();
+  }
+  
+  public void setShiftMultDiv(boolean shiftMultDiv) {
+    this.options.setShiftMultDiv(shiftMultDiv);
+  }
+  
 //
 //                                                   OO        OOO                               OOOOOO                   OO
 //                                                   OO         OO                              OO    OO                  OO
@@ -207,6 +229,35 @@ public class Source implements Enumeration<Symbol> {
     }
   }
 
+//  private int heapPtrCheck = 0;
+  
+  public void sub_from_heap_ptr(int count) {
+    code(" SEC"); //              ;2
+    code(" LDA @HEAP_PTR"); //    ;3
+    code(" SBC #"+count);   // %1 ;2
+    code(" STA @HEAP_PTR"); //    ;3
+    if (!options.isSmallAddSubHeapPtr()) {
+      code(" BCS *+4");       // das geht nur, weil HEAP_PTR in der Zero Page ist
+//    code(" BCS ?NO_DEC_HIGH_HEAP_PTR"); // ;3 ; => 13 Takte statt 30 mit jsr
+      code(" DEC @HEAP_PTR+1"); //  ;5
+//    code("?NO_DEC_HIGH_HEAP_PTR");
+    }
+  }
+  
+  public void add_to_heap_ptr(int count) {
+    code(" CLC"); //              ;2 (Takte)
+    code(" LDA @HEAP_PTR"); //    ;3
+    code(" ADC #" + count); //    ;2
+    code(" STA @HEAP_PTR"); //    ;3
+    if (!options.isSmallAddSubHeapPtr()) {
+      code(" BCC *+4");
+//    code(" BCC NO_INC_HIGH_HEAP_PTR"); // ;3 ; => 13 Takte statt 24 mit jsr
+      code(" INC @HEAP_PTR+1"); //  ;5
+//    code("NO_INC_HIGH_HEAP_PTR");
+    }
+  }
+
+
   public List<String> getCode() {
     return assemblerCodeList;
   }
@@ -223,11 +274,18 @@ public class Source implements Enumeration<Symbol> {
     this.showCode = showCode;
   }
 
-  public void showCodeLine() {
-    code(";#1 ");
-    final String codeLine = programTokenizer.getCodeLine();
-    code(";#1 " + codeLine);
-    code(";#1 ");
+  public void showSourceCodeLine() {
+    code(";");
+    final int lineNumber = programTokenizer.getLineNumber();
+    final String sourceCodeLine = programTokenizer.getCodeLine();
+    StringBuilder codelineBuffer = new StringBuilder();
+    codelineBuffer.append("; ");
+    codelineBuffer.append('[');
+    codelineBuffer.append(lineNumber);
+    codelineBuffer.append("]  ");
+    codelineBuffer.append(sourceCodeLine);    
+    code(codelineBuffer.toString());
+    code(";");
   }
 
   public void show() {
@@ -289,9 +347,10 @@ public class Source implements Enumeration<Symbol> {
     final Symbol nextSymbol = programTokenizer.handleShowCode(showCode).nextElement();
 
     if (showSourceCode) {
-      code(";");
-      code("; " + programTokenizer.getSourceCodeLine());
-      code(";");
+      showSourceCodeLine();
+      // code(";");
+      // code("; " + programTokenizer.getSourceCodeLine());
+      // code(";");
       showCode = false;
     }
     return nextSymbol;
@@ -335,34 +394,49 @@ public class Source implements Enumeration<Symbol> {
       if (name.startsWith("@") && type == Type.FUNCTION) {
         return;
       }
-      if (type == Type.STRING) {
+      if (type == Type.STRING_ANONYM) {
         return;
       }
       error(new Symbol(name, SymbolEnum.noSymbol), "variable already defined");
     }
-    final VariableDefinition newVariable = new VariableDefinition(name, type, countArray);
+    final VariableDefinition newVariable = new VariableDefinition(name, type, countArray, filename);
     variables.put(name, newVariable);
     variableList.add(name);
 
 //    if (name.endsWith("_LENGTH")) return;
 //
     if (isArrayType(type)) {
-      final String nameWithLength = name + "_LENGTH";
-      final VariableDefinition newConstVariable = new VariableDefinition(nameWithLength, Type.CONST, 0);
-      variables.put(nameWithLength, newConstVariable);
-      variableList.add(nameWithLength);
-      setVariableAddress(nameWithLength, String.valueOf(countArray));
+      if (! StringHelper.isSingleQuotedString(name)) {
+        final String nameWithLength = name + "_LENGTH";
+        final VariableDefinition newConstVariable = new VariableDefinition(nameWithLength, Type.CONST, 0, filename);
+        variables.put(nameWithLength, newConstVariable);
+        variableList.add(nameWithLength);
+        setVariableAddress(nameWithLength, String.valueOf(countArray));
+      }
     }
   }
+
+  // Helperfunction to add Variables out of header file
+  // reset prefix by given from INCLUDE Header
+  public void addVariableResetPrefix(VariableDefinition variableDefinition) {
+    variableDefinition.resetNameWithPrefix(getPrefix());
+    variableDefinition.setGenerated(false);
+    final String newName = variableDefinition.getName();
+    if (variables.containsKey(newName)) {
+      error(new Symbol(newName, SymbolEnum.noSymbol), "variable already defined in file:" + variableDefinition.getFilename());
+    }
+    LOGGER.info("set variable {} from header.", newName);
+    variables.put(newName, variableDefinition);
+    variableList.add(newName);
+  }
   
-  private boolean isArrayType(Type type) {
-    if (type.equals(Type.BYTE_ARRAY) ||
+  public boolean isArrayType(Type type) {
+    return (type.equals(Type.BYTE_ARRAY) ||
+        type.equals(Type.STRING) ||
         type.equals(Type.FAT_BYTE_ARRAY) ||
         type.equals(Type.FAT_WORD_ARRAY) ||
         type.equals(Type.WORD_ARRAY) ||
-        type.equals(Type.WORD_SPLIT_ARRAY))
-      return true;
-    return false;
+        type.equals(Type.WORD_SPLIT_ARRAY));
   }
   /**
    * liefert true, falls die Variable schon existiert
@@ -400,7 +474,7 @@ public class Source implements Enumeration<Symbol> {
     if (variables.containsKey(name)) {
       return variables.get(name);
     }
-    return new VariableDefinition("", Type.UNKNOWN);
+    return new VariableDefinition("", Type.UNKNOWN, filename);
   }
 
   /**
@@ -458,7 +532,7 @@ public class Source implements Enumeration<Symbol> {
    */
   public String getVariableAt(int position) {
     String variableName = variableList.get(position);
-    if (getVariable(variableName).getType() == Type.STRING) {
+    if (getVariable(variableName).getType() == Type.STRING_ANONYM) {
       return "?STRING" + String.valueOf(position);
     }
     return variableName;
@@ -505,7 +579,7 @@ public class Source implements Enumeration<Symbol> {
       VariableDefinition definition = getVariable(name);
       generateVariable(definition);
 
-      if (getVariableType(name) != Type.STRING) {
+      if (getVariableType(name) != Type.STRING_ANONYM) {
         if (!definition.hasAnyAccess()) {
           warn("Variable: '{}' is not used.", name);
         }
@@ -532,6 +606,10 @@ public class Source implements Enumeration<Symbol> {
       if (address != null) {
         if (!address.equals("@")) {
           code(name + " = " + address);
+          if (definition.getType() == Type.WORD_SPLIT_ARRAY) {
+            code(name + "_LOW = " + definition.getAddress() + "_LOW");
+            code(name + "_HIGH = " + definition.getAddress() + "_HIGH");            
+          }
         }
         definition.setGenerated(true);
       }
@@ -566,6 +644,7 @@ public class Source implements Enumeration<Symbol> {
 
     case FAT_BYTE_ARRAY:
     case BYTE_ARRAY:
+    case STRING:
       generateByteArray(name, definition);
       break;
 
@@ -587,7 +666,7 @@ public class Source implements Enumeration<Symbol> {
     case WORD_SPLIT_ARRAY:
       generateWordSplitArray(name, definition);
       break;
-    case STRING:
+    case STRING_ANONYM:
       String stringName = "?STRING" + getVariablePosition(name);
       code(stringName);
       code(" .BYTE " + StringHelper.makeDoubleQuotedString(name) + "," + STRING_END_MARK);
@@ -601,7 +680,8 @@ public class Source implements Enumeration<Symbol> {
 
   private void generateWordArray(String name, VariableDefinition definition) {
     if (definition.getAddress() != null) {
-      code(name + " = " + definition.getAddress());
+      // code(name + " = " + definition.getAddress());
+      error(new Symbol(name, SymbolEnum.noSymbol), "there is a definition problem with array: " + name + ".");
     }
     else if (!definition.getArrayContent().isEmpty()) {
       code(name);
@@ -622,8 +702,7 @@ public class Source implements Enumeration<Symbol> {
 
   private void generateWordSplitArray(String name, VariableDefinition definition) {
     if (definition.getAddress() != null) {
-      // code(name + " = " + definition.getAddress());
-      // TODO: This is not supported!
+      code(name + " = " + definition.getAddress());
     }
     else if (!definition.getArrayContent().isEmpty()) {
       code(name); // we will also generate a variable without '_low' and '_high'
@@ -631,7 +710,11 @@ public class Source implements Enumeration<Symbol> {
       ByteListGenerator generatorlow = new ByteListGenerator(this) {
         @Override
         public String getElement(int index) {
-          return "<"+definition.getArrayElement(index);
+          String element = definition.getArrayElement(index);
+          if (StringHelper.isSingleQuotedString(element)) {
+            element = "?STRING" + getVariablePosition(element); 
+          }
+          return "<" + element;
         }
       };
       generatorlow.generateCode(definition.getArrayContent().size());
@@ -640,7 +723,11 @@ public class Source implements Enumeration<Symbol> {
       ByteListGenerator generatorhigh = new ByteListGenerator(this) {
         @Override
         public String getElement(int index) {
-          return ">"+definition.getArrayElement(index);
+          String element = definition.getArrayElement(index);
+          if (StringHelper.isSingleQuotedString(element)) {
+            element = "?STRING" + getVariablePosition(element); 
+          }
+          return ">" + element;
         }
       };
       generatorhigh.generateCode(definition.getArrayContent().size());
@@ -653,7 +740,7 @@ public class Source implements Enumeration<Symbol> {
       code(" *=*+" + definition.getSizeOfArray());
     }
   }
-
+  
   private void generateByteArray(String name, VariableDefinition definition) {
     if (definition.getAddress() != null) {
       code(name + " = " + definition.getAddress());
@@ -680,6 +767,19 @@ public class Source implements Enumeration<Symbol> {
     if (variables.containsKey(name)) {
       VariableDefinition definition = variables.get(name);
       definition.setArray(arrayValues);
+      
+      if (definition.getType() == Type.STRING) {
+        if (arrayValues.size() != 2) {
+          error(new Symbol(name, SymbolEnum.noSymbol), "byte array " + name + " must contain more than one element");
+        }
+      }
+      // wirkliche Anzahl der Elemente in neuer Variable ablegen
+      final String nameWithLength = name + "_ELEMENTS";
+
+      final VariableDefinition newConstVariable = new VariableDefinition(nameWithLength, Type.CONST, 0, filename);
+      variables.put(nameWithLength, newConstVariable);
+      variableList.add(nameWithLength);
+      setVariableAddress(nameWithLength, String.valueOf(arrayValues.size()));
     }
   }
 
@@ -727,13 +827,21 @@ public class Source implements Enumeration<Symbol> {
 
   public void throwIfVariableAlreadyDefined(String name) {
     if (hasVariable(name)) {
-      error(new Symbol(name, SymbolEnum.noSymbol), "variable " + name + " is already defined");
+      VariableDefinition definition = getVariable(name);
+      String filename = definition.getFilename();
+      error(new Symbol(name, SymbolEnum.noSymbol), "variable " + name + " is already defined in file:"+filename);
     }
   }
 
   public void throwIfNotArrayType(Type type) {
-    if (type == Type.BYTE || type == Type.WORD) {
+    if (!isArrayType(type)) {
       error(Symbol.noSymbol(), "variable must from type array");
+    }
+  }
+
+  public void throwIfArrayType(Type type) {
+    if (isArrayType(type)) {
+      error(Symbol.noSymbol(), "variable must NOT from type array, Maybe prefix 'ADR:' forgotten?");
     }
   }
 

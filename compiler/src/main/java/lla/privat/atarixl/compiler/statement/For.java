@@ -31,6 +31,16 @@ public class For extends Code {
 
   private int step;
 
+  private String variable;
+  private Type typ;
+
+  private int condi;
+  
+  private String forloop;
+  private String exitVariable;
+  
+  private Expression expressionAfterToOrDownto;
+  
   public For(Source source) {
     super(source);
 
@@ -56,17 +66,26 @@ public class For extends Code {
    * @param symbol
    * @return
    */
+  
   public For statement(Symbol symbol) {
     source.match(symbol, "FOR");
 
+    //
+    // FOR variable := <Expression> (to|downto) <Expression> (STEP <Expression>) DO
+    //     ^^^^^^^^^^^^^^^^^^^^^^^^
+    
     Symbol variableSymbol = source.nextElement();
 
-    String variable = variableSymbol.get();
+    variable = variableSymbol.get();
     source.throwIfVariableUndefined(variable);
 
-    Type typ = source.getVariableType(variable);
+    typ = source.getVariableType(variable);
 
     Symbol toOrDownto = new Assignment(source).assign(variableSymbol).build();
+
+    //
+    // FOR variable := <Expression> (to|downto) <Expression> (STEP <Expression>) DO
+    //                              ^^^^^^^^^^^
 
     if (toOrDownto.get().equals("TO")) {
       nextSymbol = source.nextElement();
@@ -80,26 +99,124 @@ public class For extends Code {
       source.error(toOrDownto, "TO or DOWNTO expected");
     }
 
-    nextSymbol = new Expression(source).setType(typ).expression(nextSymbol).build();
+    source.incrementLoopCount();
+    condi = source.getLoopCount();
+    
+    //
+    // FOR variable := <Expression> (to|downto) <Expression> (STEP <Expression>) DO
+    //                                          ^^^^^^^^^^^^  
+    
+    expressionAfterToOrDownto = new Expression(source).setType(typ).expression(nextSymbol);
+    nextSymbol = expressionAfterToOrDownto.getLastSymbol();
+    
+    //
+    // FOR variable := <Expression> (to|downto) <Expression> (STEP <Expression>) DO
+    //                                                       ^^^^^^^^^^^^^^^^^^^
+    
+    if (nextSymbol.get().equals("STEP")) {
+      nextSymbol = source.nextElement();
+
+      Expression stepExpression = new Expression(source).setType(typ).expression(nextSymbol);
+      nextSymbol = stepExpression.build();
+      
+      code(" sty ?FORSTEP" + condi);
+      if (stepExpression.getType().getBytes() == 2) {
+        code(" stx ?FORSTEP" + condi + "+1");
+      }
+      source.addVariable("?FORSTEP" + condi, typ);
+      source.getVariable("?FORSTEP" + condi).setRead();
+
+      // Wir wissen nicht, wie groß der step ist, somit kann
+      // es zu seltsamen Problemen fuehren.
+      step = step * 2;
+      forloop = "?forloop_afterstep" + condi;
+    }
+    else {
+      forloop = "?forloop" + condi;
+    }
+    
+    //
+    // FOR variable := <Expression> (to|downto) <Expression> (STEP <Expression>) DO
+    //                                                                           ^^
+    
     source.match(nextSymbol, "DO");
 
-    source.incrementLoopCount();
-    int condi = source.getLoopCount();
+    nextSymbol = expressionAfterToOrDownto(variableSymbol);
+    
+    nextSymbol = source.nextElement();
+    nextSymbol = new Statement(source).statement(nextSymbol).build();
 
+    // Pruefen, ob Ende erreicht wurde hier ausgebaut, wir nutzen das am Anfang
+    
+    if (step == 1) {
+      code(" INC " + variable);
+      if (typ.getBytes() == 2) {
+        code(" BNE ?LOOP" + condi);
+        code(" INC " + variable + "+1");
+        code("?LOOP" + condi);
+      }
+    }
+    else if (step > 1) {
+      code(" CLC");
+      code(" LDA " + variable);
+      code(" ADC ?FORSTEP" + condi);
+      code(" STA " + variable);
+      if (typ.getBytes() == 2) {
+        code(" LDA " + variable + "+1");
+        code(" ADC ?FORSTEP" + condi + "+1");
+        code(" STA " + variable + "+1");
+      }
+    }
+    else if (step == -1 ) {
+      if (typ.getBytes() == 2) {
+        code(" LDA " + variable);
+        code(" BNE ?LOOP" + condi);
+        code(" DEC " + variable + "+1");
+        code("?LOOP" + condi);
+      }
+      code(" DEC " + variable);
+    }
+    else {
+      code(" SEC");
+      code(" LDA " + variable);
+      code(" SBC ?FORSTEP" + condi);
+      code(" STA " + variable);
+      if (typ.getBytes() == 2) {
+        code(" LDA " + variable + "+1");
+        code(" SBC ?FORSTEP" + condi + "+1");
+        code(" STA " + variable + "+1");
+      }
+    }
+    code(" JMP " + forloop);
+
+    code(exitVariable);
+    source.clearBreakVariable();
+
+    return this;
+  }
+
+
+  
+  private Symbol expressionAfterToOrDownto(Symbol variableSymbol) {
+
+    Symbol nextSymbol = expressionAfterToOrDownto.build();
+    
     // Zuweisung an y,x variable
     code(" sty ?for" + condi);
-    if (typ == Type.WORD) { // signed
+    if (typ.getBytes() == 2) { // signed
       //
       // TODO: here we should decide unsigned or signed
       // HERE
       //
-      if (source.getTypeOfLastExpression().getBytes() == 1) {
+      if (expressionAfterToOrDownto.getType().getBytes() == 1) {
         code(" ldx #0");
       }
       code(" stx ?for" + condi + "+1");
     }
 
-    if (step == 1) {
+    code(forloop);
+
+    if (step >= 1) {
       // ?for > variable --> ?go
       if (typ == Type.BYTE) {
         code(" ldy ?for" + condi);
@@ -133,17 +250,6 @@ public class For extends Code {
       else {
         source.error(variableSymbol, "Variable type not supported");
       }
-// // ?for > variable --> ?go (unsigned)
-//      code(" ldy ?for" + condi);
-//      code(" cpy " + variable);
-//      if (typ == Type.BYTE) {
-//        code(" bcs ?go" + condi);
-//      }
-//      else {
-//        code(" lda ?for" + condi + "+1");
-//        code(" sbc " + variable + "+1");
-//        code(" bcs ?go" + condi);
-//      }
     }
     else {
       // step == -1
@@ -177,71 +283,19 @@ public class For extends Code {
         code(" bpl ?go" + condi);
       }
 
-// // ?for < variable --> ?go (unsigned)
-//      code(" ldy " + variable);
-//      code(" cpy ?for" + condi);
-//      if (typ == Type.BYTE) {
-//        code(" bcs ?go" + condi);
-//      }
-//      else {
-//        code(" lda " + variable + "+1");
-//        code(" sbc ?for" + condi + "+1");
-//        code(" bcs ?go" + condi);
-//      }
     }
-    final String exitVariable = "?exit" + condi;
+    
+    exitVariable = "?exit" + condi;
     code(" jmp "+exitVariable);
     source.addBreakVariable(exitVariable);
     source.addVariable("?FOR" + condi, typ);
     source.getVariable("?FOR" + condi).setRead();
     code("?go" + condi);
 
-    nextSymbol = source.nextElement();
-    nextSymbol = new Statement(source).statement(nextSymbol).build();
-
-    if (typ == Type.WORD) {
-      code(" lda " + variable + "+1");
-      code(" cmp ?for" + condi + "+1");
-      code(" bne ?next" + condi);
-    }
-    if (step == 1) {
-      code(" lda " + variable);
-      code(" cmp ?for" + condi);
-    }
-    else {
-      code(" LDA ?FOR" + condi);
-      code(" CMP " + variable);
-    }
-    code(" BCS ?EXIT" + condi);
-    if (typ == Type.WORD) {
-      code("?NEXT" + condi);
-    }
-//    REM  ? #KAN;"; Richtung der Schleife ";STEP
-    if (step == 1) {
-      code(" INC " + variable);
-      if (typ == Type.WORD) {
-        code(" BNE ?LOOP" + condi);
-        code(" INC " + variable + "+1");
-        code("?LOOP" + condi);
-      }
-    }
-    else {
-      if (typ == Type.WORD) {
-        code(" LDA " + variable);
-        code(" BNE ?LOOP" + condi);
-        code(" DEC " + variable + "+1");
-        code("?LOOP" + condi);
-      }
-      code(" DEC " + variable);
-    }
-    code(" JMP ?GO" + condi);
-//    REM  ? #KAN;"; For ende"
-    code(exitVariable);
-    source.clearBreakVariable();
-
-    return this;
+    return nextSymbol;
   }
-
+  
+  
   public Symbol build() {
     return nextSymbol;
   }

@@ -3,12 +3,6 @@
 
 package lla.privat.atarixl.compiler;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import lla.privat.atarixl.compiler.expression.Type;
 import lla.privat.atarixl.compiler.linker.FileHelper;
+import lla.privat.atarixl.compiler.linker.IncludeGenerator;
+import lla.privat.atarixl.compiler.linker.Includes;
 import lla.privat.atarixl.compiler.source.Code;
 import lla.privat.atarixl.compiler.source.Source;
 import lla.privat.atarixl.compiler.source.StringHelper;
@@ -38,10 +34,10 @@ public class Block extends Code {
     fileHelper = new FileHelper(this.source.getIncludePaths());
   }
 
-  public Block start() {
+  public Block start(Header header) {
     Symbol currentSymbol = source.nextElement();
 
-    Symbol nextSymbol = new Program(source).program(currentSymbol).build();
+    nextSymbol = new Program(source).program(currentSymbol).build();
 
     code(";Compiled with WiNiFe Compiler");
     code(";cdw by 'The Atari Team' 1990-2021");
@@ -50,9 +46,9 @@ public class Block extends Code {
     if (!source.isProgram()) {
       code(" .local");
     }
-
-    code(" .OPT LIST");
-    code(" .TITLE " + StringHelper.makeDoubleQuotedString(source.getProgramOrIncludeName()));
+  
+//    code(" .OPT LIST");
+//    code(" .TITLE " + StringHelper.makeDoubleQuotedString(source.getProgramOrIncludeName()));
     if (source.isProgram()) {
       code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("VARIABLE.INC")));
       code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("HARDWARE.INC")));
@@ -66,6 +62,16 @@ public class Block extends Code {
 
       code(" JMP @MAIN");
       code(" JMP @BASIC_MAIN");
+    }
+
+    if (header != null) {
+      code(";Header Variables");
+
+      for (String name :header.getVariableList()) {
+        VariableDefinition definition = header.getVariable(name);
+        source.addVariableResetPrefix(definition);
+      }
+      source.generateAllNotAlreadyGeneratedEquatesVariables();
     }
 
     nextSymbol = procedures(nextSymbol);
@@ -85,7 +91,8 @@ public class Block extends Code {
       code(" JMP @EXIT");
       source.generateVariables();
 
-      includes(nextSymbol);
+      nextSymbol = new Includes(source, fileHelper).readAllIncludes(nextSymbol).build();
+      
       if (source.isRunAd()) {
         code(" .bank");
         code(" .set 6,0");
@@ -125,115 +132,6 @@ public class Block extends Code {
       }
     }
     return nextSymbol;
-  }
-
-  // TODO: könnte man automatisieren, dann werden unnoetige includes
-  // weggelassen/automatisch hinzugefügt (Linker)
-  private void includes(Symbol symbol) {
-    boolean isIncludes = true;
-    int count = 0;
-    while (isIncludes) {
-      String mnemonic = symbol.get();
-      if (mnemonic.equals("INCLUDE")) {
-        Symbol filename = source.nextElement(); // filename
-        final String filenameWithoutQuotes = StringHelper.removeQuotes(filename.get());
-        final String absFilename = fileHelper.findInPaths(filenameWithoutQuotes);
-        code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(absFilename));
-        ++count;
-        symbol = source.nextElement();
-      }
-      else {
-        isIncludes = false;
-      }
-    }
-    if (count == 0) {
-       List<String> includes = createIncludeList(source.getIncludePaths(), getFunctions());
-       for (String include : includes) {
-         code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(include));
-       }
-    }
-    // runtime hier anhaengen!
-    code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("RUNTIME.INC")));
-  }
-
-  /**
-   * getFunctions return a list of all function start with '@'
-   * @return
-   */
-  private List<String> getFunctions() {
-    List<String> allFunctions = new ArrayList<>();
-    for (String name :source.getAllVariables()) {
-      if (name.startsWith("@")) {
-        VariableDefinition definition = source.getVariable(name);
-        if (definition.getType().equals(Type.FUNCTION)) {
-          allFunctions.add(name);
-        }
-      }
-    }
-    return allFunctions;
-  }
-
-  private FileFilter includeFilefilter = new FileFilter() {
-    // Override accept method
-    public boolean accept(File file) {
-
-      // if the file extension is .log return true, else false
-      if (file.getName().endsWith(".INC")) {
-        return true;
-      }
-      return false;
-    }
-  };
-
-  public List<String> createIncludeList(List<String> includes, List<String> functions) {
-    List<String> includeList = new ArrayList<>();
-    if (includes == null) {
-      return includeList;
-    }
-
-    for (String pathName : includes) {
-      File directory = new File(pathName);
-      File[] files = directory.listFiles(includeFilefilter);
-      for (File file : files) {
-        if (fileContainsFunction(file, functions)) {
-          includeList.add(file.getAbsolutePath());
-        }
-      }
-    }
-    return includeList;
-  }
-
-  private boolean fileContainsFunction(File file, List<String> functions) {
-    try {
-      List<String> lines = readLines(file);
-      for (String function : functions) {
-        for (String line : lines) {
-          String value = line;
-          if (value.startsWith(function) && function.startsWith(value)) {
-            return true;
-          }
-        }
-      }
-    }
-    catch (IOException e) {
-      // LOGGER.error("can't read file: {}", file.getAbsoluteFile());
-    }
-    return false;
-  }
-
-  private List<String> readLines(File file) throws IOException {
-    List<String> lines = new ArrayList<>();
-    FileInputStream fstream = new FileInputStream(file);
-    BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-
-    String strLine;
-
-    while ((strLine = br.readLine()) != null) {
-      lines.add(strLine);
-    }
-
-    fstream.close();
-    return lines;
   }
 
   public int code(final String sourcecodeline) {

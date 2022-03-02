@@ -67,7 +67,8 @@ public class Assignment extends Code {
           wishedType = Type.WORD;
         }
         if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY ||
-            source.getVariableType(name) == Type.BYTE_ARRAY) {
+            source.getVariableType(name) == Type.BYTE_ARRAY ||
+            source.getVariableType(name) == Type.STRING) {
           wishedType = Type.BYTE;
         }
         // TODO we should not support signed here!
@@ -79,7 +80,8 @@ public class Assignment extends Code {
         if (source.getTypeOfLastExpression() != Type.WORD && source.getTypeOfLastExpression() != Type.BYTE) {
           source.error(arrayAccess, "The array pointer must be WORD or BYTE only. Please convert before.");
         }
-        if (source.getVariableType(name) == Type.BYTE_ARRAY) {
+        if (source.getVariableType(name) == Type.BYTE_ARRAY ||
+            source.getVariableType(name) == Type.STRING) {
           code(" sty @putarray");
         }
         else if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY) {
@@ -133,7 +135,8 @@ public class Assignment extends Code {
             code(" stx " + name + "+1");
           }
         }
-        else if (source.getVariableType(name) == Type.BYTE_ARRAY) {
+        else if (source.getVariableType(name) == Type.BYTE_ARRAY ||
+                 source.getVariableType(name) == Type.STRING) {
           code(" tya");
           code(" ldx @putarray");
           code(" sta " + name + ",x");

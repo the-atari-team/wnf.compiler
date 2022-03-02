@@ -827,4 +827,13 @@ public class TestExpression {
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }  
 
+  @Test(expected = IllegalStateException.class)
+  public void testExpressionCAllFunctionWithOtherThanByteOrWord() {
+    Source source = new Source("@F(adr:BA, BA)");
+    source.addVariable("@F", Type.FUNCTION);
+    source.addVariable("BA", Type.BYTE_ARRAY);
+
+    setupWordExpression(source);
+  }
+
 }

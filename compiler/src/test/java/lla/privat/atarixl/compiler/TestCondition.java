@@ -265,6 +265,45 @@ public class TestCondition {
   }
 
   @Test
+  public void testEqualsWithSplitWordArray() {
+    Source source = new Source("fat[i] != $ffff").setVerboseLevel(2);
+    Symbol symbol = source.nextElement();
+    source.addVariable("FAT", Type.WORD_SPLIT_ARRAY);
+    source.addVariable("I", Type.INT8);
+
+    Symbol nextSymbol = new Condition(source, "?TRUE").condition(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    List<String> code = source.getCode();
+    int n=-1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY I", code.get(++n));
+    Assert.assertEquals(" CPY #$80", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(" BCC *+4", code.get(++n));
+    Assert.assertEquals(" LDX #$FF", code.get(++n));
+    Assert.assertEquals("; (11.2)", code.get(++n));
+    Assert.assertEquals(" LDX FAT_HIGH,Y", code.get(++n));
+    Assert.assertEquals(" LDA FAT_LOW,Y", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" STY @ERG", code.get(++n));
+    Assert.assertEquals(" STX @ERG+1", code.get(++n));
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<65535", code.get(++n));
+    Assert.assertEquals(" LDX #>65535", code.get(++n));
+    Assert.assertEquals("; Bedingung (a!=b)", code.get(++n));
+    Assert.assertEquals(" CPY @ERG", code.get(++n));
+    Assert.assertEquals(" BNE ?TR1", code.get(++n));
+    Assert.assertEquals(" CPX @ERG+1", code.get(++n));
+    Assert.assertEquals(" BEQ ?FA1", code.get(++n));
+    Assert.assertEquals("?TR1", code.get(++n));
+    Assert.assertEquals(" JMP ?TRUE", code.get(++n));
+    Assert.assertEquals("?FA1", code.get(++n));
+  }
+
+  @Test
   public void testEqualsVariableAndConst() {
     Source source = new Source("x & up == up").setVerboseLevel(2);
     Symbol symbol = source.nextElement();

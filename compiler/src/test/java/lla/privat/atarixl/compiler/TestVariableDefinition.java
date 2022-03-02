@@ -22,7 +22,7 @@ public class TestVariableDefinition {
 
   @Test
   public void testArtOfUsage() {
-    variableDefinitionSUT = new VariableDefinition("NAME", Type.BYTE);
+    variableDefinitionSUT = new VariableDefinition("NAME", Type.BYTE, "testCase:testArtOfUsage");
 
     Assert.assertFalse(variableDefinitionSUT.hasAnyAccess());
     Assert.assertFalse(variableDefinitionSUT.hasAllAccess());
@@ -41,12 +41,13 @@ public class TestVariableDefinition {
 
   @Test
   public void testSizeOfArray() {
-    variableDefinitionSUT = new VariableDefinition("NAME", Type.BYTE_ARRAY, 42);
+    variableDefinitionSUT = new VariableDefinition("NAME", Type.BYTE_ARRAY, 42,"testCase:testSizeOfArray");
 
     Assert.assertEquals(42, variableDefinitionSUT.getSizeOfArray());
 
     List<String> arrayContent = Arrays.asList("Hallo");
     variableDefinitionSUT.setArray(arrayContent);
     Assert.assertEquals(1, variableDefinitionSUT.getSizeOfArray());
+    Assert.assertEquals("testCase:testSizeOfArray", variableDefinitionSUT.getFilename());
   }
 }

@@ -28,14 +28,14 @@ PROGRAM besagt, es wird ein Program mit Main() Funktion erstellt.
 Hier funktioniert LOMEM und INCLUDE am Ende.
 Suffix wird nicht unterstützt.
 
-INCLUDE besagt, es werden nur Proceduren zu Assembler umgesetzt,
+INCLUDE besagt, es werden nur Proceduren zu Assembler übersetzt,
 LOMEM ist nicht erlaubt,
-INCLUDEs am Ende sind nicht erlaubt.
+INCLUDEs am Ende sind auch nicht erlaubt.
 Es gibt keine Main() Funktion.
-Das Ergebnis ist eine per ".include" einbindbare INC Datei,
-die in ein PROGRAM file eingebunden werden kann.
+Das Ergebnis ist eine per "include" einbindbare INC-Datei,
+die in ein PROGRAM-File eingebunden werden kann.
 Alle Variablen werden mit 'suffix' versehen, es sei denn,
-die Variable startet mit '@'.
+die Variable/Funktion oder Procedure startet mit '@'.
 So kann man globale Funktionen/Proceduren definieren,
 die von außen aufgerufen werden können.
 
@@ -50,13 +50,13 @@ erstellte Programm von Basic gestartet werden:
 Vorsicht, der Wert schwankt leicht.
 Ist halt ein grober Anhaltspunkt.
 
-* Parameterübergabe von Basic erfolgt über ein Array.
+Parameterübergabe von Atari-Basic erfolgt über ein Array.
 Ein `word array args[1] = @parameter`
 irgendwo vor der Hauptroutine, gibt den Zugriff frei.
 Dann kann in der Hauptroutine über args[0..n]
 auf die Parameter zugegriffen werden.
 Es findet keine Prüfung statt, ob die Parameter existiert. +
-**Wichtig:** Da die Basic-Parameter auf dem Heap abgelegt werden, sollten diese zur Nutzung als erstes kopiert werden.
+**Wichtig:** Da die Atari-Basic-Parameter auf dem Heap abgelegt werden, sollten diese zur richtigen Nutzung als erstes in eigene Variablen kopiert werden.
 
 
 `BLOCK`:: Das gesamte Programm besteht aus exakt einem Block.
@@ -67,9 +67,9 @@ Fertig: Mehr kann der Compiler nicht, total einfach.
 Ok, spalten wir das ganze etwas auf:
 
 Am Anfang werden immer 3 Dateien includiert: +
-- VARIABLE.INC (enthält viele Atari Variablen) +
+- VARIABLE.INC (enthält viele Atari-Variablen) +
 - HARDWARE.INC (fast alle Hardware-Adressen) +
-- MACROS.INC (ein paar Macros) +
+- MACROS.INC (ein paar interne Macros) +
 da Macros und wichtige Variablen vom Assembler
 als erstes bekannt sein müssen.
 
@@ -86,7 +86,7 @@ wie @PRINT_STRING, @DECOUT, ...
 Ganz am Ende wird immer eine RUNTIME.INC mit includiert.
 Diese wird nicht explizit mit angegeben.
 Da es die letzte Datei sein muss. Setzt der Compiler das hier selbst.
-Da drin ist der Code für die rudimentäre Initialisierung.
+In der RUNTIME.INC ist der Code für die rudimentäre Initialisierung.
 Als letzes ist dort der Heap-Pointer untergebracht.
 
 === Block
@@ -121,6 +121,7 @@ Damit kann man dann hier später die Farbe vom Playfield 2 ändern,
 also auf einem 8-bit Atari die blaue Farbe von Graphics 0.
 
 `byte RAMTOP=@`:: weist einer Variable einen Speicherort zu. Hier RAMTOP (106). Diese Variable ist schon in der Datei VARIABLE.INC oder der Datei HARDWARE.INC definiert. Der Compiler kennt die Atari Variablen per default nicht. In den beiden genannten Dateien sind aber schon viele Adressen zugewiesen, allerdings nicht alle.
+* TODO: In INCLUDE-Dateien funktioniert diese Art von Zuweisung aktuell nicht.
 
 `word name [,name2]*`::   Eine Integer Variable mit 2 Bytes, durch Komma getrennt sind weitere Variablen möglich.
 
@@ -138,9 +139,9 @@ sind aktuell nur eindimensionale Arrays möglich.
 Der Einfachheit halber wird die Anzahl nicht geprüft.
 
 `byte array name[anzahl bytes]`:: Ein Byte Array mit einer gewissen Anzahl
-an Werten, ist die Anzahl < 256, wird einfach der Indirekte Zugriff
+an Werten, ist die Anzahl < 256, wird einfach der indirekte Zugriff
 mit dem Y-Register verwendet.
-Mit STA (name),Y damit kann man sehr schnell auf den Speicher zugreifen.
+Mit STA name,Y damit kann man sehr schnell auf den Speicher zugreifen.
 Bei Anzahl > 255 wird es als FAT_BYTE_ARRAY gehandhabt, der Zugriff erfolgt
 über ein Macro und ist etwas langsamer weil
 die Position im Speicher erst berechnet werden muss.
@@ -154,7 +155,7 @@ Wenn man sich in Graphics 0 befindet und peek(106)=192 ist, dann liegt hier
 die Displaylist und man kann darauf zugreifen und diese manipulieren.
 Leider gibt es aktuell keine einfache Möglichkeit diesen Wert aus DPEEK(560) indirekt auszulesen.
 
-TODO: Werte indirekt zugreifbar machen.
+* TODO: Werte indirekt zugreifbar machen.
 
 `byte array direct[10]=[ 0,2,4,6,8,10,12,14,16,18 ]`::
 Legt 10 Byte Werte direkt im Speicher ab.
@@ -179,9 +180,9 @@ Das ganze auch für word Werte (2 Byte)
 Damit die word arrays auch etwas schneller arbeiten,
 gibt es sog. Splitt-Arrays.
 Dabei wird das word array in low byte und high byte aufgespalten.
-Hier also intern in byte array bigw_low und byte array bigw_high,
+Hier werden also intern ein byte array bigw_low und ein byte array bigw_high,
 also eigentlich 2 byte arrays angelegt.
-Der Zugriff erfolgt wie beim byte Array recht flott.
+Der Zugriff erfolgt wie beim byte Array über den Index recht flott.
 Man muss nur selbst dafür Sorge tragen den Index < 256 zu lassen.
 
 Braucht man mal größere word arrays,
@@ -193,6 +194,13 @@ den Index-Zugriff verwenden.
 Damit man doch weiß, wie groß ein Array nun ist, erstellt
 der Compiler zusätzlich eine Konstante mit dem Namen des Arrays+'_LENGTH'.
 Also hier eine Konstante `bigw_length`
+
+`word array bigw[@split] = @variable`::
+Eine Zuweisung einer externen Variablen (@variable) an ein internes Splitt-Array.
+Normalerweise ist das so nicht erlaubt, aber durch den Zusatz @split in der Array definition
+kann es erzwungen werden. Dabei ist darauf zu achten, das die @variable_low und @variable_high
+im Assembler Source definiert sein müssen. Sonst meckert der Assembler.
+
 
 Liste von Strings::
 ```
@@ -206,7 +214,7 @@ word array list[1] = [eins, zwei]
 Zwei Strings, die in einer Liste abgelegt sind.
 Über list[0] kommt man an den ersten String ('eins') heran.
 So sind Listen von Strings möglich.
-Ein Feature, das es in Basic nicht gibt.
+Ein Feature, das es in Atari-Basic nicht gibt.
 Hier kann auf den Adressenprefix "adr:" verzichtet werden.
 adr:eins, adr:zwei geht trotzdem und wird überlesen,
 ist nur mehr Tipparbeit.
@@ -288,7 +296,7 @@ Die Schleife wird min. einmal durchlaufen.
 Zwischen `repeat` und `until` können beliebig viele Statements angegeben
 werden.
 
-`for var := EXPRESSION (to|downto) EXPRESSION do STATEMENT`::
+`for var := EXPRESSION (to|downto) EXPRESSION (STEP EXPRESSION) do STATEMENT`::
 
 `for` startet eine Zählschleife, die eine Variable mit einem Startwert
 initialisiert und das Statement solange wiederholt,
@@ -298,15 +306,18 @@ und bei `downto` um 1 runtergezählt.
 Eine For-Schleife `for i:=0 to 3 do Statement` hat 4 Durchläufe.
 
 Man kann die Variable im Statement anpassen, das sollte man aber lassen.
-Möchte man unterschiedliche Steps simulieren,
-sollte auf `while` oder `repeat` ausgewichen werden.
+Möchte man unterschiedliche Steps simulieren, kann STEP genutzt werden.
 
-`assert(CONDITION, FEHLER-STRING)`::
+Hinweis: Da Byte-Variablen recht klein sind, ein Byte nimmt Werte von 0 bis 255 auf, funktioniert die for-Schleife nur von 0 bis 254 richtig. Bei einer Schleife von 0 bis 255 funktioniert die interne Prüfung nicht mehr und man hat eine Endlos-Schleife. Word-Variablen funktionieren von -32768 bis 32766, da ein Word vorzeichenbehaftet definiert ist.
+
+`assert(CONDITION, FEHLER-STRING)`:: **Deprecated:**
 Ist ein fest eingebautes Test-Statement.
 Es wird die übergebene Condition geprüft und bei false
 eine interne Zählvariable hochgezählt und der String
 auf dem Editor-Fenster (E:) ausgegeben.
 `@getAsserts()` liefert die Anzahl der internen Zählvariable.
+
+Mit `include 'ASSERT.INC'` und den Funktionen @assertEquals(...) oder @assertThat(...) gibt es besseren Ersatz.
 
 `VARIABLE(GET_PARAMETER*)`::
 * Ist die Variable vom Type 'P' erfolgt ein `PROCEDURE_CALL`.
@@ -341,7 +352,7 @@ nicht geprüft.
 Greift man über den definierten Arraybereich, den man angegeben hat,
 hinaus auf das Array zu, liefert es ggf. die nächste Variable. Oder
 irgend welchen Code... Es ist halt nur eine 6502-CPU! MMU? Das kommt
-erst später bei modereren Prozessoren.
+erst später bei moderneren Prozessoren.
 
 `begin STATEMENT * end`::
 Mit `begin` startet ein Block-Container in dem
@@ -377,6 +388,12 @@ oder
 `x := @open(1,4,0,'D:TESTFILE')` Da wir Strings in Expressions haben, ist das hier erlaubt.
 
 
+`@(funcname)(parameter)`::
+Function Pointer Call. Ein Procedure Call oder Function Call wird hier
+indirekt über die Variable funcname ausgeführt. Das muss der WORD Variablen funcname einfach
+die Adresse der Funktion/Procedure übergeben werden.
+
+
 === EXPRESSION
 
 Eine `EXPRESSION`  ist ein beliebiger mathematischer Ausdruck z.B. `2+2*2` das ergibt 6, weil hier
@@ -385,7 +402,9 @@ Word, damit ist die Berechnung von _großen_ Zahlen einfacher.
 
 Wir prüfen zuerst, ob es sich um einen String handelt und geben dann
 die Adresse des Strings zurück.
-Damit kann man überall wo Expressions erlaubt sind auch Strings einsetzen.
+Damit kann man überall wo Expressions erlaubt sind auch Strings einsetzen. Nur Rechnen mit
+Strings ist nicht moeglich. 'aa'+'bb' ist falsch. 'a'+'b' ist 97+98 (195) weil Strings der
+Länge 1 als Zahl aus den ASCII-Zeichen interpretiert werden. Deshalb gibt es keine 1 Byte langen Strings.
 
 Intern wird der mathematische Ausdruck in eine UPN Notation umgesetzt.
 Dabei findet am Ende noch eine Optimierung statt,
@@ -394,18 +413,28 @@ Bei einer bestimmten Konstellation wird statt adc ein inc verwendet.
 
 * Multiplikation, Division und Modulo sind als Funktionen extern definiert, bei Verwendung
 muss die Datei MATH_MUL.INC und oder MATH_DIV.INC includiert werden.
-Eine funktionierende Optimierung ist die Möglichkeit über Shift.
+
+Eine für positive Werte funktionierende Optimierung ist die Möglichkeit über Shift.
 Dazu muss der rechts stehende Faktor oder Quotient diese Werte (2,4,8,16,32,64,128,(256), 512,...)
 enthalten.
 Der Sonderfall hier ist 256. Bei der Multiplikation mit 256 wird einfach das untere Byte zum oberen Byte.
 Bei der Division mit 256 wird einfach der obere Byte zum unteren Byte.
 
+Neu ist jetzt für Multiplikationen das der rechts stehende Faktor,
+per Star-Chain in shift/(add|sub) umgewandelt werden kann.
+Gefunden in Dr.Dobbs No.12
+Dadurch werden fast alle Multiplikationen mit festen Werten nochmals beschleunigt.
+
 * HINWEIS: Die IMULT/IDIV Routinen arbeiten mit negativen Werten richtig, aber Shift nicht.
 
-Für die schnellere Multiplikation gibt es die Datei VERYFASTMATH_MUL.INC, darin wird die 8bit Multiplikation mittelx ((x+y)^2)/4 - ((x-y)^2)/4 durchgeführt nebst großer Tabelle. Als Tipp, verzichtet einfach auf Dultiplikationen/Divisionen und nutzt vorberechnete Tabellen.
+Für die schnellere Multiplikation gibt es die Datei VERYFASTMATH_MUL.INC,
+darin wird die 8bit Multiplikation mittelx ((x+y)^2)/4 - ((x-y)^2)/4 durchgeführt
+nebst großer Tabelle.
 
-Einfache Zahlen (`number`) werden immer als type word interpretiert, sonst
-funktionieren evtl. mult und div nicht richtig.
+Als Tipp:: Verzichtet auf Multiplikationen/Divisionen und nutzt vorberechnete Tabellen.
+
+// Einfache Zahlen (`number`) werden immer als type word interpretiert, sonst
+// funktionieren evtl. mult und div nicht richtig.
 
 
 ==== Expression in BNF
@@ -420,7 +449,7 @@ Wie die Expressions in BNF aktuell aussieht:
  variable-name ::= [a-zA-Z@][a-zA-Z0-9_@]*
  function-call ::= variable-name
  get_parameter ::= (nil | expression (',' expression)* )
- String ::= '\'' * '\''
+ String ::= '\'' .* '\''
  short-string ::= '\'' one-char '\''
  one-char ::= ?
  number ::= ( '%' binary | '#' quad | '$' hexadecimal | [0-9.]+ )
@@ -428,6 +457,8 @@ Wie die Expressions in BNF aktuell aussieht:
  quad ::= [0-3.]{4}
  hexadecimal ::= [0-9A-F.]+
 
+
+* HINWEIS: Ein String besteht aus mindestens 2 Zeichen, sonst wird es als ASCII Zahl interpretiert.
 
 === CONDITION
 
@@ -522,7 +553,8 @@ Atari-Objekt-File übersetzt werden muss.
 === Fehlerhafter Code
 Durch sehr viele Tests wurde sichergestellt,
 das der erstellte Code _meistens_ läuft,
-es wurde auch ein Spiel damit erstellt, um die Richtigkeit zu beweisen.
+es wurden auch schon Spiele damit erstellt, um die Richtigkeit zu beweisen.
+Auch ein Editor für Fonts wurde damit erstellt.
 
 === Nicht optimaler Code
 Der erstellte Assembler-Source-Code ist alles andere als optimal.
@@ -544,7 +576,7 @@ Funktionen können innerhalb von Expressions genutzt werden.
 * Es gibt eine eigene Routine zur Ausgabe von Daten, Zahlen und Strings und Characters.
 `@printf('Zahl:%d, String:%s, Char:%c\n', zahl, string, char)` macht das mal in Assembler...
 * Zusätzlich existiert eine sehr schnelle Version `@printff(...)`.
-Die direkt in eine festgelegte Adresse die Daten schreibt.
+Die direkt in eine vorher festgelegte Adresse die Daten schreibt.
 * Eine kleine Grafikbibliothek die Linien und Kreis zeichnen kann.
 Unterschiedlich schnelle Line Algorithmen.
 * Unterschiedliche Multiplikations-Algorithmen
@@ -606,18 +638,20 @@ Diese leere Procedure benötigt exakt 1 Byte. (RTS only)
  end
 ```
 
-Summe: 38 Bytes
+Wenn der HEAP_PTR nur 256 Bytes groß ist dann:
+
+Summe: 32 Bytes
 
 Diese leere Procedure bekommt einen Parameter übergeben und erzeugt:
 
 * 11 Bytes, um den Parameter einByte in den Heap zu sichern und den Wert aus
 dem Parameter zu holen.
-* 11 Bytes, um den Heap anzupassen
-* 11 Bytes, um den Heap am Ende zu restaurieren
+* 7 Bytes, um den Heap anzupassen
+* 7 Bytes, um den Heap am Ende zu restaurieren
 * 6 Bytes, um den Parameter wieder herzustellen
 * 1 Byte, das RTS
 
-Jeder Byte-Parameter verlängert eine Procedure um 17 Bytes.
+Jeder Byte-Parameter vergrößert eine Procedure um 17 Bytes.
 
 ```
  procedure oneWord(einWord)
@@ -625,17 +659,17 @@ Jeder Byte-Parameter verlängert eine Procedure um 17 Bytes.
  end
 ```
 
-Summe 55 Bytes
+Summe 47 Bytes
 
 Diese leere Procedure bekommt einen Parameter übergeben und erzeugt:
 
 * 21 Bytes, um den Parameter einWord in den Heap zu sichern und den Wert aus dem Parameter zu holen.
-* 11 Bytes, um den Heap anzupassen
-* 11 Bytes, um den Heap am Ende zu restaurieren
+* 7 Bytes, um den Heap anzupassen
+* 7 Bytes, um den Heap am Ende zu restaurieren
 * 11 Bytes, um den Parameter wieder herzustellen
 * 1 Byte, das RTS
 
-Jeder Word-Parameter verlängert eine Procedure um 32 Bytes.
+Jeder Word-Parameter vergrößert eine Procedure um 32 Bytes.
 
 ```
  procedure twoWords(einWord, zweitesWord)
@@ -643,17 +677,32 @@ Jeder Word-Parameter verlängert eine Procedure um 32 Bytes.
  end
 ```
 
-Summe 87
+Summe 79 Bytes
 
-Diese leere Procedure bekommt einen Parameter übergeben und erzeugt:
+Diese leere Procedure bekommt zwei Parameter übergeben und erzeugt:
 
 * 21 Bytes, um den Parameter einWord in den Heap zu sichern und den Wert aus dem Parameter zu holen.
 * 21 Bytes, um den Parameter zweitesWord in den Heap zu sichern und den Wert aus dem Parameter zu holen.
-* 11 Bytes, um den Heap anzupassen
-* 11 Bytes, um den Heap am Ende zu restaurieren
+* 7 Bytes, um den Heap anzupassen
+* 7 Bytes, um den Heap am Ende zu restaurieren
 * 11 Bytes, um den Parameter zweitesWord wieder herzustellen
 * 11 Bytes, um den Parameter einWord wieder herzustellen
 * 1 Byte, das RTS
 
-Jede Procedure mit Parametern kostet min. 22 Bytes, nur um den Heap-Ptr anzupassen, das
+Jede Procedure mit Parametern kostet min. 14 Bytes, nur um den Heap-Ptr anzupassen, das
 passiert inline, was etliche Takte (>24) für JSR/RTS spart.
+
+```
+ byte colbk=53274
+ begin
+   colbk:=$34
+ end
+```
+
+Wird übersetzt zu:
+```
+ LDA #$34
+ STA 53274
+```
+Das geht in Assembler nicht besser.
+

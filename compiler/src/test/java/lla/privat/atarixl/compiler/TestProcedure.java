@@ -27,7 +27,7 @@ public class TestProcedure {
 
     int n = -1;
     Assert.assertEquals(";", code.get(++n));
-    Assert.assertEquals("; procedure name() begin end", code.get(++n));
+    Assert.assertEquals("; [1]  procedure name() begin end", code.get(++n));
     Assert.assertEquals(";", code.get(++n));
 
     Assert.assertEquals("NAME", code.get(++n));
@@ -54,7 +54,7 @@ public class TestProcedure {
 
     int n = -1;
     Assert.assertEquals(";", code.get(++n));
-    Assert.assertEquals("; procedure name(one) begin end", code.get(++n));
+    Assert.assertEquals("; [1]  procedure name(one) begin end", code.get(++n));
     Assert.assertEquals(";", code.get(++n));
 
     Assert.assertEquals("NAME", code.get(++n));
@@ -66,13 +66,25 @@ public class TestProcedure {
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
 
-    Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
+//    Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" ADC #3", code.get(++n));
+    Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" BCC *+4", code.get(++n));
+    Assert.assertEquals(" INC @HEAP_PTR+1", code.get(++n));
 
     Assert.assertEquals("; procedure body", code.get(++n));
     Assert.assertEquals("; procedure end", code.get(++n));
 
     Assert.assertEquals("?RETURN1", code.get(++n));
-    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
+//    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" SBC #3", code.get(++n));
+    Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" BCS *+4", code.get(++n));
+    Assert.assertEquals(" DEC @HEAP_PTR+1", code.get(++n));
 
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
@@ -98,7 +110,7 @@ public class TestProcedure {
 
     int n = -1;
     Assert.assertEquals(";", code.get(++n));
-    Assert.assertEquals("; procedure name(one, two) begin end", code.get(++n));
+    Assert.assertEquals("; [1]  procedure name(one, two) begin end", code.get(++n));
     Assert.assertEquals(";", code.get(++n));
 
     Assert.assertEquals("NAME", code.get(++n));
@@ -123,13 +135,25 @@ public class TestProcedure {
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
 
-    Assert.assertEquals(" ADD_TO_HEAP_PTR 5", code.get(++n));
+//    Assert.assertEquals(" ADD_TO_HEAP_PTR 5", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" ADC #5", code.get(++n));
+    Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" BCC *+4", code.get(++n));
+    Assert.assertEquals(" INC @HEAP_PTR+1", code.get(++n));
 
     Assert.assertEquals("; procedure body", code.get(++n));
     Assert.assertEquals("; procedure end", code.get(++n));
 
     Assert.assertEquals("?RETURN1", code.get(++n));
-    Assert.assertEquals(" SUB_FROM_HEAP_PTR 5", code.get(++n));
+//    Assert.assertEquals(" SUB_FROM_HEAP_PTR 5", code.get(++n));
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" SBC #5", code.get(++n));
+    Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" BCS *+4", code.get(++n));
+    Assert.assertEquals(" DEC @HEAP_PTR+1", code.get(++n));
 
     Assert.assertEquals(" LDY #3", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
@@ -162,7 +186,7 @@ public class TestProcedure {
 
     int n = -1;
     Assert.assertEquals(";", code.get(++n));
-    Assert.assertEquals("; procedure name(one) local b begin end", code.get(++n));
+    Assert.assertEquals("; [1]  procedure name(one) local b begin end", code.get(++n));
     Assert.assertEquals(";", code.get(++n));
 
     Assert.assertEquals("NAME", code.get(++n));
@@ -174,7 +198,13 @@ public class TestProcedure {
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
 
-    Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
+//    Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" ADC #3", code.get(++n));
+    Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" BCC *+4", code.get(++n));
+    Assert.assertEquals(" INC @HEAP_PTR+1", code.get(++n));
 
     Assert.assertEquals(" LDA B", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
@@ -183,13 +213,25 @@ public class TestProcedure {
     Assert.assertEquals(" LDA B+1", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
 
-    Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
+//    Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" ADC #3", code.get(++n));
+    Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" BCC *+4", code.get(++n));
+    Assert.assertEquals(" INC @HEAP_PTR+1", code.get(++n));
 
     Assert.assertEquals("; procedure body", code.get(++n));
     Assert.assertEquals("; procedure end", code.get(++n));
 
     Assert.assertEquals("?RETURN1", code.get(++n));
-    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
+//    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" SBC #3", code.get(++n));
+    Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" BCS *+4", code.get(++n));
+    Assert.assertEquals(" DEC @HEAP_PTR+1", code.get(++n));
 
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
@@ -198,7 +240,13 @@ public class TestProcedure {
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals(" STA B+1", code.get(++n));
 
-    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
+//    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" SBC #3", code.get(++n));
+    Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" BCS *+4", code.get(++n));
+    Assert.assertEquals(" DEC @HEAP_PTR+1", code.get(++n));
 
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));

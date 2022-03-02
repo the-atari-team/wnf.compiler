@@ -3,11 +3,9 @@
 
 package lla.privat.atarixl.compiler;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import lla.privat.atarixl.compiler.source.Source;
@@ -16,26 +14,18 @@ public class TestBlock {
 
   private Block blockSUT;
 
-  private List<String> includes;
-
-  @Before
-  public void setUp() {
-    Source source = new Source("PROGRAM name");
-    blockSUT = new Block(source);
-    includes = new ArrayList<>();
-  }
-
   @Test
-  public void testPaths() {
+  public void testSimplestBlock() {
 
-    List<String> functions = new ArrayList<>();
-    functions.add("@LONG");
+    Source source = new Source("PROGRAM name begin end"); // no real code
+    blockSUT = new Block(source);
 
-    includes.add("src/test/resources/lla/privat/atarixl/compiler/inc1");
-//    includes.add("src/test/resources/lla/privat/atarixl/compiler/inc2");
+    Symbol build = blockSUT.start(null).build();
+    
+    Assert.assertEquals("", build.get());
 
-    List<String> includeList = blockSUT.createIncludeList(includes, functions);
-    Assert.assertEquals(1, includeList.size());
+    List<String> codelines = source.getCode();
+    Assert.assertEquals(17, codelines.size());
   }
 
 }

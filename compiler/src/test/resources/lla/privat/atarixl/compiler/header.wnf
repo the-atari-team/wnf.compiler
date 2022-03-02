@@ -1,0 +1,3 @@
+// This is a header file only for variables and constants
+
+const HEADER_VARIABLE = 123 // every normal wnf file should know HEADER_VARIABLE now

@@ -6,7 +6,6 @@ package lla.privat.atarixl.compiler.expression;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import lla.privat.atarixl.compiler.Symbol;
@@ -76,6 +75,8 @@ public class ITPCodeToAssemblerMostlyArray {
   @Test
   public void testExpressionMitVariableByteArray() {
     Source source = new Source("m[4]*16 ");
+    source.setStarChainMult(true);
+
     source.addVariable("M", Type.BYTE_ARRAY);
 
     List<Integer> p_code = getPCodeOf(source);
@@ -143,7 +144,7 @@ public class ITPCodeToAssemblerMostlyArray {
     Assert.assertEquals(" JSR @IMULT", code.get(++n));   // * 2
   }
 
-  @Ignore("TODO: function calls not ready yet!")
+//  @Ignore("TODO: function calls not ready yet!")
   @Test
   public void testExpressionFunctionCalls() {
     Source source = new Source("f(x(2), y(3)) ");
@@ -163,33 +164,61 @@ public class ITPCodeToAssemblerMostlyArray {
     Assert.assertEquals("; (5)", code.get(++n));
     Assert.assertEquals(" LDY #<2", code.get(++n));
     Assert.assertEquals(" LDX #>2", code.get(++n));
-    Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" INY", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
-    Assert.assertEquals(" JSR X", code.get(++n));
+    Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals(" JSR X_I", code.get(++n));
+    Assert.assertEquals("; (16)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" LDY #1", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals("; (17)", code.get(++n));   
+//    Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" ADC #3", code.get(++n));
+    Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" BCC *+4", code.get(++n));
+    Assert.assertEquals(" INC @HEAP_PTR+1", code.get(++n));
+    
     Assert.assertEquals("; (5)", code.get(++n));
     Assert.assertEquals(" LDY #<3", code.get(++n));
     Assert.assertEquals(" LDX #>3", code.get(++n));
-    Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" INY", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
-    Assert.assertEquals(" JSR Y", code.get(++n));
     Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals(" JSR Y_I", code.get(++n));
+    Assert.assertEquals("; (18)", code.get(++n));
+//    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));   
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" SBC #3", code.get(++n));
+    Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" BCS *+4", code.get(++n));
+    Assert.assertEquals(" DEC @HEAP_PTR+1", code.get(++n));
+
+    Assert.assertEquals("; (16)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" LDY #1", code.get(++n));
+    Assert.assertEquals(" LDY #3", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" INY", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
-    Assert.assertEquals(" JSR F", code.get(++n));
+    Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals(" JSR F_II", code.get(++n));
 
   }
   

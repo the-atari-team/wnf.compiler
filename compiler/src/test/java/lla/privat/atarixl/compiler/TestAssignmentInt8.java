@@ -10,6 +10,17 @@ import lla.privat.atarixl.compiler.expression.Type;
 import lla.privat.atarixl.compiler.source.Source;
 
 public class TestAssignmentInt8 {
+
+//
+//  OO              OO    OOOOOO
+//                  OO   OO    OO
+// OOO  OOOOOOOO  OOOOOO OO    OO
+//  OO  OO     OO   OO    OOOOOO
+//  OO  OO     OO   OO   OO    OO
+//  OO  OO     OO   OO   OO    OO
+// OOOO OO     OO    OOO  OOOOOO
+//
+
   @Test
   public void testAssignmentXisByte_1() {
     Source source = new Source("x:=1").setVerboseLevel(2);

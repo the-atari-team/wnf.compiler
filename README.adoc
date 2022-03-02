@@ -76,8 +76,11 @@ Which takes a look into the generated assembler source and replace some construc
 
 -I path:: path where to search for include files.
 The current path is default.
+The -I parameter can give more than once
 
 -o path:: the output path, where to copy the generated ASM/INC files.
+
+-noscm:: Deactivate the shift/(add|sub) and use @IMULT function all the time.
 
 FILE:: give one source file. Currently it is not possible to
 give more than one file.

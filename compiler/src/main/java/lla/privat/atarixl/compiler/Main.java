@@ -34,33 +34,30 @@ public class Main {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
-  private final int verboseLevel;
-
   private String filename;
 
   private String filepath;
 
   private Source source;
 
-  private final int optimisationLevel;
+  private Source headerSource;
+  
   private int countOfUsedOptimisations;
 
   private String outputPath;
 
   private List<String> includePaths;
 
-  private boolean selfModifiedCode = false;
-
+  private final Options options;
+  
   protected Main() {
-    optimisationLevel = 0;
-    verboseLevel = 0;
+    options = new Options();
     outputPath = null;
   }
 
   public Main(Source source) {
     this.source = source;
-    optimisationLevel = 0;
-    verboseLevel = 0;
+    options = new Options();
     outputPath = null;
   }
 
@@ -69,15 +66,15 @@ public class Main {
   }
 
   public Main(String filename, int optimize, int verboseLevel) {
-    this(filename, optimize, verboseLevel, null, false);
+    this(filename, optimize, verboseLevel, null, false, true, true, false, true);
   }
 
-  public Main(String filename, int optimize, int verboseLevel, String outputPath, boolean selfModifiedCode) {
+  public Main(String filename, int optimize, int verboseLevel, String outputPath,
+      boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
+      boolean smallAddSubHeapPtr, boolean importHeader) {
     this.filename = filename;
-    this.optimisationLevel = optimize;
-    this.verboseLevel = verboseLevel;
+    this.options = new Options(optimize, verboseLevel, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader);
     this.outputPath = outputPath;
-    this.selfModifiedCode = selfModifiedCode;
   }
 
   public Main setOutputPath(String outputPath) {
@@ -96,9 +93,17 @@ public class Main {
     LOGGER.info(" -I path                     - include path to search for includes, can given more than once.");
     LOGGER.info(" -o path                     - set output path, where the ASM file is stored.");
     LOGGER.info(" -smc                        - if given, allow self modified code (smc). (Experimental)");
+    LOGGER.info(" -noscm                      - if given, fix-value Multiplications in Expressions will not");
+    LOGGER.info("                               convert to shift/(add|sub) but call to external @IMULT func.");
+    LOGGER.info(" -noshift                    - if given, mult/div with 2-complement will not use.");
+    LOGGER.info("                               Function calls to @IMULT/@IDIV will use instead.");
+    LOGGER.info(" -smallHeapPtr               - if given, Heap Ptr is only 256 bytes big, be careful!");
+    LOGGER.info(" -noHeader                   - if given, header.wnf will not import if file exists!");    
+    LOGGER.info("");
     LOGGER.info(" -h | --help                 - display this help and exit.");
   }
 
+  
   public static void main(final String[] args) throws IOException {
     if (args.length < 1) {
       LOGGER.error("No parameter given");
@@ -109,6 +114,11 @@ public class Main {
     int optimisationLevel = 0;
     int verboseLevel = 0;
     boolean selfModifiedCode = false;
+    boolean starChainMult = true;
+    boolean shiftMultDiv = true;
+    boolean smallAddSubHeapPtr = false;
+    boolean importHeader = true;
+    
     String outputpath = "";
     List<String> includePaths = new ArrayList<>();
 
@@ -129,9 +139,26 @@ public class Main {
         outputpath = args[index + 1];
         ++index;
       }
-      else if (parameter.equals("-smc")) {
+      else if (parameter.equalsIgnoreCase("-smc")) {
         LOGGER.warn("SMC Parameter given, use self modified code. Expect the unexpected!");
         selfModifiedCode = true;
+      }
+      else if (parameter.equalsIgnoreCase("-noscm")) {
+        LOGGER.warn("no StarChainMult Parameter given, will not use shift/add for mult!");
+        starChainMult = false;
+      }
+      else if (parameter.equalsIgnoreCase("-noshift")) {
+        LOGGER.warn("no Shift Parameter given, will not use shift for mult/div 2-complement!");
+        shiftMultDiv = false;
+      }
+      else if (parameter.equalsIgnoreCase("-smallHeapPtr")) {
+        LOGGER.warn("Parameter for small HeapPtr given, use only byte size!");
+        LOGGER.warn("Make sure your Heap_Ptr starts at equal word address! See RUNTIME.INC");
+        smallAddSubHeapPtr = true;
+      }
+      else if (parameter.equalsIgnoreCase("-noheader")) {
+        LOGGER.warn("Parameter for no header given, do not import header.wnf if exists!");
+        importHeader = false;
       }
       else if (parameter.equals("-I")) {
         String additionalIncludePath = args[index + 1];
@@ -171,7 +198,7 @@ public class Main {
         basename = new File(file.getAbsolutePath()).getParent();
         outputpath = basename;
       }
-      final Main main = new Main(filename, optimisationLevel, verboseLevel, outputpath, selfModifiedCode);
+      final Main main = new Main(filename, optimisationLevel, verboseLevel, outputpath, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader);
       main.setIncludePath(includePaths);
       if (!basename.isEmpty()) {
         main.addIncludePath(basename);
@@ -195,20 +222,42 @@ public class Main {
 
     File file = new File(this.filename);
     if (!file.exists()) {
-      throw new FileNotFoundException("ERROR: Given file does not exist.");
+      throw new FileNotFoundException("ERROR: Given file '"+filename+"' does not exist.");
     }
-
+    
+    String headerfilename;
+    if (file.getParent() != null) {
+      headerfilename = file.getParent() + "/header.wnf"; 
+    }
+    else {
+      headerfilename = "header.wnf";
+    }
+     
+    LOGGER.info("Check header: {}", headerfilename);
+    String wnfHeaderCode = null;
+    File headerfile = new File(headerfilename);
+    if (headerfile.exists()) {
+      if (!options.isImportHeader()) {
+        LOGGER.info("Found header file, but will ingnored due to parameter");      
+      }
+      else {
+        LOGGER.info("Found header file, read it before");
+        wnfHeaderCode = new SourceReader(headerfilename).readFile();
+        this.headerSource = new Source(wnfHeaderCode);
+        this.headerSource.setFilename("header.wnf");
+      }
+    }
+    
     String wnfProgramCode = new SourceReader(this.filename).readFile();
     this.source = new Source(wnfProgramCode);
-    this.source.setFilename(this.filename);
-    this.source.setVerboseLevel(verboseLevel);
+    this.source.setFilename(file.getName());
+    this.source.setOptions(options);
     if (includePaths != null) {
       this.source.setIncludePaths(includePaths);
     }
     if (outputPath == null) {
       this.outputPath = this.filename;
     }
-    this.source.setSelfModifiedCode(selfModifiedCode);
     return this;
   }
 
@@ -228,7 +277,7 @@ public class Main {
 
     compile();
 
-    optimize(optimisationLevel);
+    optimize(options.getOptimisationLevel());
 
     write();
   }
@@ -249,9 +298,14 @@ public class Main {
 
     LOGGER.info("compile");
 
+    Header header = null;
+    if (headerSource != null) {
+      header = new Header(headerSource).load();
+    }
+    
     // Block
 
-    new Block(source).start().build();
+    new Block(source).start(header).build();
 
     if (source.hasMoreElements()) {
       error(source, "Expect no more elements.");
@@ -310,5 +364,9 @@ public class Main {
   public Main addIncludePath(String includePath) {
     this.includePaths.add(includePath);
     return this;
+  }
+  
+  public Source getSource() {
+    return source;
   }
 }

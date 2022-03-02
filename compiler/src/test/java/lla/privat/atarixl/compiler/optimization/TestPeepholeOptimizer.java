@@ -124,6 +124,48 @@ public class TestPeepholeOptimizer {
   }
 
   @Test
+  public void testLdyTaxTya() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY");
+    list.add(" TAX");
+    list.add(" TYA");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(3, source.getCode().size());
+
+    List<String> code = source.getCode();
+    int n = -1;
+    Assert.assertEquals(" TAX", code.get(++n));
+    Assert.assertEquals(" LDA ; (6.1)", code.get(++n));
+    Assert.assertEquals(" ...", code.get(++n));
+  }
+
+  @Test
+  public void testLdxnTaxTxa() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDX");
+    list.add(" STY");
+    list.add(" TXA");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(3, source.getCode().size());
+
+    List<String> code = source.getCode();
+    int n = -1;
+    Assert.assertEquals(" STY", code.get(++n));
+    Assert.assertEquals(" LDA ; (6.2)", code.get(++n));
+    Assert.assertEquals(" ...", code.get(++n));
+  }
+
+  @Test
   public void testLdyTya() {
     List<String> list = new ArrayList<>();
     list.add(" LDY");
@@ -320,6 +362,14 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(5, source.getCode().size());
+    List<String> code = source.getCode();
+    int n=-1;
+    
+    Assert.assertEquals(" LDY B", code.get(++n));
+    Assert.assertEquals(" LDA B+1 ; (8)", code.get(++n));
+    Assert.assertEquals(" CPY A ; (8)", code.get(++n));
+    Assert.assertEquals(" SBC A+1 ; (8)", code.get(++n));
+    Assert.assertEquals(" ...", code.get(++n));
   }
 
   @Test
@@ -828,5 +878,34 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(3, source.getCode().size());
   }
 
+  @Test
+  public void test_ldx_ldx() {
+    List<String> list = new ArrayList<>();
+    list.add(" TYA");
+    list.add(" LDX A");
+    list.add(" LDX A");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(3, source.getCode().size());
+  }
+  
+  @Test
+  public void test_bcc_ldx_ldx() {
+    List<String> list = new ArrayList<>();
+    list.add(" BCC *+4");
+    list.add(" LDX #$ff");
+    list.add(" LDX A");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(0, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(4, source.getCode().size());
+  }
 
 }

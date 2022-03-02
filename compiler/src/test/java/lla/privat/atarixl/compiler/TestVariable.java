@@ -11,6 +11,18 @@ import lla.privat.atarixl.compiler.source.Source;
 
 public class TestVariable {
 
+//
+// OO                    OO
+// OO                    OO
+// OOOOOOOO  OO     OO OOOOOO  OOOOOOO
+// OO     OO OO     OO   OO   OO     OO
+// OO     OO OO     OO   OO   OOOOOOOOO
+// OO     OO  OOOOOOOO   OO   OO
+// OOOOOOOO         OO    OOO  OOOOOOO
+//           OOOOOOOO
+//
+// byte is a single unsigned byte or 8 bit
+
   @Test
   public void testVariableByteDefinition() {
     Source source = new Source("byte x");
@@ -21,19 +33,6 @@ public class TestVariable {
     Assert.assertTrue(source.hasVariable("X"));
     Assert.assertFalse(source.getVariableType("X").isSigned());
 
-    Assert.assertEquals("", nextSymbol.get());
-    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
-  }
-
-  @Test
-  public void testVariableInt8Definition() {
-    Source source = new Source("int8 x");
-    Symbol symbol = source.nextElement();
-
-    Symbol nextSymbol = new Variable(source).variable(symbol).build();
-
-    Assert.assertTrue(source.hasVariable("X"));
-    Assert.assertTrue(source.getVariableType("X").isSigned());
     Assert.assertEquals("", nextSymbol.get());
     Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
   }
@@ -53,18 +52,6 @@ public class TestVariable {
   }
 
   @Test
-  public void testVariableByteWithUnknownAddress() {
-    Source source = new Source("byte x=@");
-    Symbol symbol = source.nextElement();
-
-    Symbol nextSymbol = new Variable(source).variable(symbol).build();
-    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
-
-    Assert.assertTrue(source.hasVariable("X"));
-    Assert.assertEquals("@", source.getVariableAddress("X"));
-  }
-
-  @Test
   public void testVariableByteWithAddress() {
     Source source = new Source("byte x=710");
     Symbol symbol = source.nextElement();
@@ -77,6 +64,53 @@ public class TestVariable {
   }
 
   @Test
+  public void testVariableByteWithUnknownAddress() {
+    Source source = new Source("byte x=@");
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("X"));
+    Assert.assertEquals("@", source.getVariableAddress("X"));
+  }
+
+//
+//  OO              OO    OOOOOO
+//                  OO   OO    OO
+// OOO  OOOOOOOO  OOOOOO OO    OO
+//  OO  OO     OO   OO    OOOOOO
+//  OO  OO     OO   OO   OO    OO
+//  OO  OO     OO   OO   OO    OO
+// OOOO OO     OO    OOO  OOOOOO
+//
+// int8 is a single signed byte or 8 bit
+
+  @Test
+  public void testVariableInt8Definition() {
+    Source source = new Source("int8 x");
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+
+    Assert.assertTrue(source.hasVariable("X"));
+    Assert.assertTrue(source.getVariableType("X").isSigned());
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+  }
+
+//
+// OO                    OO
+// OO                    OO
+// OOOOOOOO  OO     OO OOOOOO  OOOOOOO           OOOOOOOO OOOOOOOO  OOOOOOOO   OOOOOOOO OO     OO
+// OO     OO OO     OO   OO   OO     OO         OO     OO OO     OO OO     OO OO     OO OO     OO
+// OO     OO OO     OO   OO   OOOOOOOOO         OO     OO OO        OO        OO     OO OO     OO
+// OO     OO  OOOOOOOO   OO   OO                OO     OO OO        OO        OO     OO  OOOOOOOO
+// OOOOOOOO         OO    OOO  OOOOOOO           OOOOOOOO OO        OO         OOOOOOOO        OO
+//           OOOOOOOO                                                                   OOOOOOOO
+//
+// byte array is a list of bytes
+  @Test
   public void testVariableByteArrayWithEmptyArray() {
     Source source = new Source("byte array x[2]");
     Symbol symbol = source.nextElement();
@@ -87,22 +121,6 @@ public class TestVariable {
     Assert.assertTrue(source.hasVariable("X"));
     Assert.assertEquals(2, source.getVariableArraySize("X"));
     Assert.assertTrue(source.hasVariable("X_LENGTH"));
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testVariableInt8ArrayWithEmptyArray() {
-    Source source = new Source("int8 array x[2]");
-    Symbol symbol = source.nextElement();
-
-    /* Symbol nextSymbol = */ new Variable(source).variable(symbol).build();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testVariableUInt16ArrayWithEmptyArray() {
-    Source source = new Source("uint16 array x[2]");
-    Symbol symbol = source.nextElement();
-
-    /* Symbol nextSymbol = */ new Variable(source).variable(symbol).build();
   }
 
   @Test
@@ -146,7 +164,7 @@ public class TestVariable {
 
   @Test
   public void testVariableAssignmentByteArray() {
-    Source source = new Source(" byte array x[2] = [1,2,3,$af,%...11...,-1, variable]");
+    Source source = new Source("byte array x[2] = [1,2,3,$af,%...11...,-1, variable]");
     source.addVariable("VARIABLE", Type.BYTE);
 
     Symbol symbol = source.nextElement();
@@ -163,7 +181,7 @@ public class TestVariable {
 
   @Test
   public void testVariableAssignmentFatByteArray() {
-    Source source = new Source(" byte array x[257] = [1,2]");
+    Source source = new Source("byte array x[257] = [1,2]");
 
     Symbol symbol = source.nextElement();
 
@@ -178,9 +196,30 @@ public class TestVariable {
     Assert.assertEquals(2, source.getVariableArraySize("X"));
   }
 
+  @Test(expected = IllegalStateException.class)
+  public void testByteArrayWrongCount() {
+    Source source = new Source("byte array a[] = ['Hallo', 'Welt']");
+
+    Symbol symbol = source.nextElement();
+
+    /*Symbol nextSymbol =*/ new Variable(source).variable(symbol).build();
+  }
+
+//
+//             OO              OO
+//             OO
+//  OOOOOOO  OOOOOO OOOOOOOO  OOO  OOOOOOOO   OOOOOOOO
+// OO          OO   OO     OO  OO  OO     OO OO     OO
+//  OOOOOOO    OO   OO         OO  OO     OO OO     OO
+//        OO   OO   OO         OO  OO     OO  OOOOOOOO
+//  OOOOOOO     OOO OO        OOOO OO     OO        OO
+//                                           OOOOOOOO
+//
+// string is like byte array is a list of bytes with a defined end of $ff
+
   @Test
   public void testVariableAssignmentString() {
-    Source source = new Source(" string hallo = ['Hallo']");
+    Source source = new Source("string hallo = ['Hallo']");
 
     Symbol symbol = source.nextElement();
 
@@ -190,33 +229,69 @@ public class TestVariable {
     Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
 
     Assert.assertTrue(source.hasVariable("HALLO"));
-    Assert.assertEquals(Type.BYTE_ARRAY, source.getVariableType("HALLO"));
+    Assert.assertEquals(Type.STRING, source.getVariableType("HALLO"));
     Assert.assertEquals(2, source.getVariableArraySize("HALLO"));
+
+    Assert.assertTrue(source.hasVariable("HALLO_LENGTH"));
+    Assert.assertTrue(source.hasVariable("HALLO_ELEMENTS"));
+  }
+
+
+//
+//  OO              OO    OOOOOO
+//                  OO   OO    OO
+// OOO  OOOOOOOO  OOOOOO OO    OO          OOOOOOOO OOOOOOOO  OOOOOOOO   OOOOOOOO OO     OO
+//  OO  OO     OO   OO    OOOOOO          OO     OO OO     OO OO     OO OO     OO OO     OO
+//  OO  OO     OO   OO   OO    OO         OO     OO OO        OO        OO     OO OO     OO
+//  OO  OO     OO   OO   OO    OO         OO     OO OO        OO        OO     OO  OOOOOOOO
+// OOOO OO     OO    OOO  OOOOOO           OOOOOOOO OO        OO         OOOOOOOO        OO
+//                                                                                OOOOOOOO
+
+  @Test(expected = IllegalStateException.class)
+  public void testVariableInt8ArrayWithEmptyArray() {
+    Source source = new Source("int8 array x[2]");
+    Symbol symbol = source.nextElement();
+
+    /* Symbol nextSymbol = */ new Variable(source).variable(symbol).build();
+  }
+
+//
+//            OO              OO      OO     OOOOOO
+//                            OO     OOO    OO
+// OO     OO OOO  OOOOOOOO  OOOOOO  OOOO    OO                OOOOOOOO OOOOOOOO  OOOOOOOO   OOOOOOOO OO     OO
+// OO     OO  OO  OO     OO   OO      OO    OOOOOOO          OO     OO OO     OO OO     OO OO     OO OO     OO
+// OO     OO  OO  OO     OO   OO      OO    OO    OO         OO     OO OO        OO        OO     OO OO     OO
+// OO     OO  OO  OO     OO   OO      OO    OO    OO         OO     OO OO        OO        OO     OO  OOOOOOOO
+//  OOOOOOOO OOOO OO     OO    OOO OOOOOOOO  OOOOOO           OOOOOOOO OO        OO         OOOOOOOO        OO
+//                                                                                                   OOOOOOOO
+
+  @Test(expected = IllegalStateException.class)
+  public void testVariableUInt16ArrayWithEmptyArray() {
+    Source source = new Source("uint16 array x[2]");
+    Symbol symbol = source.nextElement();
+
+    /* Symbol nextSymbol = */ new Variable(source).variable(symbol).build();
   }
 
   @Test(expected = IllegalStateException.class)
   public void testVariableIllegalType() {
-    Source source = new Source(" long hallo");
+    Source source = new Source("long hallo");
 
     Symbol symbol = source.nextElement();
 
     /*Symbol nextSymbol =*/ new Variable(source).variable(symbol).build();
   }
 
-  @Test
-  public void testVariableWord() {
-    Source source = new Source("word x");
-    Symbol symbol = source.nextElement();
-
-    Symbol nextSymbol = new Variable(source).variable(symbol).build();
-
-    Assert.assertTrue(source.hasVariable("X"));
-    Assert.assertTrue(source.getVariableType("X").isSigned());
-
-    Assert.assertEquals("", nextSymbol.get());
-    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
-    Assert.assertEquals(Type.WORD, source.getVariableType("X"));
-  }
+//
+//  OO              OO      OO     OOOOOO
+//                  OO     OOO    OO
+// OOO  OOOOOOOO  OOOOOO  OOOO    OO
+//  OO  OO     OO   OO      OO    OOOOOOO
+//  OO  OO     OO   OO      OO    OO    OO
+//  OO  OO     OO   OO      OO    OO    OO
+// OOOO OO     OO    OOO OOOOOOOO  OOOOOO
+//
+// int16 is a double byte (2 bytes) signed
 
   @Test
   public void testVariableInt16Definition() {
@@ -232,6 +307,17 @@ public class TestVariable {
   }
 
 
+  //
+//            OO              OO      OO     OOOOOO
+//                            OO     OOO    OO
+// OO     OO OOO  OOOOOOOO  OOOOOO  OOOO    OO
+// OO     OO  OO  OO     OO   OO      OO    OOOOOOO
+// OO     OO  OO  OO     OO   OO      OO    OO    OO
+// OO     OO  OO  OO     OO   OO      OO    OO    OO
+//  OOOOOOOO OOOO OO     OO    OOO OOOOOOOO  OOOOOO
+//
+// uint16 is a double byte (2 bytes) unsigned
+
   @Test
   public void testVariableUInt16Definition() {
     Source source = new Source("uint16 x");
@@ -245,6 +331,31 @@ public class TestVariable {
     Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
   }
 
+//
+//                                      OO
+//                                      OO
+// OO     OO  OOOOOOO  OOOOOOOO   OOOOOOOO
+// OO     OO OO     OO OO     OO OO     OO
+// OO  O  OO OO     OO OO        OO     OO
+// OO  O  OO OO     OO OO        OO     OO
+//  OOO OOO   OOOOOOO  OO         OOOOOOOO
+//
+// word is a double byte (2 bytes) signed
+
+  @Test
+  public void testVariableWord() {
+    Source source = new Source("word x");
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+
+    Assert.assertTrue(source.hasVariable("X"));
+    Assert.assertTrue(source.getVariableType("X").isSigned());
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+    Assert.assertEquals(Type.WORD, source.getVariableType("X"));
+  }
 
   @Test
   public void testVariableWord2Variables() {
@@ -275,9 +386,20 @@ public class TestVariable {
     Assert.assertEquals(Type.WORD, source.getVariableType("X"));
   }
 
+//
+//                                      OO
+//                                      OO
+// OO     OO  OOOOOOO  OOOOOOOO   OOOOOOOO          OOOOOOOO OOOOOOOO  OOOOOOOO   OOOOOOOO OO     OO
+// OO     OO OO     OO OO     OO OO     OO         OO     OO OO     OO OO     OO OO     OO OO     OO
+// OO  O  OO OO     OO OO        OO     OO         OO     OO OO        OO        OO     OO OO     OO
+// OO  O  OO OO     OO OO        OO     OO         OO     OO OO        OO        OO     OO  OOOOOOOO
+//  OOO OOO   OOOOOOO  OO         OOOOOOOO          OOOOOOOO OO        OO         OOOOOOOO        OO
+//                                                                                         OOOOOOOO
+// word array is a list of words
+
   @Test
   public void testWordArraySizeTooBig() {
-    Source source = new Source(" word array y[257]");
+    Source source = new Source("word array y[257]");
 
     Symbol symbol = source.nextElement();
 
@@ -292,7 +414,7 @@ public class TestVariable {
 
   @Test
   public void testWordArrayWithVariable() {
-    Source source = new Source(" word array y[257] = variable");
+    Source source = new Source("word array y[257] = variable");
     source.addVariable("VARIABLE", Type.WORD);
 
     Symbol symbol = source.nextElement();
@@ -325,7 +447,7 @@ public class TestVariable {
 
   @Test
   public void testWordSplitArrayWithAddress() {
-    Source source = new Source(" word array y[2] = 123");
+    Source source = new Source("word array y[2] = 123");
 
     Symbol symbol = source.nextElement();
 
@@ -337,11 +459,41 @@ public class TestVariable {
     Assert.assertTrue(source.hasVariable("Y"));
     Assert.assertEquals(Type.FAT_WORD_ARRAY, source.getVariableType("Y"));
     Assert.assertEquals(2, source.getVariableArraySize("Y"));
+
+    Assert.assertTrue(source.hasVariable("Y_LENGTH"));
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testWordSplitArrayForcedWithAddress() {
+    Source source = new Source("word array y[@split] = 123");
+
+    Symbol symbol = source.nextElement();
+
+    /* Symbol nextSymbol = */ new Variable(source).variable(symbol).build();
   }
 
   @Test
+  public void testWordSplitArrayForcedWithVariable() {
+    Source source = new Source("word array y[@SPLIT] = @variable");
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("Y"));
+    Assert.assertEquals(Type.WORD_SPLIT_ARRAY, source.getVariableType("Y"));
+    Assert.assertEquals(-1, source.getVariableArraySize("Y"));
+
+    Assert.assertTrue(source.hasVariable("Y_LENGTH"));
+  }
+
+
+  @Test
   public void testVariableAssignmentWordArray() {
-    Source source = new Source(" word array y[2] = ['Hallo', 'Welt', 1, variable]");
+    Source source = new Source("word array y[2] = ['Hallo', 'Welt', 1, variable]");
     source.addVariable("VARIABLE", Type.WORD);
 
     Symbol symbol = source.nextElement();
@@ -354,11 +506,14 @@ public class TestVariable {
     Assert.assertTrue(source.hasVariable("Y"));
     Assert.assertEquals(Type.WORD_SPLIT_ARRAY, source.getVariableType("Y"));
     Assert.assertEquals(4, source.getVariableArraySize("Y"));
+
+    Assert.assertTrue(source.hasVariable("Y_LENGTH"));
+    Assert.assertTrue(source.hasVariable("Y_ELEMENTS"));
   }
 
   @Test
   public void testVariableAssignmentWordArrayWithADR() {
-    Source source = new Source(" word array y[2] = [adr:godmode]");
+    Source source = new Source("word array y[2] = [adr:godmode]");
     source.addVariable("GODMODE", Type.STRING);
 
     Symbol symbol = source.nextElement();
@@ -371,11 +526,14 @@ public class TestVariable {
     Assert.assertTrue(source.hasVariable("Y"));
     Assert.assertEquals(Type.WORD_SPLIT_ARRAY, source.getVariableType("Y"));
     Assert.assertEquals(1, source.getVariableArraySize("Y"));
+
+    Assert.assertTrue(source.hasVariable("Y_LENGTH"));
+    Assert.assertTrue(source.hasVariable("Y_ELEMENTS"));
   }
 
   @Test
   public void testWordSplitArray() {
-    Source source = new Source(" word array y[2]");
+    Source source = new Source("word array y[2]");
 
     Symbol symbol = source.nextElement();
 
@@ -391,7 +549,7 @@ public class TestVariable {
 
   @Test
   public void testStringAssignmentWordSplitArray() {
-    Source source = new Source(" word array y[2] = ['Hello','World']");
+    Source source = new Source("word array y[2] = ['Hello','World']");
 
     Symbol symbol = source.nextElement();
 
@@ -407,7 +565,7 @@ public class TestVariable {
 
   @Test
   public void testVariableAssignmentWordSplitArray() {
-    Source source = new Source(" word array y[2] = [0, 1, variable]");
+    Source source = new Source("word array y[2] = [0, 1, variable]");
     source.addVariable("VARIABLE", Type.WORD);
 
     Symbol symbol = source.nextElement();
@@ -422,6 +580,17 @@ public class TestVariable {
     Assert.assertEquals(3, source.getVariableArraySize("Y"));
   }
 
+//
+//                                           OO
+//                                           OO
+//  OOOOOOO   OOOOOOO  OOOOOOOO   OOOOOOO  OOOOOO
+// OO     OO OO     OO OO     OO OO          OO
+// OO        OO     OO OO     OO  OOOOOOO    OO
+// OO     OO OO     OO OO     OO        OO   OO
+//  OOOOOOO   OOOOOOO  OO     OO  OOOOOOO     OOO
+//
+// is a named variable with a given value maybe byte, word, int8, ...
+
   @Test
   public void testVariableConstWithNumber() {
     Source source = new Source("const color=710");
@@ -434,6 +603,20 @@ public class TestVariable {
     Assert.assertEquals("710", source.getVariableAddress("COLOR"));
   }
 
+  @Test
+  public void testVariableConstWithVariable() {
+    Source source = new Source("const color=@color");
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("COLOR"));
+    Assert.assertEquals("@COLOR", source.getVariableAddress("COLOR"));
+  }
+
+  // a const MUST follow by '='
+
   @Test(expected = IllegalStateException.class)
   public void testVariableConstNoNumber() {
     Source source = new Source("const color");
@@ -441,6 +624,4 @@ public class TestVariable {
 
     /*Symbol nextSymbol =*/ new Variable(source).variable(symbol).build();
   }
-
-
 }

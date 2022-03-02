@@ -42,8 +42,7 @@ public class ITMain {
     file = new File(tempPath + "/TSTSIEVE.ASM");
     file.delete();
   }
-  
-  @Ignore
+
   @Test
   public void testSimple() throws IOException {
     String simple = "src/test/resources/lla/privat/atarixl/compiler/simple.wnf";
@@ -55,6 +54,7 @@ public class ITMain {
     Assert.assertTrue(file.exists());
 
     Assert.assertEquals(1, main.getUsedOptimisations());
+    Assert.assertTrue(main.getSource().hasVariable("HEADER_VARIABLE"));
   }
 
   @Test
@@ -76,7 +76,7 @@ public class ITMain {
     File file = new File(tempPath + "/TSTSIEVE.ASM");
     Assert.assertTrue(file.exists());
 
-    Assert.assertEquals(66, main.getUsedOptimisations());
+    Assert.assertEquals(68, main.getUsedOptimisations());
   }
 
   @Test
@@ -151,6 +151,7 @@ public class ITMain {
     Assert.assertTrue(source.hasVariable("X"));
     Assert.assertTrue(source.hasVariable("Y"));
     Assert.assertTrue(source.hasVariable("NAME"));
+    // Assert.assertTrue(source.hasVariable("HEADER_VARIABLE"));
   }
 
   @Test

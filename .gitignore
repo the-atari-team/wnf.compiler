@@ -5,3 +5,11 @@
 .settings
 target
 bin/*
+
+TODO.txt
+pcode.txt
+start.sh
+
+compiler/src/test/resources/lla/privat/atarixl/compiler/test-player-missile.wnf
+configPom/lars-eclipse-at-home.epf
+configPom/lars-eclipse-github.epf

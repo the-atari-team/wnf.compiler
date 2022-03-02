@@ -54,6 +54,10 @@ public class Expression extends Code {
     return this;
   }
 
+  public Type getType() {
+    return ergebnis;
+  }
+
   /**
    * Unary add or sub symbol
    * -1 is a negative digit
@@ -121,7 +125,7 @@ public class Expression extends Code {
     // 97
     if (symbol.getId() == SymbolEnum.string && symbol.get().length() > 3) {
       p_code.add(PCode.STRING.getValue());
-      source.addVariable(symbol.get(), Type.STRING);
+      source.addVariable(symbol.get(), Type.STRING_ANONYM);
       p_code.add(source.getVariablePosition(symbol.get()));
       ergebnis = Type.WORD;
       nextSymbol = source.nextElement();
@@ -180,6 +184,7 @@ public class Expression extends Code {
 
     String operator = nextSymbol.get();
     while (operator.equals("*") || operator.equals("/") || operator.equals("MOD")) {
+      ergebnis = Type.WORD;
       p_code.add(PCode.PUSH.getValue());
       switch (operator) {
       case "*":
@@ -352,6 +357,7 @@ public class Expression extends Code {
     }
     else {
       Type variableType = source.getVariableType(name);
+      
       if (variableType.equals(Type.CONST)) {
         String strValue = source.getVariableAddress(name);
         source.throwIfConstVariableHasNoValue(name);
@@ -361,7 +367,14 @@ public class Expression extends Code {
           p_code.add(PCode.ADDRESS.getValue());
           int variablePosition = source.getVariablePosition(strValue);
           if (variablePosition == -1 ) {
-            source.throwIfVariableUndefined(name);
+            if (strValue.startsWith("@")) {
+              // soll sich hier der Assembler drum kümmern, das die Variable aufgelöst wird
+              source.addVariable(strValue, Type.FUNCTION);
+              variablePosition = source.getVariablePosition(strValue);
+            }
+            else {
+              source.throwIfVariableUndefined(name);
+            }
           }
           p_code.add(variablePosition);
         }
@@ -374,6 +387,9 @@ public class Expression extends Code {
         }
       }
       else {
+        // Wir nehmen an, es kommt eine Variable vom Type 
+        source.throwIfArrayType(variableType);
+
         p_code.add(PCode.WORD.getValue());
         precalculationPossible = false; // variable access not precalculateable
         int variablePosition = source.getVariablePosition(name);
@@ -521,7 +537,7 @@ public class Expression extends Code {
 
     VariableDefinition variable = source.getVariable(name);
     variable.setRead();
-    if (variable.getType() == Type.BYTE_ARRAY) {
+    if (variable.getType() == Type.BYTE_ARRAY || variable.getType() == Type.STRING) {
       p_code.add(PCode.BYTE_ARRAY.getValue());
       p_code.add(source.getVariablePosition(name));
     }
@@ -746,7 +762,7 @@ public class Expression extends Code {
     
     source.setTypeOfLastExpression(ergebnis);
   }
-
+  
   /**
    * Hilfsfunktion um die erstellten PCodes in einem String zurückzugeben
    *
