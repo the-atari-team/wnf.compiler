@@ -92,6 +92,7 @@ public class PeepholeOptimizer {
     STA_ERG_LDY_CPY_ERG_BNE, // (33)
     STA_ERG_LDY_CPY_ERG_BEQ, // (32)
     STY_STX_ERG_LDY_LDX_CPY_CPX_ERG_BEQ,    // (34)
+    STY_STX_ERG_LDY_LDX_CPY_CPX_ERG_BEQ_B,  // (34b)
     STA_STX_ERG_LDY_LDX_CPY_CPX_ERG_BEQ,    // (35)
     JSR_RTS,    // (39)
     JMP_NEXTLINE, // (41)
@@ -115,12 +116,16 @@ public class PeepholeOptimizer {
 
   public void showStatus() {
     if (optimisationLevel > 0) {
-      LOGGER.info("Peephole Status Usage:");
-      for (PeepholeType type : PeepholeType.values()) {
-        Integer used = status.get(type);
-        LOGGER.info("{} = {}",used, type.name());
+      if (source.showPeepholeOptimize()) {
+        LOGGER.info("Peephole Status Usage:");
+        for (PeepholeType type : PeepholeType.values()) {
+          Integer used = status.get(type);
+          if (used > 0) {
+            LOGGER.info("{} = {}",used, type.name());
+          }
+        }
+        LOGGER.info("{} number of all used optimizations", count);
       }
-      LOGGER.info("{} number of all used optimizations", count);
     }
   }
 
@@ -201,12 +206,15 @@ public class PeepholeOptimizer {
 
         sta_erg_ldy_cpy_erg();
         stay_stx_erg_ldy_ldx_cpy_cpx_erg();
+        removeComments();
+        ldy_ldx_tya(); // (45)
+        
         jsr_rts();
         jmp_nextline();
       }
       removeComments();
 
-      LOGGER.info("Peephole Optimizer has {} optimizations used", count);
+      LOGGER.info("Peephole Optimizer has {} optimizations applied.", count);
     }
 
     return this;
@@ -1262,6 +1270,9 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
     for (int i = 0; i < codeList.size() - 6; i++) {
       sta_stx_erg_ldy_ldx_cpy_cpx_erg(i, PeepholeType.STA_STX_ERG_LDY_LDX_CPY_CPX_ERG_BEQ);
     }
+    for (int i = 0; i < codeList.size() - 7; i++) {
+      sty_stx_erg_ldy_ldx_cpy_cpx_erg_b(i, PeepholeType.STY_STX_ERG_LDY_LDX_CPY_CPX_ERG_BEQ_B);
+    }
   }
 
   private void sty_stx_erg_ldy_ldx_cpy_cpx_erg(int index, PeepholeType type) {
@@ -1288,6 +1299,35 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
       codeList.set(index + 4, " CPY #" + valuelow + " ;  (34)");
       codeList.set(index + 6, " CPX #" + valuehigh + " ; (34)");
 
+      incrementStatus(type);
+    }
+  }
+
+  // will optimize: if fkt() != 0 then
+  private void sty_stx_erg_ldy_ldx_cpy_cpx_erg_b(int index, PeepholeType type) {
+    // @formatter:off
+    if (codeList.get(index + 0).startsWith(" STY @ERG") &&
+        codeList.get(index + 1).startsWith(" STX @ERG+1") &&
+        codeList.get(index + 2).startsWith(" LDY #<0") &&
+        codeList.get(index + 3).startsWith(" LDX #>0") &&
+        codeList.get(index + 4).startsWith(" CPY @ERG") &&
+        codeList.get(index + 5).startsWith(" BNE ?TR") &&
+        codeList.get(index + 6).startsWith(" CPX @ERG+1") &&
+        codeList.get(index + 7).startsWith(" BEQ ?FA")
+      ) {
+      // @formatter:on
+
+      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+      codeList.set(index + 0, " TYA");
+      codeList.set(index + 1, " STX @ERG ; (34b)");
+      codeList.set(index + 2, " ORA @ERG");
+      codeList.set(index + 3, ";opt");
+
+      codeList.set(index + 4, ";opt");
+      codeList.set(index + 5, ";opt");
+      codeList.set(index + 6, ";opt");
+      // das BEQ ?FA lassen wir stehen!
       incrementStatus(type);
     }
   }

@@ -803,12 +803,18 @@ public class TestAssignment {
     Assert.assertEquals(" LDY X", source.getCode().get(++n));
     Assert.assertEquals(" LDX X+1", source.getCode().get(++n));
 
-    Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n));
-    Assert.assertEquals(" TYA", source.getCode().get(++n));
+//    Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n));
+//    Assert.assertEquals(" TYA", source.getCode().get(++n));
+//    Assert.assertEquals(" LDX @PUTARRAY", source.getCode().get(++n));
+//    Assert.assertEquals(" STA Y_LOW,X", source.getCode().get(++n));
+//    Assert.assertEquals(" LDA @PUTARRAY+1", source.getCode().get(++n));
+//    Assert.assertEquals(" STA Y_HIGH,X", source.getCode().get(++n));
+
+    Assert.assertEquals(" TXA", source.getCode().get(++n));
     Assert.assertEquals(" LDX @PUTARRAY", source.getCode().get(++n));
-    Assert.assertEquals(" STA Y_LOW,X", source.getCode().get(++n));
-    Assert.assertEquals(" LDA @PUTARRAY+1", source.getCode().get(++n));
     Assert.assertEquals(" STA Y_HIGH,X", source.getCode().get(++n));
+    Assert.assertEquals(" TYA", source.getCode().get(++n));
+    Assert.assertEquals(" STA Y_LOW,X", source.getCode().get(++n));
   }
 
   @Test
@@ -835,12 +841,18 @@ public class TestAssignment {
     Assert.assertEquals(" LDY #<1", source.getCode().get(++n));
     Assert.assertEquals(" LDX #>1", source.getCode().get(++n));
 
-    Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n));
-    Assert.assertEquals(" TYA", source.getCode().get(++n));
+//    Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n));
+//    Assert.assertEquals(" TYA", source.getCode().get(++n));
+//    Assert.assertEquals(" LDX @PUTARRAY", source.getCode().get(++n));
+//    Assert.assertEquals(" STA Y_LOW,X", source.getCode().get(++n));
+//    Assert.assertEquals(" LDA @PUTARRAY+1", source.getCode().get(++n));
+//    Assert.assertEquals(" STA Y_HIGH,X", source.getCode().get(++n));
+
+    Assert.assertEquals(" TXA", source.getCode().get(++n));
     Assert.assertEquals(" LDX @PUTARRAY", source.getCode().get(++n));
-    Assert.assertEquals(" STA Y_LOW,X", source.getCode().get(++n));
-    Assert.assertEquals(" LDA @PUTARRAY+1", source.getCode().get(++n));
     Assert.assertEquals(" STA Y_HIGH,X", source.getCode().get(++n));
+    Assert.assertEquals(" TYA", source.getCode().get(++n));
+    Assert.assertEquals(" STA Y_LOW,X", source.getCode().get(++n));
   }
 
 //

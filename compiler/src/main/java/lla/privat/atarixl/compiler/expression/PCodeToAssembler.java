@@ -114,6 +114,7 @@ public class PCodeToAssembler extends Code {
           a$ = source.getVariableAt(value);
           code(";#2 (2)"); // TEST VORHANDEN
           code(" lda " + a$); // ;" ;push var"
+          source.incrementRead(a$);
           code(" pha");
           if (ergebnis.getBytes() == 2) {
             Type typ = source.getVariableType(a$);
@@ -128,6 +129,7 @@ public class PCodeToAssembler extends Code {
             }
             else {
               code(" lda " + a$ + "+1");
+              source.incrementRead(a$);
             }
             code(" pha");
           }
@@ -161,6 +163,7 @@ public class PCodeToAssembler extends Code {
               b$ = a$;
               typ1 = source.getVariableType(a$);
               code(" lda " + b$);
+              source.incrementRead(b$);
             }
             mne$ = mne_is_add_sub_or_eor_and(operator);
             if (p_code.get(a + 3) == PCode.INT_ZAHL.getValue()) {
@@ -181,6 +184,7 @@ public class PCodeToAssembler extends Code {
                 }
                 else {
                   code(" lda " + b$ + "+1");
+                  source.incrementRead(b$);
                 }
               }
               if (p_code.get(a + 3) == PCode.INT_ZAHL.getValue()) {
@@ -193,6 +197,7 @@ public class PCodeToAssembler extends Code {
                 }
                 else {
                   code(" " + mne$ + " " + a$ + "+1");
+                  source.incrementRead(a$);
                 }
               }
               code(" tax");
@@ -219,6 +224,8 @@ public class PCodeToAssembler extends Code {
               else { // ivar
                 a$ = source.getVariableAt(value);
                 code(" ldy " + a$); // ;" ;ivar"
+                source.incrementRead(a$);
+
                 if (ergebnis.getBytes() == 2) {
                   Type typ = source.getVariableType(a$);
                   if (typ == Type.INT8) {
@@ -232,6 +239,7 @@ public class PCodeToAssembler extends Code {
                   }
                   else {
                     code(" ldx " + a$ + "+1");
+                    source.incrementRead(a$);
                   }
                 }
               }
@@ -243,6 +251,7 @@ public class PCodeToAssembler extends Code {
               else { // ivar
                 a$ = source.getVariableAt(c);
                 code(" lda " + a$);
+                source.incrementRead(a$);
                 code(" sta @op");
                 if (ergebnis != Type.BYTE) {
                   Type typ = source.getVariableType(a$);
@@ -257,6 +266,7 @@ public class PCodeToAssembler extends Code {
                   }
                   else {
                     code(" lda " + a$ + "+1");
+                    source.incrementRead(a$);
                   }
                   code(" sta @op+1");
                 }
@@ -286,9 +296,12 @@ public class PCodeToAssembler extends Code {
                   Type typOfa$ = source.getVariableType(a$);
                   code(";#2 (6)");
                   code(" ldy " + a$); // ;" ;ivar"
+                  source.incrementRead(a$);
+
                   if (ergebnis == Type.BYTE && source.getVariableSize(a$) == 2) {
                     code(" ldx " + a$ + "+1"); // Sonderlocke für z.B. FAT_BYTE_ARRAY
                     sonderlocke_fat_byte_array = true;
+                    source.incrementRead(a$);
                   }
                   // word a$==INT8
                   // word a$==BYTE
@@ -305,6 +318,7 @@ public class PCodeToAssembler extends Code {
                   }
                   else if (ergebnis == Type.WORD && typOfa$.getBytes() == 2) {
                     code(" LDX " + a$ + "+1");
+                    source.incrementRead(a$);
                   }
                   else if (ergebnis == Type.BYTE || ergebnis == Type.INT8) {
 
@@ -424,6 +438,8 @@ public class PCodeToAssembler extends Code {
           else {
             a$ = source.getVariableAt(value3);
             code(" lda " + a$);
+            source.incrementRead(a$);
+
             code(" sta @op");
             if (ergebnis.getBytes() != 1) {
               Type typ = source.getVariableType(a$);
@@ -438,6 +454,7 @@ public class PCodeToAssembler extends Code {
               }
               else {
                 code(" lda " + a$ + "+1");
+                source.incrementRead(a$);
               }
               code(" sta @op+1");
             }
@@ -545,6 +562,8 @@ public class PCodeToAssembler extends Code {
         int num = p_code.get(a + 1);
         a$ = source.getVariableAt(num);
         code(" ldy " + a$);   // ;" ;load byte"
+        source.incrementRead(a$);
+
         Type typ = source.getVariableType(a$);
         if (typ == Type.BYTE) {
             code(" ldx #0");
@@ -576,6 +595,8 @@ public class PCodeToAssembler extends Code {
         code(" ldy " + a$); // ;" ;Inhalt der Variable nach y,x"
         code(" ldx " + a$ + "+1");
         code(" jsr @function_pointer"); // ;" ; --> func ptr"
+        source.incrementRead(a$);
+        source.incrementRead(a$);
         a = a + 3;
       }
       else if (currentPCode == PCode.STRING) {

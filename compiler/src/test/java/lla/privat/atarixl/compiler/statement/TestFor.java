@@ -25,6 +25,8 @@ public class TestFor {
     Assert.assertEquals("", nextSymbol.get());
     Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
 
+    Assert.assertEquals(2, source.getVariable("I").getWrites());
+    
     List<String> code = source.getCode();
 
     int n=-1;

@@ -20,7 +20,7 @@ import lla.privat.atarixl.compiler.optimization.PeepholeOptimizer;
 import lla.privat.atarixl.compiler.source.Source;
 
 /**
- * Atari 8bit WNF-Compiler 1990 - 2021
+ * Atari 8bit WNF-Compiler 1990 - 2022
  *
  * @author lars <dot> langhans <at> gmx <dot> de
  *
@@ -66,14 +66,15 @@ public class Main {
   }
 
   public Main(String filename, int optimize, int verboseLevel) {
-    this(filename, optimize, verboseLevel, null, false, true, true, false, true);
+    this(filename, optimize, verboseLevel, null, false, true, true, false, true, false, false, false);
   }
 
   public Main(String filename, int optimize, int verboseLevel, String outputPath,
       boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
-      boolean smallAddSubHeapPtr, boolean importHeader) {
+      boolean smallAddSubHeapPtr, boolean importHeader, boolean showVariableUsage,
+      boolean showVariableUnused, boolean showPeepholeOptimize) {
     this.filename = filename;
-    this.options = new Options(optimize, verboseLevel, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader);
+    this.options = new Options(optimize, verboseLevel, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader, showVariableUsage, showVariableUnused, showPeepholeOptimize);
     this.outputPath = outputPath;
   }
 
@@ -90,17 +91,23 @@ public class Main {
     LOGGER.info("");
     LOGGER.info(" -O level | --optimize level - 0, 1 or 2 possible (not ready yet!)");
     LOGGER.info(" -v level | --verbose level  - be more verbose");
-    LOGGER.info(" -I path                     - include path to search for includes, can given more than once.");
-    LOGGER.info(" -o path                     - set output path, where the ASM file is stored.");
-    LOGGER.info(" -smc                        - if given, allow self modified code (smc). (Experimental)");
-    LOGGER.info(" -noscm                      - if given, fix-value Multiplications in Expressions will not");
-    LOGGER.info("                               convert to shift/(add|sub) but call to external @IMULT func.");
-    LOGGER.info(" -noshift                    - if given, mult/div with 2-complement will not use.");
-    LOGGER.info("                               Function calls to @IMULT/@IDIV will use instead.");
-    LOGGER.info(" -smallHeapPtr               - if given, Heap Ptr is only 256 bytes big, be careful!");
-    LOGGER.info(" -noHeader                   - if given, header.wnf will not import if file exists!");    
+    LOGGER.info(" -I path               - include given path to the list for search to includes,");
+    LOGGER.info("                         can given more than once.");
+    LOGGER.info(" -o path               - set output path, where the ASM file is stored.");
+    LOGGER.info(" -smc                  - if given, allow self modified code (smc).");
+    LOGGER.info("                         THIS IS VERY EXPERIMENTAL! DO NOT USE!");
+    LOGGER.info(" -noscm                - if given, hard coded value multiplications in");
+    LOGGER.info("                         Expressions will not convert to shift/(add|sub)");
+    LOGGER.info("                         but call the external @IMULT function.");
+    LOGGER.info(" -noshift              - if given, mult/div with 2-complement will not use.");
+    LOGGER.info("                         Expression calls the @IMULT/@IDIV function instead.");
+    LOGGER.info(" -smallHeapPtr         - if given, Heap Ptr is only 256 bytes big, be careful!");
+    LOGGER.info(" -noHeader             - if given, header.wnf will not import if file exists!");
+    LOGGER.info(" -showVariableUsage    - if given, show how often a variable is used.");
+    LOGGER.info(" -showVariableUnused   - if given, show a hint if a variable is unused.");
+    LOGGER.info(" -showPeepholeOptimize - if given, show which peephole optimize will applied.");
     LOGGER.info("");
-    LOGGER.info(" -h | --help                 - display this help and exit.");
+    LOGGER.info(" -h | --help           - display this help and exit.");
   }
 
   
@@ -118,6 +125,9 @@ public class Main {
     boolean shiftMultDiv = true;
     boolean smallAddSubHeapPtr = false;
     boolean importHeader = true;
+    boolean showVariableUsage = false;
+    boolean showVariableUnused = false;
+    boolean showPeepholeOptimize = false;
     
     String outputpath = "";
     List<String> includePaths = new ArrayList<>();
@@ -140,25 +150,37 @@ public class Main {
         ++index;
       }
       else if (parameter.equalsIgnoreCase("-smc")) {
-        LOGGER.warn("SMC Parameter given, use self modified code. Expect the unexpected!");
+        LOGGER.warn("SMC Parameter is given, use self modified code. Expect the unexpected!");
         selfModifiedCode = true;
       }
       else if (parameter.equalsIgnoreCase("-noscm")) {
-        LOGGER.warn("no StarChainMult Parameter given, will not use shift/add for mult!");
+        LOGGER.warn("'no Star Chain Mult' Parameter is given, will not use shift/add for multiply!");
         starChainMult = false;
       }
       else if (parameter.equalsIgnoreCase("-noshift")) {
-        LOGGER.warn("no Shift Parameter given, will not use shift for mult/div 2-complement!");
+        LOGGER.warn("'no Shift' Parameter is given, will not use shift for mult/div 2-complement!");
         shiftMultDiv = false;
       }
       else if (parameter.equalsIgnoreCase("-smallHeapPtr")) {
-        LOGGER.warn("Parameter for small HeapPtr given, use only byte size!");
+        LOGGER.warn("Parameter for small Heap Pointer is given, we use only byte wide size heap!");
         LOGGER.warn("Make sure your Heap_Ptr starts at equal word address! See RUNTIME.INC");
         smallAddSubHeapPtr = true;
       }
       else if (parameter.equalsIgnoreCase("-noheader")) {
-        LOGGER.warn("Parameter for no header given, do not import header.wnf if exists!");
+        LOGGER.warn("Parameter to ignore header file is given, do not import header.wnf if exists!");
         importHeader = false;
+      }
+      else if (parameter.equalsIgnoreCase("-showVariableUsage")) {
+        LOGGER.info("Parameter for variable usage is given, see how often each variable is used.");
+        showVariableUsage = true;
+      }
+      else if (parameter.equalsIgnoreCase("-showVariableUnused")) {
+        LOGGER.info("Parameter for variable unused given, see if variable is not used in code.");
+        showVariableUnused = true;
+      }
+      else if (parameter.equalsIgnoreCase("-showPeepholeOptimize")) {
+        LOGGER.info("Parameter for peephole optimize is given, show which optimization is applied.");
+        showPeepholeOptimize = true;
       }
       else if (parameter.equals("-I")) {
         String additionalIncludePath = args[index + 1];
@@ -198,7 +220,7 @@ public class Main {
         basename = new File(file.getAbsolutePath()).getParent();
         outputpath = basename;
       }
-      final Main main = new Main(filename, optimisationLevel, verboseLevel, outputpath, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader);
+      final Main main = new Main(filename, optimisationLevel, verboseLevel, outputpath, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader, showVariableUsage, showVariableUnused, showPeepholeOptimize);
       main.setIncludePath(includePaths);
       if (!basename.isEmpty()) {
         main.addIncludePath(basename);
@@ -233,7 +255,7 @@ public class Main {
       headerfilename = "header.wnf";
     }
      
-    LOGGER.info("Check header: {}", headerfilename);
+    LOGGER.info("Check for header file: '{}'", headerfilename);
     String wnfHeaderCode = null;
     File headerfile = new File(headerfilename);
     if (headerfile.exists()) {
@@ -241,7 +263,7 @@ public class Main {
         LOGGER.info("Found header file, but will ingnored due to parameter");      
       }
       else {
-        LOGGER.info("Found header file, read it before");
+        LOGGER.info("Found a 'header.wnf' file, read it first.");
         wnfHeaderCode = new SourceReader(headerfilename).readFile();
         this.headerSource = new Source(wnfHeaderCode);
         this.headerSource.setFilename("header.wnf");
@@ -280,6 +302,8 @@ public class Main {
     optimize(options.getOptimisationLevel());
 
     write();
+
+    System.out.println("");
   }
 
   public Main optimize(int optimisationLevel) {

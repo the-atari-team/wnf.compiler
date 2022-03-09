@@ -85,11 +85,11 @@ public class Expression extends Code {
     code(";#3 vor optimierung");
     code(";#3 <P-Code> " + joinedPCode());
 
-    if (getCountArithmeticSymbols() > 0) {
-      if (isPrecalculationPossible()) {
-        source.warning(Symbol.noSymbol(), "Expression could be precalculated!");
-      }
-    }
+//    if (getCountArithmeticSymbols() > 0) {
+//      if (isPrecalculationPossible()) {
+//        source.warning(Symbol.noSymbol(), "Expression could be precalculated!");
+//      }
+//    }
     
     optimisation();
 
@@ -471,7 +471,7 @@ public class Expression extends Code {
       source.getVariable(name).setRead();
     }
     else {
-      source.error(nextSymbol, "Unknown problem occur, nor function not function pointer call.");
+      source.error(nextSymbol, "Unknown problem occur, not function nor function pointer call.");
     }
     if (parameterCount > 0) {
       // sollte es Parameter geben und wir haben den HeapPointer manipuliert, hier

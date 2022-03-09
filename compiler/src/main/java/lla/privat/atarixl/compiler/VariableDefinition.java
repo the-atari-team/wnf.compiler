@@ -24,55 +24,13 @@ public class VariableDefinition {
 
   private boolean generated;
 
+  private int reads;
+  private int writes;
+  private int calls;
+  
   // Hier ablegen, aus welcher Datei die Definition kommt, so kann ich Fehler besser verfolgen
   private final String sourcecode_filename;
   
-  private enum ArtOfUsageEnum {
-    UNDEFINED(0), READ(1), WRITE(2), ALL(3);
-
-    private int internValue;
-
-    private ArtOfUsageEnum(int value) {
-      internValue = value;
-    }
-
-    private int getValue() {
-      return internValue;
-    }
-
-    public ArtOfUsageEnum getAtLeastUsage(ArtOfUsageEnum usage) {
-      if ((usage.getValue() & getValue()) != 0) {
-        return this;
-      }
-      int newValue = usage.getValue() | getValue();
-      switch (newValue) {
-      case 0:
-        return UNDEFINED;
-      case 1:
-        return READ;
-      case 2:
-        return WRITE;
-      }
-      return ALL;
-    }
-
-    public boolean hasReadAccess() {
-      return (getValue() & 0x1) == 0x1;
-    }
-
-    public boolean hasWriteAccess() {
-      return (getValue() & 0x2) == 0x2;
-    }
-
-    public boolean hasAnyAccess() {
-      return (getValue() & 0x3) != 0;
-    }
-
-    public boolean hasAllAccess() {
-      return getValue() == 0x3;
-    }
-  };
-
   private ArtOfUsageEnum artOfUsage;
 
   public VariableDefinition(String name, Type type, String sourcecode_filename) {
@@ -88,6 +46,9 @@ public class VariableDefinition {
     this.sourcecode_filename = sourcecode_filename;
     generated = false;
     this.prefix = "";
+    reads=0;
+    writes=0;
+    calls=0;
   }
 
   public String getName() {
@@ -137,14 +98,23 @@ public class VariableDefinition {
   public void setRead() {
     artOfUsage = artOfUsage.getAtLeastUsage(ArtOfUsageEnum.READ);
   }
-
+  public void incrementRead() {
+    reads ++;
+  }
+  
   public void setWrite() {
     if (type.equals(Type.CONST)) {
       throw new IllegalStateException("CONST Variable "+name+" can't be written.");
     }
     artOfUsage = artOfUsage.getAtLeastUsage(ArtOfUsageEnum.WRITE);
   }
-
+  public void incrementWrites() {
+    writes ++;    
+  }
+  public void incrementCalls() {
+    calls ++;
+  }
+  
   public boolean hasAnyAccess() {
     return artOfUsage.hasAnyAccess();
   }
@@ -204,5 +174,13 @@ public class VariableDefinition {
 
   public void resetNameWithPrefix(String prefix) {
     this.prefix = prefix;
+  }
+
+  public int getReads() {
+    return reads;
+  }
+  
+  public int getWrites() {
+    return writes;
   }
 }

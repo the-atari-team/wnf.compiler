@@ -8,6 +8,9 @@ public class Options {
   private boolean shiftMultDiv = true;
   private boolean smallAddSubHeapPtr = false;
   private boolean importHeader = true;
+  private boolean showVariableUsage = false;
+  private boolean showVariableUnused = false;
+  private boolean showPeepholeOptimize = false;
   
   public Options() {
     verboseLevel = 0;
@@ -17,12 +20,16 @@ public class Options {
     shiftMultDiv = true;
     smallAddSubHeapPtr = false;
     importHeader = true;
+    showVariableUsage = false;
+    showVariableUnused = false;
+    showPeepholeOptimize = false;
   }
   
   public Options(int optimisationLevel,
       int verboseLevel,
       boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
-      boolean smallAddSubHeapPtr, boolean importHeader) {
+      boolean smallAddSubHeapPtr, boolean importHeader, boolean showVariableUsage,
+      boolean showVariableUnused, boolean showPeepholeOptimize) {
     this.optimisationLevel = optimisationLevel;
     this.verboseLevel = verboseLevel;
     this.selfModifiedCode = selfModifiedCode;
@@ -30,6 +37,9 @@ public class Options {
     this.shiftMultDiv = shiftMultDiv;
     this.smallAddSubHeapPtr = smallAddSubHeapPtr;
     this.importHeader = importHeader;
+    this.showVariableUsage = showVariableUsage;
+    this.showVariableUnused = showVariableUnused;
+    this.showPeepholeOptimize = showPeepholeOptimize;
   }
 
   public int getOptimisationLevel() {
@@ -86,6 +96,30 @@ public class Options {
 
   public void setImportHeader(boolean importHeader) {
     this.importHeader = importHeader;
+  }
+
+  public boolean isShowVariableUsage() {
+    return showVariableUsage;
+  }
+
+  public void setShowVariableUsage(boolean showVariableUsage) {
+    this.showVariableUsage = showVariableUsage;
+  }
+
+  public boolean isShowPeepholeOptimize() {
+    return showPeepholeOptimize;
+  }
+
+  public void setShowPeepholeOptimize(boolean showPeepholeOptimize) {
+    this.showPeepholeOptimize = showPeepholeOptimize;
+  }
+
+  public boolean isShowVariableUnused() {
+    return showVariableUnused;
+  }
+
+  public void setShowVariableUnused(boolean showVariableUnused) {
+    this.showVariableUnused = showVariableUnused;
   }
   
   

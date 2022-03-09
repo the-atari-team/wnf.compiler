@@ -1,3 +1,6 @@
+//cdw by 'The Atari Team' 2021
+//licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
+
 package lla.privat.atarixl.compiler.expression.multiplication;
 
 import org.slf4j.Logger;
@@ -42,7 +45,7 @@ public class StarChain  extends Code {
     int max_stackpointer = 0;
     int stackpointer = 0;
     
-    LOGGER.info("R1 * " + mult);
+    LOGGER.debug("R1 * " + mult);
     int last_shift = 0;
     
     if (mult > 0) {
@@ -76,7 +79,7 @@ public class StarChain  extends Code {
     max_stackpointer = stackpointer;
     codegen(multiplier, stack, stackpointer, last_shift);
 
-    LOGGER.info("--------");
+    LOGGER.debug("--------");
     return this;
   }
   
@@ -84,7 +87,7 @@ public class StarChain  extends Code {
     // output code from stack
     if (multiplier > 0) {
       
-      LOGGER.info("Rw = R1");
+      LOGGER.debug("Rw = R1");
 //      code(" STY @OP");
       code(" TYA");
       code(" STX @OP+1");               // 6 Takte neu 5
@@ -95,10 +98,10 @@ public class StarChain  extends Code {
       while (stackpointer > 0) {        
         int ts = stack[--stackpointer];
         if (ts < 0) {
-          LOGGER.info("Rw <<= " + -ts);
+          LOGGER.debug("Rw <<= " + -ts);
           rotateLeft(-ts);
 
-          LOGGER.info("Rw -= R1");
+          LOGGER.debug("Rw -= R1");
           code(" SEC");
           // code(" LDA @OP");
           code(" SBC @PRODUKT");
@@ -110,10 +113,10 @@ public class StarChain  extends Code {
           code(" TYA");
         }
         else {
-          LOGGER.info("Rw <<= " + ts);
+          LOGGER.debug("Rw <<= " + ts);
           rotateLeft(ts);
 
-          LOGGER.info("Rw += R1");          
+          LOGGER.debug("Rw += R1");          
           code(" CLC");
 //          code(" LDA @OP");
           code(" ADC @PRODUKT");
@@ -126,12 +129,12 @@ public class StarChain  extends Code {
         }
       }
       if (last_shift != 0) {
-        LOGGER.info("Rw <<= " + last_shift);
+        LOGGER.debug("Rw <<= " + last_shift);
         rotateLeft(last_shift);
       }
     }
     else {
-      LOGGER.info("Rw = 0"); // spezial case mult with 0
+      LOGGER.debug("Rw = 0"); // spezial case mult with 0
       code(" lda #0");
       code(" sta @op");
       code(" sta @op+1");

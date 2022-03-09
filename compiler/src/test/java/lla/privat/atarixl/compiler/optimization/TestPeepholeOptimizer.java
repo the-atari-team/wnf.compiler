@@ -658,6 +658,36 @@ public class TestPeepholeOptimizer {
   }
 
   @Test
+  public void teststy_stx_erg_ldy_ldx_cpy_cpx_erg_b() {
+    List<String> list = new ArrayList<>();
+    list.add(" STY @ERG");
+    list.add(" STX @ERG+1");
+    list.add(" LDY #<0");
+    list.add(" LDX #>0");
+    list.add(" CPY @ERG");
+    list.add(" BNE ?TR1");
+    list.add(" CPX @ERG+1");
+    list.add(" BEQ ?FA1");
+    list.add("?TR1");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(6, source.getCode().size());
+
+    Assert.assertEquals(" TYA", source.getCode().get(0));
+    Assert.assertEquals(" STX @ERG ; (34b)", source.getCode().get(1));
+    Assert.assertEquals(" ORA @ERG", source.getCode().get(2));
+    Assert.assertEquals(" BEQ ?FA1", source.getCode().get(3));
+    Assert.assertEquals("?TR1", source.getCode().get(4));
+    Assert.assertEquals(" ...", source.getCode().get(5));
+    
+  }
+
+
+  @Test
   public void teststa_stx_erg_ldy_ldx_cpy_cpx_erg() {
     List<String> list = new ArrayList<>();
     list.add(" STA @ERG");

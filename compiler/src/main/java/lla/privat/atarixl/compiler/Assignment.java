@@ -120,6 +120,7 @@ public class Assignment extends Code {
         LOGGER.debug("(y,x) zuweisen an {}", name);
         if (!isArray) {
           code(" sty " + name);
+          source.incrementWrite(name);
           if (source.getVariableSize(name) == 2) {
             if (source.getTypeOfLastExpression().getBytes() == 1) {
               if (source.getTypeOfLastExpression() == Type.BYTE || source.getTypeOfLastExpression() == Type.UINT8 ) {
@@ -133,6 +134,7 @@ public class Assignment extends Code {
               }
             }
             code(" stx " + name + "+1");
+            source.incrementWrite(name);
           }
         }
         else if (source.getVariableType(name) == Type.BYTE_ARRAY ||
@@ -140,6 +142,7 @@ public class Assignment extends Code {
           code(" tya");
           code(" ldx @putarray");
           code(" sta " + name + ",x");
+          source.incrementWrite(name);
         }
         else if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY) {
           code(" tya");
@@ -159,12 +162,18 @@ public class Assignment extends Code {
             }
           }
           // y/x contains value should copied to name,x and name,x
-          code(" stx @putarray+1"); // zwischenspeichern
-          code(" tya");
+//          code(" stx @putarray+1"); // zwischenspeichern
+//          code(" tya");
+//          code(" ldx @putarray");
+//          code(" sta " + name + "_low,x");
+//          code(" lda @putarray+1"); // aus dem zwischenspeicher holen
+//          code(" sta " + name + "_high,x");
+
+          code(" txa");
           code(" ldx @putarray");
+          code(" sta " + name + "_high,x");          
+          code(" tya");
           code(" sta " + name + "_low,x");
-          code(" lda @putarray+1"); // aus dem zwischenspeicher holen
-          code(" sta " + name + "_high,x");
         }
         else if (source.getVariableType(name) == Type.WORD_ARRAY ||
             source.getVariableType(name) == Type.FAT_WORD_ARRAY) {

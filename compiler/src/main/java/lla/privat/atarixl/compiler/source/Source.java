@@ -197,6 +197,9 @@ public class Source implements Enumeration<Symbol> {
     this.options.setShiftMultDiv(shiftMultDiv);
   }
   
+  public boolean showPeepholeOptimize() {
+    return options.isShowPeepholeOptimize();
+  }
 //
 //                                                   OO        OOO                               OOOOOO                   OO
 //                                                   OO         OO                              OO    OO                  OO
@@ -425,7 +428,9 @@ public class Source implements Enumeration<Symbol> {
     if (variables.containsKey(newName)) {
       error(new Symbol(newName, SymbolEnum.noSymbol), "variable already defined in file:" + variableDefinition.getFilename());
     }
-    LOGGER.info("set variable {} from header.", newName);
+    if (options.isShowVariableUsage()) {
+      LOGGER.info("set variable {} from header.", newName);
+    }
     variables.put(newName, variableDefinition);
     variableList.add(newName);
   }
@@ -550,6 +555,16 @@ public class Source implements Enumeration<Symbol> {
     return 0;
   }
 
+  public void incrementRead(String name) {
+    getVariable(name).incrementRead();
+  }
+  public void incrementWrite(String name) {
+    getVariable(name).incrementWrites();
+  }
+  public void incrementCall(String name) {
+    getVariable(name).incrementCalls();
+  }
+  
   public String generateFunctionNameWithParameters(String name, int countOfParameters) {
     if (countOfParameters > 0) {
       StringBuilder nameBuilder = new StringBuilder();
@@ -578,10 +593,54 @@ public class Source implements Enumeration<Symbol> {
     for (String name : variableList) {
       VariableDefinition definition = getVariable(name);
       generateVariable(definition);
+    }
+    variableStatistics();
+  }
+  
+  
+  public void variableStatistics() {
+    int maxWrites = 0;
+    int maxReads = 0;
+    for (String name : variableList) {
+      VariableDefinition definition = getVariable(name);
 
       if (getVariableType(name) != Type.STRING_ANONYM) {
         if (!definition.hasAnyAccess()) {
-          warn("Variable: '{}' is not used.", name);
+          if (options.isShowVariableUnused()) {
+            warn("Variable: '{}' is not used.", name);
+          }
+        }
+        if (options.isShowVariableUsage()) {
+          maxWrites = Math.max(maxWrites, definition.getWrites());
+          maxReads = Math.max(maxReads, definition.getReads());
+        }
+      }
+    }
+    
+    // Show Variable usage, if parameter -varusage is given
+    // But only the variables which use more then 80% of all usage.
+    // So we can move such variables in zero page register 128-211
+    // this can save some memory.
+    if (options.isShowVariableUsage()) {
+      LOGGER.info("Variable usage count:");
+
+      int showReadsIfGreater = maxReads * 80 / 100;
+      int showWritesIfGreater = maxWrites * 80 / 100;
+      LOGGER.info("show only variables with read usage of at least {} times.", showReadsIfGreater);
+      LOGGER.info("show only variables with write usage of at least {} times.", showWritesIfGreater);
+
+      for (String name : variableList) {
+        if (getVariableType(name) != Type.STRING_ANONYM) {
+          VariableDefinition definition = getVariable(name);
+
+          if (options.isShowVariableUsage()) {
+            if (definition.getReads() > showReadsIfGreater) {
+              LOGGER.info("Variable: '{}' has {} reads", name, definition.getReads());
+            }
+            if (definition.getWrites() > showWritesIfGreater) {
+              LOGGER.info("Variable: '{}' has {} writes", name, definition.getWrites());
+            }
+          }
         }
       }
     }

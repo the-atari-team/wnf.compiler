@@ -3,15 +3,11 @@
 
 package lla.privat.atarixl.compiler;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import lla.privat.atarixl.compiler.expression.Type;
 import lla.privat.atarixl.compiler.linker.FileHelper;
-import lla.privat.atarixl.compiler.linker.IncludeGenerator;
 import lla.privat.atarixl.compiler.linker.Includes;
 import lla.privat.atarixl.compiler.source.Code;
 import lla.privat.atarixl.compiler.source.Source;

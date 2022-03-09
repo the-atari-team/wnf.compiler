@@ -150,10 +150,14 @@ public class For extends Code {
     
     if (step == 1) {
       code(" INC " + variable);
+      source.incrementRead(variable);
+      source.incrementWrite(variable);
       if (typ.getBytes() == 2) {
         code(" BNE ?LOOP" + condi);
         code(" INC " + variable + "+1");
         code("?LOOP" + condi);
+        source.incrementRead(variable);
+        source.incrementWrite(variable);
       }
     }
     else if (step > 1) {
@@ -161,10 +165,14 @@ public class For extends Code {
       code(" LDA " + variable);
       code(" ADC ?FORSTEP" + condi);
       code(" STA " + variable);
+      source.incrementRead(variable);
+      source.incrementWrite(variable);
       if (typ.getBytes() == 2) {
         code(" LDA " + variable + "+1");
         code(" ADC ?FORSTEP" + condi + "+1");
         code(" STA " + variable + "+1");
+        source.incrementRead(variable);
+        source.incrementWrite(variable);
       }
     }
     else if (step == -1 ) {
@@ -173,18 +181,27 @@ public class For extends Code {
         code(" BNE ?LOOP" + condi);
         code(" DEC " + variable + "+1");
         code("?LOOP" + condi);
+        source.incrementRead(variable);
+        source.incrementRead(variable);
+        source.incrementWrite(variable);
       }
       code(" DEC " + variable);
+      source.incrementRead(variable);
+      source.incrementWrite(variable);
     }
     else {
       code(" SEC");
       code(" LDA " + variable);
       code(" SBC ?FORSTEP" + condi);
       code(" STA " + variable);
+      source.incrementRead(variable);
+      source.incrementWrite(variable);
       if (typ.getBytes() == 2) {
         code(" LDA " + variable + "+1");
         code(" SBC ?FORSTEP" + condi + "+1");
         code(" STA " + variable + "+1");
+        source.incrementRead(variable);
+        source.incrementWrite(variable);
       }
     }
     code(" JMP " + forloop);
