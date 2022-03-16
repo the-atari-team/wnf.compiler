@@ -1,28 +1,33 @@
 = Atari 8bit WNF Compiler
+:lang: en
 
 == What is new
 
 * We use StarChain in fix value multiplication like x*3 it will use shift/(add|sub)
   is active per default. Remember multiply only works with positiv values
   Also the fix value must be the last. 3*x will use @IMULT function
++
+The StarChain can completely deactivated by parameter -noscm. The optimize for power of 2 is deactivated if parameter -noshift is given.
 
-  The StarChain can completely deactivated by parameter -noscm. The optimize for power of 2 is deactivated if parameter -noshift is given.
-
-* Small Heap-Pointer with parameter -smallHeapPtr, then the heap is only 256 bytes big. Could be too small for rekursive function calls. But save 8 bytes per procedure call and up to 14 cycles per function/procedure call.
+* Small Heap-Pointer with parameter -smallHeapPtr, if given the heap is only 256 bytes big. Could be too small for recursive function calls. But save 8 bytes per function/procedure call and up to 14 cycles per function/procedure call.
 
 * `const variable=value` is a first try to support const values.
 To get firm with the lot of magic values in code.
 
-* first support of signed int (int8) -128 to 127
-  in for loop, in normal conditions (if, while, until, assert)
+* First support of signed int (int8) -128 to 127
+  in `for` loops, in normal conditions (`if`, `while`, `until`, `assert`)
   But be warned, there is no error if you overflow or underflow.
   In Expressions there will be a "autobox" conversion to word only.
++
+`for i:=-5 to 5 do ...` are possible if variable `i` is of type int8.
 
-* smc in for loop, activateable by parameter -smc, very experimental.
+* Self-Modified-Code (smc) in for loop, activateable by parameter -smc, very experimental.
 
-* simplify the for loop. There is only one test.
+* Simplify the `for` loop. There is only one test in the loop. This is much simpler but with a byte variable we can only count from 0 to 254. With a word variable we can count from -32768 to 32766. The last value is not arrivable any longer. But the code is faster/more clean.
 
-* Update in for loop, STEP can set as in Basic.
+* Update in `for` loop, `STEP` can set like in Basic.
++
+`for i:=0 to 10 step 2 do ...`
 
 * Parameter name expansion like in C++ language.
 Every parameter is marked by an extra 'i' so a function name must contain also it's count of parameters.
@@ -34,7 +39,7 @@ If you have an external assembler function named by a name
 
 One extra point:: Some functions allows different count of parameters, like @printf() function.
 Now we need to add the parameters expansion here by give lot of extra i
-
++
   @printf_i
   @printf_ii
   @printf_iii
@@ -47,11 +52,15 @@ looks stupid, but at the moment there is no better way.
 * Split word array access for arrays smaller than 257 items into a low byte and a high byte array.
 So we can access with simple x/y-register access to `<array name>_low` and `<array name>_high` values,
 which allows much faster access to it's values.
-
++
 `word array name[@split] = address_name`
 Assign an address to a word array and use it as split-array. In the assembler program you need to define all names right. Here:
++
 ```
 address_name
 address_name_low .byte <1,<2,0,...  ; sample values
 address_name_high .byte >1,>2,0,...
 ```
+
+* Due to the fact our program can exist of lot of files, all need to include, there exist one implicit header file. This header.wnf file can contain lot of const declarations you would like to use in different include files, also byte and word declarations are allowed. Everything what do not generate real code is possible.
+
