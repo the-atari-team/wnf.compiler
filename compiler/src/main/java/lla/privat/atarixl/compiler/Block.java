@@ -33,35 +33,41 @@ public class Block extends Code {
   public Block start(Header header) {
     Symbol currentSymbol = source.nextElement();
 
+    // PROGRAM name
+    // LOMEM=<ADDR>,RUNAD
+    // or
+    // INCLUDE prefix:name
+
     nextSymbol = new Program(source).program(currentSymbol).build();
 
-    code(";Compiled with WiNiFe Compiler");
-    code(";cdw by 'The Atari Team' 1990-2021");
-    code(";LLA: make it work again");
+    code("; Compiled with WiNiFe Compiler");
+    code("; cdw by 'The Atari Team' 1990-2022");
+    code("; LLA: make it work again");
 
     if (!source.isProgram()) {
+      // we are an INCLUDE part
+      // use .local for variables
       code(" .local");
     }
-  
-//    code(" .OPT LIST");
-//    code(" .TITLE " + StringHelper.makeDoubleQuotedString(source.getProgramOrIncludeName()));
+
     if (source.isProgram()) {
       code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("VARIABLE.INC")));
       code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("HARDWARE.INC")));
       code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("MACROS.INC")));
 
       if (source.isRunAd()) {
+        // LOMEM=<ADDR>,RUNAD is given, we must use .bank here
         code(" .bank");
         code(" .set 6,0");
       }
       code(" *=" + source.getLomem());
 
-      code(" JMP @MAIN");
-      code(" JMP @BASIC_MAIN");
+      code(" JMP @MAIN");        // Jump to @MAIN
+      code(" JMP @BASIC_MAIN");  // Initialise the Parameters from Basic (in RUNTIME.INC), then Jump to @MAIN_FROM_BASIC
     }
 
     if (header != null) {
-      code(";Header Variables");
+      code("; Header variables");
 
       for (String name :header.getVariableList()) {
         VariableDefinition definition = header.getVariable(name);
@@ -70,11 +76,13 @@ public class Block extends Code {
       source.generateAllNotAlreadyGeneratedEquatesVariables();
     }
 
+    // Global (variables, procedures or functions)+
     nextSymbol = procedures(nextSymbol);
 
     if (source.isProgram()) {
-      LOGGER.debug("Hauptroutine");
-      code("; ----<<< Hauptroutine >>>----");
+      // initialise the main function here, only in PROGRAM
+      LOGGER.debug("Main function");
+      code("; ----<<< main function >>>----");
       code("@MAIN");
       code(" LDY #0"); // Wichtig, wird auf den Heap-Pointer addiert (vom Basic fuer Parameter
                        // verwendet)
@@ -82,14 +90,17 @@ public class Block extends Code {
       code(" TSX"); // Speichere den aktuellen Stackpointer, hinter evtl. Basic!
       code(" JSR @INIT_RUNTIME");
 
+      // this is the main statement
       nextSymbol = new Statement(source).statement(nextSymbol).build();
 
       code(" JMP @EXIT");
       source.generateVariables();
 
+      // (include 'include-file')+
       nextSymbol = new Includes(source, fileHelper).readAllIncludes(nextSymbol).build();
-      
+
       if (source.isRunAd()) {
+        // LOMEM=<ADDR>,RUNAD is given, we must use .bank here
         code(" .bank");
         code(" .set 6,0");
         code(" *=736");
