@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -659,7 +659,7 @@ public class TestAssignment {
     Assert.assertEquals("; (13)", source.getCode().get(++n));
     Assert.assertEquals(" LDY #<@COLOR", source.getCode().get(++n));
     Assert.assertEquals(" LDX #>@COLOR", source.getCode().get(++n));
-    
+
     Assert.assertEquals("; (8)", source.getCode().get(++n));
     Assert.assertEquals(" SEC", source.getCode().get(++n));
     Assert.assertEquals(" TYA", source.getCode().get(++n));
@@ -668,11 +668,11 @@ public class TestAssignment {
     Assert.assertEquals(" TXA", source.getCode().get(++n));
     Assert.assertEquals(" SBC #>2", source.getCode().get(++n));
     Assert.assertEquals(" TAX", source.getCode().get(++n));
-    
+
     Assert.assertEquals(" STY X", source.getCode().get(++n));
     Assert.assertEquals(" STX X+1", source.getCode().get(++n));
   }
-  
+
   @Test
   public void testAssignmentX_Word_equal_Y_const_add_zahl_1() {
     Source source = new Source("x:=y+1").setVerboseLevel(2);

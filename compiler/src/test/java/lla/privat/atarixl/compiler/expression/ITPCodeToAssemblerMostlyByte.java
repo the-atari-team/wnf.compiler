@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -355,13 +355,13 @@ public class ITPCodeToAssemblerMostlyByte {
 
     source.addVariable("X", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
-    
+
     Type ergebnis = Type.BYTE;
     PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
-    
+
     pcodeGenerator.build();
     List<String> code = source.getCode();
-    
+
     int n=-1;
     Assert.assertEquals("; (4)", code.get(++n));
     Assert.assertEquals(" LDY X", code.get(++n));
@@ -371,29 +371,29 @@ public class ITPCodeToAssemblerMostlyByte {
     Assert.assertEquals(" ASL A", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
-    
+
     Assert.assertEquals(8, code.size());
   }
- 
+
   @Test
   public void testExpressionXEorY() {
     Source source = new Source("X xor Y ");
     source.addVariable("X", Type.BYTE);
     source.addVariable("Y", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
-    
+
     Type ergebnis = Type.BYTE;
     PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
-    
+
     pcodeGenerator.build();
     List<String> code = source.getCode();
-    
+
     int n=-1;
     Assert.assertEquals("; (3)", code.get(++n));
     Assert.assertEquals(" LDA X", code.get(++n));
     Assert.assertEquals(" EOR Y", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
-    
+
     Assert.assertEquals(4, code.size());
   }
 

@@ -1,4 +1,4 @@
-//cdw by 'The Atari Team' 2021
+//cdw by 'The Atari Team' 2022
 //licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -7,7 +7,7 @@ public enum ArtOfUsageEnum {
   UNDEFINED(0), READ(1), WRITE(2), ALL(3);
 
   private int internValue;
- 
+
   private ArtOfUsageEnum(int value) {
     internValue = value;
   }
@@ -15,7 +15,7 @@ public enum ArtOfUsageEnum {
   private int getValue() {
     return internValue;
   }
-  
+
   public ArtOfUsageEnum getAtLeastUsage(ArtOfUsageEnum usage) {
     if ((usage.getValue() & getValue()) != 0) {
       return this;

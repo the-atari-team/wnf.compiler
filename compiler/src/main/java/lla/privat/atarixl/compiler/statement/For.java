@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.statement;
@@ -35,12 +35,12 @@ public class For extends Code {
   private Type typ;
 
   private int condi;
-  
+
   private String forloop;
   private String exitVariable;
-  
+
   private Expression expressionAfterToOrDownto;
-  
+
   public For(Source source) {
     super(source);
 
@@ -66,14 +66,14 @@ public class For extends Code {
    * @param symbol
    * @return
    */
-  
+
   public For statement(Symbol symbol) {
     source.match(symbol, "FOR");
 
     //
     // FOR variable := <Expression> (to|downto) <Expression> (STEP <Expression>) DO
     //     ^^^^^^^^^^^^^^^^^^^^^^^^
-    
+
     Symbol variableSymbol = source.nextElement();
 
     variable = variableSymbol.get();
@@ -101,24 +101,24 @@ public class For extends Code {
 
     source.incrementLoopCount();
     condi = source.getLoopCount();
-    
+
     //
     // FOR variable := <Expression> (to|downto) <Expression> (STEP <Expression>) DO
-    //                                          ^^^^^^^^^^^^  
-    
+    //                                          ^^^^^^^^^^^^
+
     expressionAfterToOrDownto = new Expression(source).setType(typ).expression(nextSymbol);
     nextSymbol = expressionAfterToOrDownto.getLastSymbol();
-    
+
     //
     // FOR variable := <Expression> (to|downto) <Expression> (STEP <Expression>) DO
     //                                                       ^^^^^^^^^^^^^^^^^^^
-    
+
     if (nextSymbol.get().equals("STEP")) {
       nextSymbol = source.nextElement();
 
       Expression stepExpression = new Expression(source).setType(typ).expression(nextSymbol);
       nextSymbol = stepExpression.build();
-      
+
       code(" sty ?FORSTEP" + condi);
       if (stepExpression.getType().getBytes() == 2) {
         code(" stx ?FORSTEP" + condi + "+1");
@@ -134,20 +134,20 @@ public class For extends Code {
     else {
       forloop = "?forloop" + condi;
     }
-    
+
     //
     // FOR variable := <Expression> (to|downto) <Expression> (STEP <Expression>) DO
     //                                                                           ^^
-    
+
     source.match(nextSymbol, "DO");
 
     nextSymbol = expressionAfterToOrDownto(variableSymbol);
-    
+
     nextSymbol = source.nextElement();
     nextSymbol = new Statement(source).statement(nextSymbol).build();
 
     // Pruefen, ob Ende erreicht wurde hier ausgebaut, wir nutzen das am Anfang
-    
+
     if (step == 1) {
       code(" INC " + variable);
       source.incrementRead(variable);
@@ -213,11 +213,11 @@ public class For extends Code {
   }
 
 
-  
+
   private Symbol expressionAfterToOrDownto(Symbol variableSymbol) {
 
     Symbol nextSymbol = expressionAfterToOrDownto.build();
-    
+
     // Zuweisung an y,x variable
     code(" sty ?for" + condi);
     if (typ.getBytes() == 2) { // signed
@@ -301,7 +301,7 @@ public class For extends Code {
       }
 
     }
-    
+
     exitVariable = "?exit" + condi;
     code(" jmp "+exitVariable);
     source.addBreakVariable(exitVariable);
@@ -311,8 +311,8 @@ public class For extends Code {
 
     return nextSymbol;
   }
-  
-  
+
+
   public Symbol build() {
     return nextSymbol;
   }

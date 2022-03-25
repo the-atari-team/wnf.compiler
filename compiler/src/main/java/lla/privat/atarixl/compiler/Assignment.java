@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -171,7 +171,7 @@ public class Assignment extends Code {
 
           code(" txa");
           code(" ldx @putarray");
-          code(" sta " + name + "_high,x");          
+          code(" sta " + name + "_high,x");
           code(" tya");
           code(" sta " + name + "_low,x");
         }

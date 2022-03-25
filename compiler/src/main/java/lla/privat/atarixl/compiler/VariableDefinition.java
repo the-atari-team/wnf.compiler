@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -17,7 +17,7 @@ public class VariableDefinition {
   private final String name;
   private Type type;
   private String prefix;
-  
+
   private String address;
   private int sizeOfArray;
   private final List<String> arrayContent;
@@ -27,10 +27,10 @@ public class VariableDefinition {
   private int reads;
   private int writes;
   private int calls;
-  
+
   // Hier ablegen, aus welcher Datei die Definition kommt, so kann ich Fehler besser verfolgen
   private final String sourcecode_filename;
-  
+
   private ArtOfUsageEnum artOfUsage;
 
   public VariableDefinition(String name, Type type, String sourcecode_filename) {
@@ -101,7 +101,7 @@ public class VariableDefinition {
   public void incrementRead() {
     reads ++;
   }
-  
+
   public void setWrite() {
     if (type.equals(Type.CONST)) {
       throw new IllegalStateException("CONST Variable "+name+" can't be written.");
@@ -109,12 +109,12 @@ public class VariableDefinition {
     artOfUsage = artOfUsage.getAtLeastUsage(ArtOfUsageEnum.WRITE);
   }
   public void incrementWrites() {
-    writes ++;    
+    writes ++;
   }
   public void incrementCalls() {
     calls ++;
   }
-  
+
   public boolean hasAnyAccess() {
     return artOfUsage.hasAnyAccess();
   }
@@ -146,7 +146,7 @@ public class VariableDefinition {
   public boolean hasAddress() {
     return address != null;
   }
-  
+
   public void setArray(List<String> arrayContent) {
     for (String item : arrayContent) {
       this.arrayContent.add(item);
@@ -179,7 +179,7 @@ public class VariableDefinition {
   public int getReads() {
     return reads;
   }
-  
+
   public int getWrites() {
     return writes;
   }

@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -209,7 +209,7 @@ public class TestFunction {
     Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
     Assert.assertEquals(" BCC *+4", code.get(++n));
     Assert.assertEquals(" INC @HEAP_PTR+1", code.get(++n));
-    
+
     Assert.assertEquals(" LDA B", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));

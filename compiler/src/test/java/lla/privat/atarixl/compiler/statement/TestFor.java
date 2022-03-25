@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.statement;
@@ -26,7 +26,7 @@ public class TestFor {
     Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
 
     Assert.assertEquals(2, source.getVariable("I").getWrites());
-    
+
     List<String> code = source.getCode();
 
     int n=-1;
@@ -39,7 +39,7 @@ public class TestFor {
     Assert.assertEquals(" STY ?FOR1", code.get(++n));
 
     Assert.assertEquals("?FORLOOP1", code.get(++n));
-    
+
     Assert.assertEquals(" LDY ?FOR1", code.get(++n)); // check ob nicht schon am Ende
     Assert.assertEquals(" CPY I", code.get(++n));
     Assert.assertEquals(" BCS ?GO1", code.get(++n));
@@ -417,14 +417,14 @@ public class TestFor {
     Assert.assertEquals("; (5)", code.get(++n));
     Assert.assertEquals(" LDY #<2", code.get(++n));
     Assert.assertEquals(" STY ?FORSTEP1", code.get(++n));
-    
+
     Assert.assertEquals("; (5)", code.get(++n));
     Assert.assertEquals(" LDY #<10", code.get(++n));
     Assert.assertEquals(" STY ?FOR1", code.get(++n));
 
 
     Assert.assertEquals("?FORLOOP_AFTERSTEP1", code.get(++n));
-    
+
     Assert.assertEquals(" LDY ?FOR1", code.get(++n)); // check ob nicht schon am Ende
     Assert.assertEquals(" CPY I", code.get(++n));
     Assert.assertEquals(" BCS ?GO1", code.get(++n));
@@ -443,7 +443,7 @@ public class TestFor {
     Assert.assertEquals(" LDA I", code.get(++n));
     Assert.assertEquals(" ADC ?FORSTEP1", code.get(++n));
     Assert.assertEquals(" STA I", code.get(++n));
-    
+
     Assert.assertEquals(" JMP ?FORLOOP_AFTERSTEP1", code.get(++n));
     Assert.assertEquals("?EXIT1", code.get(++n));
   }

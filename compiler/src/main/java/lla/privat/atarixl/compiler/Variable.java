@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -117,7 +117,7 @@ public class Variable {
             n = Integer.parseInt(arrayCount.get());
           }
         else {
-          source.error(nextSymbol, "unexpected array size, number or '@SPLIT' expected.");          
+          source.error(nextSymbol, "unexpected array size, number or '@SPLIT' expected.");
         }
         lastType = makeArrayType(lastType, n);
         source.addVariable(name, lastType, n);

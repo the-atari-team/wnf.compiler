@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.source;
@@ -39,7 +39,7 @@ public class Source implements Enumeration<Symbol> {
   private String programOrIncludeName;
 
   private Options options;
-  
+
   // true when we are a program, else we are an include
   private boolean isProgram;
 
@@ -72,11 +72,11 @@ public class Source implements Enumeration<Symbol> {
   private String filename;
 
 //  private boolean starChainMult;
-  
+
   public Source(final String sourceCode) {
     this.showCode = false;
     this.options = new Options();
-    
+
     this.programTokenizer = new SymbolTokenizer(sourceCode + " "); // TODO: Das Whitespace am Ende macht vieles einfacher!
     variables = new HashMap<>();
 
@@ -94,7 +94,7 @@ public class Source implements Enumeration<Symbol> {
   public void setOptions(Options options) {
     this.options = options;
   }
-  
+
   /**
    * Der Name des zu erstellenden Programs kommt aus der 1. Zeile PROGRAM <name>
    *
@@ -152,7 +152,7 @@ public class Source implements Enumeration<Symbol> {
   public boolean isRunAd() {
     return runAddress;
   }
-  
+
   public boolean isProgram() {
     return isProgram;
   }
@@ -172,7 +172,7 @@ public class Source implements Enumeration<Symbol> {
     this.options.setVerboseLevel(level);
     return this;
   }
-  
+
   public boolean isSelfModifiedCode() {
     return options.isSelfModifiedCode();
   }
@@ -192,11 +192,11 @@ public class Source implements Enumeration<Symbol> {
   public boolean isShiftMultDiv() {
     return options.isShiftMultDiv();
   }
-  
+
   public void setShiftMultDiv(boolean shiftMultDiv) {
     this.options.setShiftMultDiv(shiftMultDiv);
   }
-  
+
   public boolean showPeepholeOptimize() {
     return options.isShowPeepholeOptimize();
   }
@@ -233,7 +233,7 @@ public class Source implements Enumeration<Symbol> {
   }
 
 //  private int heapPtrCheck = 0;
-  
+
   public void sub_from_heap_ptr(int count) {
     code(" SEC"); //              ;2
     code(" LDA @HEAP_PTR"); //    ;3
@@ -246,7 +246,7 @@ public class Source implements Enumeration<Symbol> {
 //    code("?NO_DEC_HIGH_HEAP_PTR");
     }
   }
-  
+
   public void add_to_heap_ptr(int count) {
     code(" CLC"); //              ;2 (Takte)
     code(" LDA @HEAP_PTR"); //    ;3
@@ -286,7 +286,7 @@ public class Source implements Enumeration<Symbol> {
     codelineBuffer.append('[');
     codelineBuffer.append(lineNumber);
     codelineBuffer.append("]  ");
-    codelineBuffer.append(sourceCodeLine);    
+    codelineBuffer.append(sourceCodeLine);
     code(codelineBuffer.toString());
     code(";");
   }
@@ -434,7 +434,7 @@ public class Source implements Enumeration<Symbol> {
     variables.put(newName, variableDefinition);
     variableList.add(newName);
   }
-  
+
   public boolean isArrayType(Type type) {
     return (type.equals(Type.BYTE_ARRAY) ||
         type.equals(Type.STRING) ||
@@ -512,7 +512,7 @@ public class Source implements Enumeration<Symbol> {
 
     case CONST:
       return Type.CONST;
-      
+
     default:
         return Type.WORD;
     }
@@ -564,7 +564,7 @@ public class Source implements Enumeration<Symbol> {
   public void incrementCall(String name) {
     getVariable(name).incrementCalls();
   }
-  
+
   public String generateFunctionNameWithParameters(String name, int countOfParameters) {
     if (countOfParameters > 0) {
       StringBuilder nameBuilder = new StringBuilder();
@@ -596,8 +596,8 @@ public class Source implements Enumeration<Symbol> {
     }
     variableStatistics();
   }
-  
-  
+
+
   public void variableStatistics() {
     int maxWrites = 0;
     int maxReads = 0;
@@ -616,7 +616,7 @@ public class Source implements Enumeration<Symbol> {
         }
       }
     }
-    
+
     // Show Variable usage, if parameter -varusage is given
     // But only the variables which use more then 80% of all usage.
     // So we can move such variables in zero page register 128-211
@@ -667,7 +667,7 @@ public class Source implements Enumeration<Symbol> {
           code(name + " = " + address);
           if (definition.getType() == Type.WORD_SPLIT_ARRAY) {
             code(name + "_LOW = " + definition.getAddress() + "_LOW");
-            code(name + "_HIGH = " + definition.getAddress() + "_HIGH");            
+            code(name + "_HIGH = " + definition.getAddress() + "_HIGH");
           }
         }
         definition.setGenerated(true);
@@ -771,7 +771,7 @@ public class Source implements Enumeration<Symbol> {
         public String getElement(int index) {
           String element = definition.getArrayElement(index);
           if (StringHelper.isSingleQuotedString(element)) {
-            element = "?STRING" + getVariablePosition(element); 
+            element = "?STRING" + getVariablePosition(element);
           }
           return "<" + element;
         }
@@ -784,7 +784,7 @@ public class Source implements Enumeration<Symbol> {
         public String getElement(int index) {
           String element = definition.getArrayElement(index);
           if (StringHelper.isSingleQuotedString(element)) {
-            element = "?STRING" + getVariablePosition(element); 
+            element = "?STRING" + getVariablePosition(element);
           }
           return ">" + element;
         }
@@ -799,7 +799,7 @@ public class Source implements Enumeration<Symbol> {
       code(" *=*+" + definition.getSizeOfArray());
     }
   }
-  
+
   private void generateByteArray(String name, VariableDefinition definition) {
     if (definition.getAddress() != null) {
       code(name + " = " + definition.getAddress());
@@ -826,7 +826,7 @@ public class Source implements Enumeration<Symbol> {
     if (variables.containsKey(name)) {
       VariableDefinition definition = variables.get(name);
       definition.setArray(arrayValues);
-      
+
       if (definition.getType() == Type.STRING) {
         if (arrayValues.size() != 2) {
           error(new Symbol(name, SymbolEnum.noSymbol), "byte array " + name + " must contain more than one element");
@@ -921,7 +921,7 @@ public class Source implements Enumeration<Symbol> {
       error(new Symbol(name, SymbolEnum.noSymbol), "Const Variable '" + name + "' must set with variable or integer");
     }
   }
-  
+
   public void error(Symbol symbol, String message) {
     programTokenizer.error(symbol, message);
   }

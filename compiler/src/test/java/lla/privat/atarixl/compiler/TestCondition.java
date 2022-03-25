@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -77,7 +77,7 @@ public class TestCondition {
     Assert.assertEquals("; Bedingung (a==b)", code.get(++n));
     Assert.assertEquals(" LDA #0", code.get(++n));
     Assert.assertEquals(" STA @ERG+1", code.get(++n));
-    
+
     Assert.assertEquals(" CPY @ERG", code.get(++n));
     Assert.assertEquals(" BNE ?FA1", code.get(++n));
     Assert.assertEquals(" CPX @ERG+1", code.get(++n));
@@ -326,7 +326,7 @@ public class TestCondition {
 //    Assert.assertEquals(" LDA #0", code.get(++n));
 //    Assert.assertEquals(" AND #>1", code.get(++n));
 //    Assert.assertEquals(" TAX", code.get(++n));
-    
+
     Assert.assertEquals(" STY @ERG", code.get(++n));
 //    Assert.assertEquals(" STX @ERG+1", code.get(++n));
     Assert.assertEquals("; (5)", code.get(++n));

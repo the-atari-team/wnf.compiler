@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -21,7 +21,7 @@ public class TestBlock {
     blockSUT = new Block(source);
 
     Symbol build = blockSUT.start(null).build();
-    
+
     Assert.assertEquals("", build.get());
 
     List<String> codelines = source.getCode();

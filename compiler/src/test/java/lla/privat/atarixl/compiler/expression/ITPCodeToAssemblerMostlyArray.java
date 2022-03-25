@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -180,7 +180,7 @@ public class ITPCodeToAssemblerMostlyArray {
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" INY", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
-    Assert.assertEquals("; (17)", code.get(++n));   
+    Assert.assertEquals("; (17)", code.get(++n));
 //    Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
     Assert.assertEquals(" CLC", code.get(++n));
     Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
@@ -188,7 +188,7 @@ public class ITPCodeToAssemblerMostlyArray {
     Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
     Assert.assertEquals(" BCC *+4", code.get(++n));
     Assert.assertEquals(" INC @HEAP_PTR+1", code.get(++n));
-    
+
     Assert.assertEquals("; (5)", code.get(++n));
     Assert.assertEquals(" LDY #<3", code.get(++n));
     Assert.assertEquals(" LDX #>3", code.get(++n));
@@ -202,7 +202,7 @@ public class ITPCodeToAssemblerMostlyArray {
     Assert.assertEquals("; (14)", code.get(++n));
     Assert.assertEquals(" JSR Y_I", code.get(++n));
     Assert.assertEquals("; (18)", code.get(++n));
-//    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));   
+//    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
     Assert.assertEquals(" SEC", code.get(++n));
     Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
     Assert.assertEquals(" SBC #3", code.get(++n));
@@ -221,14 +221,14 @@ public class ITPCodeToAssemblerMostlyArray {
     Assert.assertEquals(" JSR F_II", code.get(++n));
 
   }
-  
-  
+
+
   @Test
   public void testExpressionByteArrayLength() {
     Source source = new Source("x_length ");
     source.addVariable("X", Type.BYTE_ARRAY, 2);
     source.addVariable("Y", Type.BYTE);
-    
+
     List<Integer> p_code = getPCodeOf(source);
 
     Type ergebnis = Type.WORD;

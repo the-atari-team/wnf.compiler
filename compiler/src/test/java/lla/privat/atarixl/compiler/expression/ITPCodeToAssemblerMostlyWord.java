@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -285,8 +285,8 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" SBC @PRODUKT+1", code.get(++n));
     Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1
     Assert.assertEquals(" TYA", code.get(++n));
-    
-    Assert.assertEquals(" ASL A", code.get(++n)); 
+
+    Assert.assertEquals(" ASL A", code.get(++n));
     Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));
     Assert.assertEquals(" ROL @OP+1", code.get(++n)); // * 4
@@ -298,13 +298,13 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" LDA @OP+1", code.get(++n));
     Assert.assertEquals(" SBC @PRODUKT+1", code.get(++n));
-    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1   
+    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1
     Assert.assertEquals(" TYA", code.get(++n));
 
 //    Assert.assertEquals(" LDY @OP", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" LDX @OP+1", code.get(++n));
-    
+
 //    Assert.assertEquals(" LDA #<123", code.get(++n));
 //    Assert.assertEquals(" STA @OP", code.get(++n));
 //    Assert.assertEquals(" LDA #>123", code.get(++n));
@@ -375,7 +375,7 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));
     Assert.assertEquals(" ROL @OP+1", code.get(++n));
-    
+
 //    LDA %1+0       ;Test if the LSB is zero
 //    BNE SKIP       ;If it isn't we can skip the next instruction
 //    DEC %1+1       ;Decrement the MSB when the LSB will underflow
@@ -386,9 +386,9 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" LDA @OP+1", code.get(++n));
     Assert.assertEquals(" SBC @PRODUKT+1", code.get(++n));
-    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1   
+    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1
     Assert.assertEquals(" TYA", code.get(++n));
-    
+
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" LDX @OP+1", code.get(++n));
 
@@ -424,7 +424,7 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));
     Assert.assertEquals(" ROL @OP+1", code.get(++n));
-    
+
 //    LDA %1+0       ;Test if the LSB is zero
 //    BNE SKIP       ;If it isn't we can skip the next instruction
 //    DEC %1+1       ;Decrement the MSB when the LSB will underflow
@@ -437,7 +437,7 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" ADC @PRODUKT+1", code.get(++n));
     Assert.assertEquals(" STA @OP+1", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
-    
+
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" LDX @OP+1", code.get(++n));
 
@@ -528,7 +528,7 @@ public class ITPCodeToAssemblerMostlyWord {
     Source source = new Source("2 * 4 ");
     source.setShiftMultDiv(false);
     source.setStarChainMult(false);
-    
+
     List<Integer> p_code = getPCodeOf(source);
 
     Type ergebnis = Type.WORD;
@@ -603,7 +603,7 @@ public class ITPCodeToAssemblerMostlyWord {
   public void testExpressionXMulZahlNoStarChain() {
     Source source = new Source("X * 123 ");
     source.setStarChainMult(false);
-    
+
     source.addVariable("X", Type.WORD);
     List<Integer> p_code = getPCodeOf(source);
 
@@ -709,9 +709,9 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" LDA @OP+1", code.get(++n));
     Assert.assertEquals(" SBC @PRODUKT+1", code.get(++n));
-    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1   
+    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1
     Assert.assertEquals(" TYA", code.get(++n));
-    
+
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" LDX @OP+1", code.get(++n));
 
@@ -993,13 +993,13 @@ public class ITPCodeToAssemblerMostlyWord {
 
     source.addVariable("X", Type.BYTE);
     List<Integer> p_code = getPCodeOf(source);
-    
+
     Type ergebnis = Type.WORD;
     PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
-    
+
     pcodeGenerator.build();
     List<String> code = source.getCode();
-    
+
     int n=-1;
     Assert.assertEquals("; (4)", code.get(++n));
     Assert.assertEquals(" LDY X", code.get(++n));
@@ -1014,7 +1014,7 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" ROL @OP+1", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" LDX @OP+1", code.get(++n));
-    
+
     Assert.assertEquals(13, code.size());
   }
 
@@ -1024,18 +1024,18 @@ public class ITPCodeToAssemblerMostlyWord {
     source.addVariable("A__", Type.WORD);
     source.addVariable("B", Type.CONST);
     source.setVariableAddress("B", "123");
-    
+
     List<Integer> p_code = getPCodeOf(source);
-    
+
     Type ergebnis = Type.WORD;
     PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
-    
+
     pcodeGenerator.build();
     List<String> code = source.getCode();
-    
+
     int n=-1;
     Assert.assertEquals("; (3)", code.get(++n));
-    Assert.assertEquals(" CLC", code.get(++n));    
+    Assert.assertEquals(" CLC", code.get(++n));
     Assert.assertEquals(" LDA A__", code.get(++n));
     Assert.assertEquals(" ADC #<123", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
@@ -1044,5 +1044,5 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" TAX", code.get(++n));
     Assert.assertEquals(8, code.size());
   }
-  
+
 }

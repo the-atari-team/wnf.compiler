@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.optimization;
@@ -364,7 +364,7 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(5, source.getCode().size());
     List<String> code = source.getCode();
     int n=-1;
-    
+
     Assert.assertEquals(" LDY B", code.get(++n));
     Assert.assertEquals(" LDA B+1 ; (8)", code.get(++n));
     Assert.assertEquals(" CPY A ; (8)", code.get(++n));
@@ -683,7 +683,7 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(" BEQ ?FA1", source.getCode().get(3));
     Assert.assertEquals("?TR1", source.getCode().get(4));
     Assert.assertEquals(" ...", source.getCode().get(5));
-    
+
   }
 
 
@@ -922,7 +922,7 @@ public class TestPeepholeOptimizer {
 
     Assert.assertEquals(3, source.getCode().size());
   }
-  
+
   @Test
   public void test_bcc_ldx_ldx() {
     List<String> list = new ArrayList<>();

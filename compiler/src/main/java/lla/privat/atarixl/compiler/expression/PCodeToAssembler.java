@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -402,7 +402,7 @@ public class PCodeToAssembler extends Code {
             code(" " + mne$ + " " + a$);
           }
           code(" tay");
-          
+
           if (ergebnis.getBytes() != 1) {
             code(" txa");
             if (y == PCode.INT_ZAHL.getValue()) {
@@ -673,7 +673,7 @@ public class PCodeToAssembler extends Code {
       exponent = -1;
     }
     if  (!source.isShiftMultDiv()) {
-      exponent = -1;      
+      exponent = -1;
     }
 
     if (exponent > 0 && Math.pow(2, exponent) == value && pcode != PCode.IMOD) { // nicht modulo

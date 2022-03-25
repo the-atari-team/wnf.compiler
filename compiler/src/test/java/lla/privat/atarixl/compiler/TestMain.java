@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -24,10 +24,10 @@ public class TestMain {
     mainSUT = new Main();
   }
 
-  
+
   // HINT: Mehr Tests für class Main in ITMain.java
-  
-  
+
+
   @Test
   public void test() throws IOException {
     Assert.assertEquals("lla.privat.atarixl.compiler.Main", mainSUT.getClass().getCanonicalName());

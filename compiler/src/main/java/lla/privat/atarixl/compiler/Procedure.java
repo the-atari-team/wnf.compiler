@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -86,7 +86,7 @@ public class Procedure extends Code {
     return this;
   }
 
-    
+
   private void freeLocalVariables() {
     if (localVariableCount > 1) {
       yregistersafe = false;
@@ -95,7 +95,7 @@ public class Procedure extends Code {
         yregistersafe = true;
       }
       source.sub_from_heap_ptr(localVariableCount);
-      
+
       while (localVariableCount > 1) {
         String variable = localVariables.pop();
         Type typ = source.getVariableType(variable);
@@ -119,7 +119,7 @@ public class Procedure extends Code {
         yregistersafe = true;
       }
       source.sub_from_heap_ptr(innerCallParameterPosition);
-      
+
       while (innerCallParameterPosition > 1) {
         String variable = callVariables.pop();
         Type typ = source.getVariableType(variable);

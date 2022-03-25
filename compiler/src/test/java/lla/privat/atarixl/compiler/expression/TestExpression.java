@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -89,13 +89,13 @@ public class TestExpression {
     Assert.assertEquals("167 184 9999999", expressionSUT.joinedPCode());
     Assert.assertTrue(expressionSUT.isPrecalculationPossible());
   }
-  
+
   @Test
   public void testExpressionHashValue() {
     Source source = new Source("#2320 ");
 
     setupWordExpression(source);
-    
+
     Assert.assertEquals("160 184", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
@@ -148,7 +148,7 @@ public class TestExpression {
     source.addVariable("B", Type.BYTE);
     source.addVariable("X", Type.CONST);
     source.setVariableAddress("X", "123");
-    
+
     setupExpression(source, Type.BYTE);
     Assert.assertEquals("168 0 162 160 123 163 8", expressionSUT.joinedPCode());
 
@@ -166,7 +166,7 @@ public class TestExpression {
     source.addVariable("B", Type.WORD);
     source.addVariable("X", Type.CONST);
     source.setVariableAddress("X", "B");
-    
+
     setupWordExpression(source);
     Assert.assertEquals("254 171 0", expressionSUT.joinedPCode());
 
@@ -536,7 +536,7 @@ public class TestExpression {
     Assert.assertEquals("254 171 0", expressionSUT.joinedPCode());
 
     Assert.assertEquals("@X", source.getVariableAt(0));
-    
+
     expressionSUT.optimisation();
     Assert.assertEquals("254 171 0 9999999", expressionSUT.joinedPCode());
     Assert.assertTrue(expressionSUT.isPrecalculationPossible());
@@ -814,7 +814,7 @@ public class TestExpression {
     source.addVariable("A__", Type.WORD);
     source.addVariable("B", Type.CONST);
     source.setVariableAddress("B", "123");
-    
+
     setupExpression(source, Type.BYTE);
     Assert.assertEquals("168 0 162 160 123 163 8", expressionSUT.joinedPCode());
 
@@ -825,7 +825,7 @@ public class TestExpression {
     Assert.assertEquals("168 0 16 167 123 9999999", expressionSUT.joinedPCode());
     Assert.assertFalse(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
-  }  
+  }
 
   @Test(expected = IllegalStateException.class)
   public void testExpressionCAllFunctionWithOtherThanByteOrWord() {

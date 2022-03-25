@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -111,7 +111,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" LDA #>1", code.get(++n));
     Assert.assertEquals(" ADC #0", code.get(++n));
     Assert.assertEquals(" TAX", code.get(++n));
-    
+
     Assert.assertEquals(8, code.size());
   }
 
@@ -137,7 +137,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" LDA Y+1", code.get(++n));
     Assert.assertEquals(" ADC #0", code.get(++n));
     Assert.assertEquals(" TAX", code.get(++n));
-    
+
     Assert.assertEquals(8, code.size());
   }
 
@@ -173,7 +173,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (4)", code.get(++n));
     Assert.assertEquals(" LDY Y", code.get(++n));
     Assert.assertEquals(" LDX Y+1", code.get(++n));
-    
+
     Assert.assertEquals(" TYA", code.get(++n));
     Assert.assertEquals(" STX @OP+1", code.get(++n));
     Assert.assertEquals(" ASL A", code.get(++n));
@@ -195,7 +195,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" ADC @OP+1", code.get(++n));
     Assert.assertEquals(" TAX", code.get(++n));
-    
+
     Assert.assertEquals(36, code.size());
   }
 
@@ -217,7 +217,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("; (13)", code.get(++n));
     Assert.assertEquals(" LDY #<P", code.get(++n));
     Assert.assertEquals(" LDX #>P", code.get(++n));
-    
+
     Assert.assertEquals("; (8)", code.get(++n));
     Assert.assertEquals(" CLC", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
@@ -921,15 +921,15 @@ public class ITPCodeToAssemblerOther {
 
     Assert.assertEquals(n + 1, code.size());
   }
-  
-  
+
+
   @Test
   public void testExpressionPrintf2ParameterStringUint16() {
     Source source = new Source("@printf('%s%D\\n', u16) ");
     source.addVariable("@PRINTF", Type.FUNCTION);
     source.addVariable("'%s%D\\n'", Type.STRING_ANONYM);
     source.addVariable("U16", Type.UINT16);
-    
+
     List<Integer> p_code = getPCodeOf(source);
 
     Type ergebnis = Type.WORD;

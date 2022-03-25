@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler;
@@ -41,7 +41,7 @@ public class Main {
   private Source source;
 
   private Source headerSource;
-  
+
   private int countOfUsedOptimisations;
 
   private String outputPath;
@@ -49,7 +49,7 @@ public class Main {
   private List<String> includePaths;
 
   private final Options options;
-  
+
   protected Main() {
     options = new Options();
     outputPath = null;
@@ -110,7 +110,7 @@ public class Main {
     LOGGER.info(" -h | --help           - display this help and exit.");
   }
 
-  
+
   public static void main(final String[] args) throws IOException {
     if (args.length < 1) {
       LOGGER.error("No parameter given");
@@ -128,7 +128,7 @@ public class Main {
     boolean showVariableUsage = false;
     boolean showVariableUnused = false;
     boolean showPeepholeOptimize = false;
-    
+
     String outputpath = "";
     List<String> includePaths = new ArrayList<>();
 
@@ -246,21 +246,21 @@ public class Main {
     if (!file.exists()) {
       throw new FileNotFoundException("ERROR: Given file '"+filename+"' does not exist.");
     }
-    
+
     String headerfilename;
     if (file.getParent() != null) {
-      headerfilename = file.getParent() + "/header.wnf"; 
+      headerfilename = file.getParent() + "/header.wnf";
     }
     else {
       headerfilename = "header.wnf";
     }
-     
+
     LOGGER.info("Check for header file: '{}'", headerfilename);
     String wnfHeaderCode = null;
     File headerfile = new File(headerfilename);
     if (headerfile.exists()) {
       if (!options.isImportHeader()) {
-        LOGGER.info("Found header file, but will ingnored due to parameter");      
+        LOGGER.info("Found header file, but will ingnored due to parameter");
       }
       else {
         LOGGER.info("Found a 'header.wnf' file, read it first.");
@@ -269,7 +269,7 @@ public class Main {
         this.headerSource.setFilename("header.wnf");
       }
     }
-    
+
     String wnfProgramCode = new SourceReader(this.filename).readFile();
     this.source = new Source(wnfProgramCode);
     this.source.setFilename(file.getName());
@@ -326,7 +326,7 @@ public class Main {
     if (headerSource != null) {
       header = new Header(headerSource).load();
     }
-    
+
     // Block
 
     new Block(source).start(header).build();
@@ -389,7 +389,7 @@ public class Main {
     this.includePaths.add(includePath);
     return this;
   }
-  
+
   public Source getSource() {
     return source;
   }

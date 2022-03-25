@@ -1,4 +1,4 @@
-//cdw by 'The Atari Team' 2021
+//cdw by 'The Atari Team' 2022
 //licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression.multiplication;
@@ -18,18 +18,18 @@ public class StarChain  extends Code {
   private static final Logger LOGGER = LoggerFactory.getLogger(StarChain.class);
 
   private final Source source;
-  
+
   int[] stack;
 
   int mult;
-  
+
   public StarChain(Source source) {
     super(source);
-    
+
     this.source = source;
     stack = new int[10];
   }
-  
+
   private int trim_trailung(int one_zero) {
     int count = 0;
     while ((mult & 1) == one_zero) {  // ???
@@ -44,14 +44,14 @@ public class StarChain  extends Code {
     mult = multiplier;            // mult contains the multiplier
     int max_stackpointer = 0;
     int stackpointer = 0;
-    
+
     LOGGER.debug("R1 * " + mult);
     int last_shift = 0;
-    
+
     if (mult > 0) {
       int last_count = 0;
       int flag = 0;
-      
+
       last_shift = trim_trailung(0); // cut trailing 0
       while(true) {
         int count = trim_trailung(1);
@@ -82,11 +82,11 @@ public class StarChain  extends Code {
     LOGGER.debug("--------");
     return this;
   }
-  
+
   public void codegen(int multiplier, int[] stack, int stackpointer, int last_shift) {
     // output code from stack
     if (multiplier > 0) {
-      
+
       LOGGER.debug("Rw = R1");
 //      code(" STY @OP");
       code(" TYA");
@@ -95,7 +95,7 @@ public class StarChain  extends Code {
         code(" sta @PRODUKT");
         code(" stx @PRODUKT+1");          // 6 Takte
       }
-      while (stackpointer > 0) {        
+      while (stackpointer > 0) {
         int ts = stack[--stackpointer];
         if (ts < 0) {
           LOGGER.debug("Rw <<= " + -ts);
@@ -116,7 +116,7 @@ public class StarChain  extends Code {
           LOGGER.debug("Rw <<= " + ts);
           rotateLeft(ts);
 
-          LOGGER.debug("Rw += R1");          
+          LOGGER.debug("Rw += R1");
           code(" CLC");
 //          code(" LDA @OP");
           code(" ADC @PRODUKT");
@@ -145,7 +145,7 @@ public class StarChain  extends Code {
     for(int i=0;i<count;i++) {
 //      code(" ASL @OP");
       code(" ASL A");
-      code(" ROL @OP+1");                 // 10 Takte neu 7    
+      code(" ROL @OP+1");                 // 10 Takte neu 7
     }
   }
 

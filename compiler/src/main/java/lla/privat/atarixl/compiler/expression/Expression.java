@@ -1,4 +1,4 @@
-// cdw by 'The Atari Team' 2021
+// cdw by 'The Atari Team' 2022
 // licensed under https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses]
 
 package lla.privat.atarixl.compiler.expression;
@@ -28,7 +28,7 @@ public class Expression extends Code {
 
   private boolean precalculationPossible;
   private int countArithmeticSymbols;
-  
+
   public Expression(Source source) {
     super(source);
 
@@ -46,7 +46,7 @@ public class Expression extends Code {
 
   /**
    * If we would like a byte expression, set width to 1, all other is 2
-   * 
+   *
    * @param width
    */
   public Expression setType(Type type) {
@@ -90,7 +90,7 @@ public class Expression extends Code {
 //        source.warning(Symbol.noSymbol(), "Expression could be precalculated!");
 //      }
 //    }
-    
+
     optimisation();
 
     LOGGER.debug("PCode is " + joinedPCode());
@@ -111,7 +111,7 @@ public class Expression extends Code {
   int getCountArithmeticSymbols() {
     return countArithmeticSymbols;
   }
-  
+
   /**
    * Expression Etwas, das wir addieren oder subtrahieren, die Strichrechnung
    *
@@ -357,7 +357,7 @@ public class Expression extends Code {
     }
     else {
       Type variableType = source.getVariableType(name);
-      
+
       if (variableType.equals(Type.CONST)) {
         String strValue = source.getVariableAddress(name);
         source.throwIfConstVariableHasNoValue(name);
@@ -379,7 +379,7 @@ public class Expression extends Code {
           p_code.add(variablePosition);
         }
         else if (source.hasVariable(name)) {
-          p_code.add(PCode.ZAHL.getValue());          
+          p_code.add(PCode.ZAHL.getValue());
           p_code.add(convertNumberValue(strValue));
         }
         else {
@@ -387,7 +387,7 @@ public class Expression extends Code {
         }
       }
       else {
-        // Wir nehmen an, es kommt eine Variable vom Type 
+        // Wir nehmen an, es kommt eine Variable vom Type
         source.throwIfArrayType(variableType);
 
         p_code.add(PCode.WORD.getValue());
@@ -496,12 +496,12 @@ public class Expression extends Code {
     if (Type.BYTE != source.getVariableType(name)) {
       source.error(nameSymbol, "Only Variables of type BYTE allowed after W:<var>");
     }
-    
+
     int variablePosition = source.getVariablePosition(name);
     p_code.add(variablePosition);
     source.getVariable(nameSymbol.get()).setRead();
   }
-  
+
   protected void addressAccess() {
     Symbol peekSymbol = source.nextElement(); // ":"
     source.match(peekSymbol, ":");
@@ -675,17 +675,17 @@ public class Expression extends Code {
         }
       }
     }
-    
+
     // 168   0 162  254 171  1   163  8      =>
     //         a    a+1 a+2  a+3 a+4  a+5
     // pzahl   push nop addr     pull arith
     // 168   0 16   254 171  1
-    //                           c    c+1 c+2 
+    //                           c    c+1 c+2
 //    for (int a = 0; a < p_code.size(); a++) {
 //      if (p_code.get(a) == PCode.PUSH.getValue()) {
 //        if (p_code.get(a+1) == PCode.NOP.getValue()) {
 //          int p1 = p_code.get(a + 2);
-//        
+//
 //          if (p1 == PCode.ADDRESS.getValue()) {
 //            if (p_code.get(a + 4) == PCode.PULL.getValue()) {
 //              if ((p_code.get(a + 5) & 0xf8) == 8) { // arithmetik
@@ -702,7 +702,7 @@ public class Expression extends Code {
 //        }
 //      }
 //    }
-    
+
     // Sonderfall für einfache Zahlen
     if (p_code.size() == 3) {
 
@@ -710,12 +710,12 @@ public class Expression extends Code {
 //      if (p_code.get(0) == PCode.INT_ZAHL.getValue() && p_code.get(2) == PCode.END.getValue()) {
 //        if (ergebnis.getBytes() == 1 ) {
 //          if (p_code.get(1) >= 0 && p_code.get(1) < 256) {
-//  
+//
 //            // wir sind eine Zahl, diese Zahl ist >= 0 und < 256
 //            ergebnis = Type.BYTE;
 //          }
 //          if (p_code.get(1) >= -128 && p_code.get(1) < 0) {
-//  
+//
 //            // wir sind eine Zahl, diese Zahl ist >= -128 und < 0
 //            ergebnis = Type.INT8;
 //          }
@@ -759,10 +759,10 @@ public class Expression extends Code {
     optimizedPCode.add(0);
 
     p_code = optimizedPCode;
-    
+
     source.setTypeOfLastExpression(ergebnis);
   }
-  
+
   /**
    * Hilfsfunktion um die erstellten PCodes in einem String zurückzugeben
    *
