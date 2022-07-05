@@ -3,13 +3,21 @@
 
 == What is new
 
-* We use StarChain in fix value multiplication like x*3 it will use shift/(add|sub)
-  is active per default. Remember multiply only works with positiv values
-  Also the fix value must be the last. 3*x will use @IMULT function
-+
-The StarChain can completely deactivated by parameter -noscm. The optimize for power of 2 is deactivated if parameter -noshift is given.
+* `@mem[address] := <byte value>` this is a fast replacement for function call `@poke(address, <byte value>)`
 
-* Small Heap-Pointer with parameter -smallHeapPtr, if given the heap is only 256 bytes big. Could be too small for recursive function calls. But save 8 bytes per function/procedure call and up to 14 cycles per function/procedure call.
+* `value := @mem[address]` this is a fast replacement for function call `value := @peek(address)`
+
+* We use StarChain in fix value multiplication like x*3. Then it will use shift/(add|sub).
+  It is active by default. Remember multiply only works with positiv values.
+  Also the fix value must be the last in a operation. 3*x will use @IMULT function.
++
+The StarChain can completely deactivated by parameter `-noscm`.
+The optimize for power of 2 is deactivated if parameter `-noshift` is given.
+
+* Small Heap-Pointer with parameter `-smallHeapPtr`,
+if given the heap is only 256 bytes big.
+Could be too small for recursive function calls.
+But saves 8 bytes per function/procedure call and up to 14 cycles per function/procedure call.
 
 * `const variable=value` is a first try to support const values.
 To get firm with the lot of magic values in code.
@@ -21,16 +29,19 @@ To get firm with the lot of magic values in code.
 +
 `for i:=-5 to 5 do ...` are possible if variable `i` is of type int8.
 
-* Self-Modified-Code (smc) in for loop, activateable by parameter -smc, very experimental.
+* Self-Modified-Code (smc) in for loop, activateable by parameter `-smc`, very experimental.
 
-* Simplify the `for` loop. There is only one test in the loop. This is much simpler but with a byte variable we can only count from 0 to 254. With a word variable we can count from -32768 to 32766. The last value is not arrivable any longer. But the code is faster/more clean.
+* Simplify the `for` loop. There is only one test in the loop.
+This is much simpler but with a byte variable we can only count from 0 to 254.
+With a word variable we can count from -32768 to 32766.
+The last value is not arrivable any longer. But the code is faster/more clean.
 
 * Update in `for` loop, `STEP` can set like in Basic.
 +
 `for i:=0 to 10 step 2 do ...`
 
-* Parameter name expansion like in C++ language.
-Every parameter is marked by an extra 'i' so a function name must contain also it's count of parameters.
+* Function parameter name expansion like in C++ language.
+Every function parameter is marked by an extra 'i' so a function name must contain also it's count of parameters.
 If you have an external assembler function named by a name
   @name
   you need additionally give it's name with count of parameters, like
@@ -47,7 +58,7 @@ Now we need to add the parameters expansion here by give lot of extra i
   @printf_iiiii
   ...
 
-looks stupid, but at the moment there is no better way.
+looks stupid, but at the moment there is no better way. We do not support ... for variable args.
 
 * Split word array access for arrays smaller than 257 items into a low byte and a high byte array.
 So we can access with simple x/y-register access to `<array name>_low` and `<array name>_high` values,
