@@ -27,7 +27,7 @@ To get firm with the lot of magic values in code.
   But be warned, there is no error if you overflow or underflow.
   In Expressions there will be a "autobox" conversion to word only.
 +
-`for i:=-5 to 5 do ...` are possible if variable `i` is of type int8.
+`for i:=-5 to 5 do ...` are only possible if variable `i` is of type `int8`.
 
 * Self-Modified-Code (smc) in for loop, activateable by parameter `-smc`, very experimental.
 
