@@ -1,4 +1,4 @@
-![example workflow](image::https://github.com/the-atari-team/wnf.compiler/actions/workflows/maven.yml/badge.svg[Embedded,50,opts=inline])
+image::https://github.com/the-atari-team/wnf.compiler/actions/workflows/maven.yml/badge.svg
 
 = Atari 8bit WNF Compiler
 
