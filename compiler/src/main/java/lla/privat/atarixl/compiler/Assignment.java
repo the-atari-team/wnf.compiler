@@ -61,6 +61,14 @@ public class Assignment extends Code {
         // fat_word_array is equal to word_array
         // word_split_array is max 512 bytes word array with 2 256 byte long arrays
         Type wishedType = source.getVariableType(name);
+        
+        if (wishedType.equals(Type.UNKNOWN) && name.equals("@MEM")) {
+          // There exist a new way to set values in Memory with the @MEM[n] fat_byte_array, faster than poke!
+          source.addVariable("@MEM", Type.FAT_BYTE_ARRAY);
+          wishedType = source.getVariableType(name);
+        }
+        
+        
         if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY ||
             source.getVariableType(name) == Type.WORD_ARRAY ||
             source.getVariableType(name) == Type.FAT_WORD_ARRAY) {
@@ -88,8 +96,19 @@ public class Assignment extends Code {
           if (source.getTypeOfLastExpression().getBytes() == 1) {
             code(" ldx #0"); // fat_byte_array
           }
-          code(" tya");
-          code(" putarrayb " + name);
+          if (name.equals("@MEM")) {
+            code(" sty @PUTARRAY");
+            code(" stx @PUTARRAY+1");
+          }
+          else {
+            code(" tya");
+            code(" clc");              // old putarrayb MACRO
+            code(" adc # <"+name);
+            code(" sta @PUTARRAY");
+            code(" txa");
+            code(" adc # >"+name);
+            code(" sta @PUTARRAY+1");
+          }
         }
         else if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY) {
           code(" sty @putarray");

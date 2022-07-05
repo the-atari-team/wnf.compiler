@@ -349,6 +349,27 @@ public class TestSource {
   }
 
   @Test
+  public void testGenerateVariables_wordSplitArrayWithFloatValues() {
+    String program = "";
+    Source sourceSUT = new Source(program);
+
+    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 10);
+    List<String> arrayValues = Arrays.asList("1.0", "1.49", "1.50", "1.51","1.99");
+    sourceSUT.setVariableArray("HALLO", arrayValues);
+
+    sourceSUT.generateVariables();
+
+    List<String> code = sourceSUT.getCode();
+
+    int n = -1;
+    Assert.assertEquals("HALLO", code.get(++n));
+    Assert.assertEquals("HALLO_LOW", code.get(++n));
+    Assert.assertEquals(" .BYTE <1,<1,<2,<2,<2", code.get(++n));
+    Assert.assertEquals("HALLO_HIGH", code.get(++n));
+    Assert.assertEquals(" .BYTE >1,>1,>2,>2,>2", code.get(++n));
+  }
+
+  @Test
   public void testGenerateVariables_wordSplitArrayWithStrings() {
     String program = "";
     Source sourceSUT = new Source(program);

@@ -89,6 +89,11 @@ public class Source implements Enumeration<Symbol> {
     countOfAsserts=0;
     this.filename = "";
     nowinc = 0;
+    
+//    final String mem="@MEM";
+//    final VariableDefinition newVariable = new VariableDefinition(mem, Type.FAT_BYTE_ARRAY, 0, filename);
+//    variables.put(mem, newVariable);
+//    variableList.add(mem);    
   }
 
   public void setOptions(Options options) {
@@ -408,7 +413,7 @@ public class Source implements Enumeration<Symbol> {
 
 //    if (name.endsWith("_LENGTH")) return;
 //
-    if (isArrayType(type)) {
+    if (isArrayType(type) && !name.equals("@MEM")) {
       if (! StringHelper.isSingleQuotedString(name)) {
         final String nameWithLength = name + "_LENGTH";
         final VariableDefinition newConstVariable = new VariableDefinition(nameWithLength, Type.CONST, 0, filename);
@@ -682,6 +687,10 @@ public class Source implements Enumeration<Symbol> {
     }
 
     String name = definition.getName();
+    if (name.equals("@MEM") && definition.getType() == Type.FAT_BYTE_ARRAY) {
+      return;
+    }
+    
     switch (definition.getType()) {
 
     case FUNCTION:
@@ -773,6 +782,9 @@ public class Source implements Enumeration<Symbol> {
           if (StringHelper.isSingleQuotedString(element)) {
             element = "?STRING" + getVariablePosition(element);
           }
+          else if (StringHelper.isFloatValue(element)) {
+            element = String.valueOf(StringHelper.convertToInteger(element));
+          }
           return "<" + element;
         }
       };
@@ -785,6 +797,9 @@ public class Source implements Enumeration<Symbol> {
           String element = definition.getArrayElement(index);
           if (StringHelper.isSingleQuotedString(element)) {
             element = "?STRING" + getVariablePosition(element);
+          }
+          else if (StringHelper.isFloatValue(element)) {
+            element = String.valueOf(StringHelper.convertToInteger(element));
           }
           return ">" + element;
         }

@@ -3,6 +3,8 @@
 
 package lla.privat.atarixl.compiler;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -172,15 +174,27 @@ public class TestAssignmentInt8 {
     Assert.assertEquals(Type.BYTE, source.getTypeOfLastExpression());
 
     int n=-1;
+    List<String> code = source.getCode();
     Assert.assertEquals("; (5)", source.getCode().get(++n));
-    Assert.assertEquals(" LDY #<256", source.getCode().get(++n));
-    Assert.assertEquals(" LDX #>256", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #<256", code.get(++n));
+    Assert.assertEquals(" LDX #>256", code.get(++n));
 
-    Assert.assertEquals("; (12.2)", source.getCode().get(++n));
-    Assert.assertEquals(" TYA", source.getCode().get(++n));
-    Assert.assertEquals(" GETARRAYB Y", source.getCode().get(++n));
-    Assert.assertEquals(" TAY", source.getCode().get(++n));
-    Assert.assertEquals(" STY X", source.getCode().get(++n));
+    Assert.assertEquals("; (12.2)", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+//    Assert.assertEquals(" GETARRAYB Y", code.get(++n));
+//  Assert.assertEquals(" GETARRAYB FAT", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" ADC # <Y", code.get(++n));
+    Assert.assertEquals(" STA @GETARRAY", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" ADC # >Y", code.get(++n));
+    Assert.assertEquals(" STA @GETARRAY+1", code.get(++n));
+    Assert.assertEquals(" LDY #0", code.get(++n));
+    Assert.assertEquals(" LDA (@GETARRAY),Y", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+  
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" STY X", code.get(++n));
   }
 
   @Test

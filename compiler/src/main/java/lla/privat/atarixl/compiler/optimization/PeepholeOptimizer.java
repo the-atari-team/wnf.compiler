@@ -1229,7 +1229,7 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
   }
 
   /*
-   * TODO: TAY INY TYA
+   * TAY INY TYA
    *
    * zu ersetzen durch CLC, ADC #1
    */

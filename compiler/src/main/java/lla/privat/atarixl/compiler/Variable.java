@@ -112,12 +112,22 @@ public class Variable {
             n = -1;
             isWordArraySplitForced = true;
           }
+          else {
+            // try to interpret as const
+            if (source.getVariableType(value).equals(Type.CONST)) {
+              String address = source.getVariableAddress(value);
+              n = Integer.parseInt(address);
+            } 
+            else {
+              source.error(nextSymbol, "unexpected value in array occured. Variable:'" + value + "' is of type " + source.getVariableType(value).toString() + " expect type CONST.");             
+            }
+          }
         }
         else if (arrayCount.id == SymbolEnum.number) {
             n = Integer.parseInt(arrayCount.get());
           }
         else {
-          source.error(nextSymbol, "unexpected array size, number or '@SPLIT' expected.");
+          source.error(nextSymbol, "unexpected array size, number, const variable or '@SPLIT' expected.");
         }
         lastType = makeArrayType(lastType, n);
         source.addVariable(name, lastType, n);
@@ -224,7 +234,12 @@ public class Variable {
           Symbol variable = source.nextElement();
           name = variable.get();
         }
-        source.throwIfVariableUndefined(name);
+        if (name.startsWith("@")) {                   // Variables start with "@" are most functions defined somewhere else
+          source.addVariable(name, Type.FUNCTION);    // This is a job for the assembler
+        }
+        else {
+          source.throwIfVariableUndefined(name);
+        }
         source.getVariable(name).setRead();
         arrayValues.add(name);
         valueSymbol = source.nextElement();
@@ -252,7 +267,9 @@ public class Variable {
         }
         else if (lastType == Type.STRING || lastType == Type.BYTE_ARRAY) {
           arrayValues.add(string);
-          arrayValues.add("255");
+          if (string.length() > 3) { // we add 255 Stringend Mark only if are NOT one char long
+            arrayValues.add("255");
+          }
           // Do not create _LENGTH, if we are an anonymous String
           if (! StringHelper.isSingleQuotedString(name)) {
             // Sonderfall String in byte array, redefine the _LENGTH Variable

@@ -137,6 +137,22 @@ public class TestVariable {
   }
 
   @Test
+  public void testVariableFatByteArrayWithEmptyArrayFromConst() {
+    Source source = new Source("byte array x[VALUE]");
+    source.addVariable("VALUE", Type.CONST);
+    source.setVariableAddress("VALUE", "512");
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("X"));
+    Assert.assertEquals(512, source.getVariableArraySize("X"));
+    Assert.assertEquals(Type.FAT_BYTE_ARRAY, source.getVariableType("X"));
+  }
+
+  @Test
   public void testVariableByteArrayWithAddress() {
     Source source = new Source("byte array x[2] = 123");
     Symbol symbol = source.nextElement();
@@ -193,6 +209,23 @@ public class TestVariable {
     Assert.assertTrue(source.hasVariable("X"));
     Assert.assertEquals(1, source.getVariableSize("X"));
     Assert.assertEquals(Type.FAT_BYTE_ARRAY, source.getVariableType("X"));
+    Assert.assertEquals(2, source.getVariableArraySize("X"));
+  }
+
+  @Test
+  public void testVariableAssignmentByteArrayWithChars() {
+    Source source = new Source("byte array x[2] = ['1','2']");
+    source.addVariable("VARIABLE", Type.BYTE);
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("X"));
+    Assert.assertEquals(1, source.getVariableSize("X"));
     Assert.assertEquals(2, source.getVariableArraySize("X"));
   }
 
@@ -512,6 +545,25 @@ public class TestVariable {
   }
 
   @Test
+  public void testVariableAssignmentWordArrayWithAtVariable() {
+    Source source = new Source("word array arrayname[257] = [@variable, @variable2]");
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("ARRAYNAME"));
+    Assert.assertEquals(Type.FAT_WORD_ARRAY, source.getVariableType("ARRAYNAME"));
+    Assert.assertEquals(2, source.getVariableArraySize("ARRAYNAME"));
+
+    Assert.assertTrue(source.hasVariable("ARRAYNAME_LENGTH"));
+    Assert.assertTrue(source.hasVariable("ARRAYNAME_ELEMENTS"));
+  }
+
+  @Test
   public void testVariableAssignmentWordArrayWithADR() {
     Source source = new Source("word array y[2] = [adr:godmode]");
     source.addVariable("GODMODE", Type.STRING);
@@ -578,6 +630,25 @@ public class TestVariable {
     Assert.assertTrue(source.hasVariable("Y"));
     Assert.assertEquals(Type.WORD_SPLIT_ARRAY, source.getVariableType("Y"));
     Assert.assertEquals(3, source.getVariableArraySize("Y"));
+  }
+
+  @Test
+  public void testVariableAssignmentWordSplitArrayWithFloatValue() {
+    Source source = new Source("word array y[2] = [1.0, 1.49, 1.50, 1.51, 1.99]");
+    source.addVariable("VARIABLE", Type.WORD);
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("Y"));
+    Assert.assertEquals(Type.WORD_SPLIT_ARRAY, source.getVariableType("Y"));
+    Assert.assertEquals(5, source.getVariableArraySize("Y"));
+    
+    
   }
 
 //

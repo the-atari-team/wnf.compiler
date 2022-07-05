@@ -97,10 +97,10 @@ public class Main {
     LOGGER.info(" -smc                  - if given, allow self modified code (smc).");
     LOGGER.info("                         THIS IS VERY EXPERIMENTAL! DO NOT USE!");
     LOGGER.info(" -noscm                - if given, hard coded value multiplications in");
-    LOGGER.info("                         Expressions will not convert to shift/(add|sub)");
+    LOGGER.info("                         expressions will not convert to shift/(add|sub)");
     LOGGER.info("                         but call the external @IMULT function.");
     LOGGER.info(" -noshift              - if given, mult/div with 2-complement will not use.");
-    LOGGER.info("                         Expression calls the @IMULT/@IDIV function instead.");
+    LOGGER.info("                         Expressions call the @IMULT/@IDIV function instead.");
     LOGGER.info(" -smallHeapPtr         - if given, Heap Ptr is only 256 bytes big, be careful!");
     LOGGER.info(" -noHeader             - if given, header.wnf will not import if file exists!");
     LOGGER.info(" -showVariableUsage    - if given, show how often a variable is used.");

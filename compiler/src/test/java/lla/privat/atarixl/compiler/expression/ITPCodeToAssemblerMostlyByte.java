@@ -397,4 +397,32 @@ public class ITPCodeToAssemblerMostlyByte {
     Assert.assertEquals(4, code.size());
   }
 
+  @Test
+  public void testExpressionXDiv2ExponentByte() {
+    Source source = new Source("X / 32 ");
+    source.setStarChainMult(true);
+
+    source.addVariable("X", Type.BYTE);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.BYTE;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n=-1;
+    Assert.assertEquals("; (4)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" LSR A", code.get(++n));
+    Assert.assertEquals(" LSR A", code.get(++n));
+    Assert.assertEquals(" LSR A", code.get(++n));
+    Assert.assertEquals(" LSR A", code.get(++n));
+    Assert.assertEquals(" LSR A", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+
+    Assert.assertEquals(9, code.size());
+  }
+
 }

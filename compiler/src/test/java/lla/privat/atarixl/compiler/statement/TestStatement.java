@@ -42,6 +42,19 @@ public class TestStatement {
   }
 
   @Test
+  public void testTestAssignmentToMem() {
+
+    Source source = new Source("@mem[$4000] := 1");
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Statement(source).statement(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+  }
+
+  @Test
   public void testFunctionCall2() {
 
     Source source = new Source("@init_narrowfont(adr:@narrowfont_chicago, adr:@plot1bit)");

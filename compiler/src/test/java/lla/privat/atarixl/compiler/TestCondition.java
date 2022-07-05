@@ -248,7 +248,17 @@ public class TestCondition {
     Assert.assertEquals(" LDX I+1", code.get(++n));
     Assert.assertEquals("; (12.2)", code.get(++n));
     Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" GETARRAYB FAT", code.get(++n));
+//    Assert.assertEquals(" GETARRAYB FAT", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" ADC # <FAT", code.get(++n));
+    Assert.assertEquals(" STA @GETARRAY", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" ADC # >FAT", code.get(++n));
+    Assert.assertEquals(" STA @GETARRAY+1", code.get(++n));
+    Assert.assertEquals(" LDY #0", code.get(++n));
+    Assert.assertEquals(" LDA (@GETARRAY),Y", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" STY @ERG", code.get(++n));
 //    Assert.assertEquals(" STX @ERG+1", code.get(++n));

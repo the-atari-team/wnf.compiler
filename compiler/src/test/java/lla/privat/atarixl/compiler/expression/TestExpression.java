@@ -820,8 +820,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals(Type.WORD, source.getTypeOfLastExpression());
-//    Assert.assertEquals("168 0 162 254 171 1 163 8 9999999", expressionSUT.joinedPCode());
-// TODO: add variable with const should be also optimized!
     Assert.assertEquals("168 0 16 167 123 9999999", expressionSUT.joinedPCode());
     Assert.assertFalse(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());

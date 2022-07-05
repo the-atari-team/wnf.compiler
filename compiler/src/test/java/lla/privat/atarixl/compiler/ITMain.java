@@ -76,7 +76,7 @@ public class ITMain {
     File file = new File(tempPath + "/TSTSIEVE.ASM");
     Assert.assertTrue(file.exists());
 
-    Assert.assertEquals(68, main.getUsedOptimisations());
+    Assert.assertEquals(72, main.getUsedOptimisations());
   }
 
   @Test

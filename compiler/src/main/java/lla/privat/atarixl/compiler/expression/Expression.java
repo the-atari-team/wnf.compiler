@@ -25,7 +25,8 @@ public class Expression extends Code {
   private Symbol lastSymbol;
 
   private Type ergebnis;
-
+  private Type ergebnisMayBe;
+  
   private boolean precalculationPossible;
   private int countArithmeticSymbols;
 
@@ -36,6 +37,7 @@ public class Expression extends Code {
     p_code = new ArrayList<>();
     parameterCount = 0;
     ergebnis = Type.BYTE;
+    ergebnisMayBe = Type.UNKNOWN;
     precalculationPossible = true;
     countArithmeticSymbols = 0;
   }
@@ -184,18 +186,24 @@ public class Expression extends Code {
 
     String operator = nextSymbol.get();
     while (operator.equals("*") || operator.equals("/") || operator.equals("MOD")) {
-      ergebnis = Type.WORD;
       p_code.add(PCode.PUSH.getValue());
       switch (operator) {
       case "*":
+        ergebnisMayBe = Type.WORD;
         nextSymbol = mul(nextSymbol);
         break;
       case "/":
+        ergebnisMayBe = Type.WORD;
         nextSymbol = divide(nextSymbol);
         break;
       case "MOD":
+        ergebnis = Type.WORD;
         nextSymbol = modulo(nextSymbol);
         break;
+      }
+      if (ergebnisMayBe == Type.WORD) {
+        ergebnisMayBe = Type.UNKNOWN;
+        ergebnis = Type.WORD;
       }
       operator = nextSymbol.get();
       ++countArithmeticSymbols;
@@ -244,6 +252,21 @@ public class Expression extends Code {
     else if (id == SymbolEnum.variable_name) {
       nextSymbol = identifier(symbol);
     }
+    else if (id == SymbolEnum.reserved_word) {
+      Symbol peekSymbol = source.peekSymbol();
+      if (symbol.get().equals("BYTE") && peekSymbol.get().equals("(")) {
+        nextSymbol = source.nextElement(); // (
+        nextSymbol = source.nextElement(); // ...
+        nextSymbol = expression(nextSymbol).getLastSymbol();
+        match(nextSymbol, ")");
+        nextSymbol = source.nextElement();
+        ergebnis = Type.BYTE;
+      }
+      else {
+        source.error(symbol, "Cast only with BYTE(...) supported");
+        nextSymbol = null;
+      }
+    }
     // runde Klammern signalisieren eine innere Berechnung, die vorzuziehen ist
     else if (id == SymbolEnum.symbol && symbol.get().equals("(")) {
       nextSymbol = source.nextElement();
@@ -284,6 +307,19 @@ public class Expression extends Code {
       if (value < 0 || value > 255) {
         source.warning(symbol, "We leave BYTE value range [0, 255]");
         ergebnis = Type.WORD;
+      }
+      if (ergebnisMayBe == Type.WORD) {
+        if (!source.isShiftMultDiv()) {
+          ergebnis = Type.WORD;
+          ergebnisMayBe = Type.UNKNOWN;
+        } 
+        else if (value == 2 || value == 4 || value == 8 || value == 16 || value ==32 || value == 64 || value == 128) {
+           ergebnisMayBe = Type.UNKNOWN;
+        }
+        else {
+          ergebnis = Type.WORD;
+          ergebnisMayBe = Type.UNKNOWN;
+        }
       }
     }
     else {
@@ -531,6 +567,9 @@ public class Expression extends Code {
     Symbol squareBracketOpen = source.nextElement();
     // "["
     source.match(squareBracketOpen, "[");
+    if (source.getVariableType(name)==Type.UNKNOWN && name.equals("@MEM")) {
+      source.addVariable("@MEM", Type.FAT_BYTE_ARRAY);
+    }
     source.throwIfVariableUndefined(name);
 
     /* Symbol squareBrackedClose = */ factor(squareBracketOpen);

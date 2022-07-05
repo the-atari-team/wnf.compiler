@@ -73,6 +73,30 @@ public class ITPCodeToAssemblerMostlyArray {
   }
 
   @Test
+  public void testExpressionMemArray() {
+    Source source = new Source("@mem[1] ");
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.BYTE;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n=-1;
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<1", code.get(++n));
+    Assert.assertEquals("; (12.2)", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(" STY @GETARRAY", code.get(++n));
+    Assert.assertEquals(" STX @GETARRAY+1", code.get(++n));
+    Assert.assertEquals(" LDY #0", code.get(++n));
+    Assert.assertEquals(" LDA (@GETARRAY),Y", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+  }
+
+  @Test
   public void testExpressionMitVariableByteArray() {
     Source source = new Source("m[4]*16 ");
     source.setStarChainMult(true);
@@ -144,7 +168,6 @@ public class ITPCodeToAssemblerMostlyArray {
     Assert.assertEquals(" JSR @IMULT", code.get(++n));   // * 2
   }
 
-//  @Ignore("TODO: function calls not ready yet!")
   @Test
   public void testExpressionFunctionCalls() {
     Source source = new Source("f(x(2), y(3)) ");

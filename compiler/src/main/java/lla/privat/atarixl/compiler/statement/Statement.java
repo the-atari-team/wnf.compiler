@@ -69,7 +69,8 @@ public class Statement {
       String name = symbol.get();
 
       VariableDefinition variable = source.getVariable(symbol.get());
-      if (name.startsWith("@")) {
+      Symbol peekSymbol = source.peekSymbol();
+      if (name.startsWith("@") && peekSymbol.get().equals(("("))) {
         // void call
         LOGGER.debug("is a function call to {}", name);
         nextSymbol = functionCall(symbol);
@@ -80,6 +81,9 @@ public class Statement {
         nextSymbol = functionCall(symbol);
       }
       else {
+        if (source.getVariableType(name) == Type.UNKNOWN && name.equals("@MEM")) {
+          source.addVariable("@MEM", Type.FAT_BYTE_ARRAY);
+        }
         source.throwIfVariableUndefined(name);
 
         LOGGER.debug("is Variable assignment to {}", name);

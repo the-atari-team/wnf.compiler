@@ -516,8 +516,24 @@ public class PCodeToAssembler extends Code {
 // TODO: verstehen!
           code(" ldx #0"); // fat_byte_array
         }
-        code(" tya");
-        code(" getarrayb " + a$); // ;" ;fat-byte-array"
+        if (a$.equals("@MEM")) {
+          code(" sty @GETARRAY");
+          code(" stx @GETARRAY+1");          
+        }
+        else {
+          code(" tya");
+  //        code(" getarrayb " + a$); // ;" ;fat-byte-array"
+          code(" clc"); // ;  2 Getarrayb MACRO
+          code(" adc # <"+a$);
+          code(" STA @GETARRAY");
+          code(" TXA");
+          code(" ADC # >"+a$);
+          code(" STA @GETARRAY+1");
+        }
+        code(" LDY #0");
+        code(" LDA (@GETARRAY),Y");
+        code(" LDX #0");
+        
         code(" tay");
         sonderlocke_fat_byte_array = false;
         // y (x:=0) are set with a value out of getarrayb

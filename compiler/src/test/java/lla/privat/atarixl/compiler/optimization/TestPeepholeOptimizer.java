@@ -510,16 +510,18 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(2, source.getCode().size());
+    Assert.assertEquals(" STY ?FOR", source.getCode().get(0));
+    Assert.assertEquals(" ...", source.getCode().get(1));
   }
 
   @Test
   public void testword_index_sub() {
     List<String> list = new ArrayList<>();
     list.add(" SEC");
-    list.add(" LDA ");
+    list.add(" LDA ADR");
     list.add(" SBC #<1");
     list.add(" TAY");
-    list.add(" LDA ");
+    list.add(" LDA ADR+1");
     list.add(" SBC #");
     list.add(" TAX");
     list.add(" TYA");
@@ -530,16 +532,24 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(8, source.getCode().size());
+    Assert.assertEquals(" LDX ADR+1", source.getCode().get(0));
+    Assert.assertEquals(" LDY ADR", source.getCode().get(1));
+    Assert.assertEquals(" BNE ?WORD_INDEX_SUB0", source.getCode().get(2));
+    Assert.assertEquals(" DEX", source.getCode().get(3));
+    Assert.assertEquals("?WORD_INDEX_SUB0", source.getCode().get(4));
+    Assert.assertEquals(" DEY ; (22)", source.getCode().get(5));
+    Assert.assertEquals(" TYA", source.getCode().get(6));
+    Assert.assertEquals(" ...", source.getCode().get(7));
   }
 
   @Test
   public void testByte_index_sub() {
     List<String> list = new ArrayList<>();
     list.add(" SEC");
-    list.add(" LDA ");
+    list.add(" LDA ADR");
     list.add(" SBC #<1");
     list.add(" TAY");
-    list.add(" LDA ");
+    list.add(" LDA ADR+1");
     list.add(" ...");
     list.add(" ...");
     source.resetCode(list);
@@ -548,6 +558,11 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(5, source.getCode().size());
+    Assert.assertEquals(" LDY ADR", source.getCode().get(0));
+    Assert.assertEquals(" DEY ; (21)", source.getCode().get(1));
+    Assert.assertEquals(" LDA ADR+1", source.getCode().get(2));
+    Assert.assertEquals(" ...", source.getCode().get(3));
+    Assert.assertEquals(" ...", source.getCode().get(4));
 
   }
 
@@ -564,6 +579,7 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(4, source.getCode().size());
+    Assert.assertEquals(" JMP BLAH ; (39)", source.getCode().get(0));
   }
 
   @Test
@@ -580,6 +596,7 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(5, source.getCode().size());
+    Assert.assertEquals(" JMP BLAH ; (39)", source.getCode().get(0));
   }
 
   @Test
@@ -597,6 +614,7 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(6, source.getCode().size());
+    Assert.assertEquals(" JMP BLAH ; (39)", source.getCode().get(0));
   }
 
   @Test
@@ -615,6 +633,7 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(7, source.getCode().size());
+    Assert.assertEquals(" JMP BLAH ; (39)", source.getCode().get(0));
   }
 
   @Test
@@ -634,6 +653,7 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(8, source.getCode().size());
+    Assert.assertEquals(" JMP BLAH ; (39)", source.getCode().get(0));
   }
 
   @Test
@@ -655,6 +675,12 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(6, source.getCode().size());
+    Assert.assertEquals(" CPY #<low ;  (34)", source.getCode().get(0));
+    Assert.assertEquals(" BNE ?FA123", source.getCode().get(1));
+    Assert.assertEquals(" CPX #high ; (34)", source.getCode().get(2));
+    Assert.assertEquals(" BEQ ?THEN2", source.getCode().get(3));
+    Assert.assertEquals("?FA123", source.getCode().get(4));
+    Assert.assertEquals(" ...", source.getCode().get(5));
   }
 
   @Test
@@ -706,6 +732,12 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(6, source.getCode().size());
+    Assert.assertEquals(" CMP #<low ; (35)", source.getCode().get(0));
+    Assert.assertEquals(" BNE ?FA123", source.getCode().get(1));
+    Assert.assertEquals(" CPX #high ; (35)", source.getCode().get(2));
+    Assert.assertEquals(" BEQ ?THEN2", source.getCode().get(3));
+    Assert.assertEquals("?FA123", source.getCode().get(4));
+    Assert.assertEquals(" ...", source.getCode().get(5));
   }
 
   @Test
@@ -723,6 +755,10 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(4, source.getCode().size());
+    Assert.assertEquals(" CMP #low ; (32)", source.getCode().get(0));
+    Assert.assertEquals(" BEQ ?THEN2", source.getCode().get(1));
+    Assert.assertEquals("?FA123", source.getCode().get(2));
+    Assert.assertEquals(" ...", source.getCode().get(3));
   }
 
   @Test
@@ -740,6 +776,10 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(4, source.getCode().size());
+    Assert.assertEquals(" CMP #low ; (33)", source.getCode().get(0));
+    Assert.assertEquals(" BNE ?THEN2", source.getCode().get(1));
+    Assert.assertEquals("?FA123", source.getCode().get(2));
+    Assert.assertEquals(" ...", source.getCode().get(3));
   }
 
   @Test
@@ -756,6 +796,9 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(3, source.getCode().size());
+    Assert.assertEquals(" CMP #low ; (36)", source.getCode().get(0));
+    Assert.assertEquals(" BNE ?FA2", source.getCode().get(1));
+    Assert.assertEquals(" ...", source.getCode().get(2));
   }
 
   @Test
@@ -787,6 +830,9 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(3, source.getCode().size());
+    Assert.assertEquals(" CMP #low ; (37)", source.getCode().get(0));
+    Assert.assertEquals(" BEQ ?FA2", source.getCode().get(1));
+    Assert.assertEquals(" ...", source.getCode().get(2));
   }
 
   @Test
@@ -804,6 +850,10 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(4, source.getCode().size());
+    Assert.assertEquals(" LDX #<low ; (38)", source.getCode().get(0));
+    Assert.assertEquals(" LDA schnubbel", source.getCode().get(1));
+    Assert.assertEquals(" STA array,X", source.getCode().get(2));
+    Assert.assertEquals(" ...", source.getCode().get(3));
   }
 
   @Test
