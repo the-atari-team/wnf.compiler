@@ -186,12 +186,22 @@ public class TestSymbolTokenizer {
   }
 
   @Test
-  public void testGetSymbolString() {
+  public void testGetSymbolSingleQuoteString() {
     String program = "'Dies ist ein String' ";
     SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
 
     Symbol symbol = symbolTokenizerSUT.nextElement();
     Assert.assertEquals("'Dies ist ein String'", symbol.get());
+    Assert.assertEquals(SymbolEnum.string, symbol.getId());
+  }
+  
+  @Test
+  public void testGetSymbolDoubleQuoteString() {
+    String program = "\"Dies ist ein String\" ";
+    SymbolTokenizer symbolTokenizerSUT = new SymbolTokenizer(program);
+
+    Symbol symbol = symbolTokenizerSUT.nextElement();
+    Assert.assertEquals("\"Dies ist ein String\"", symbol.get());
     Assert.assertEquals(SymbolEnum.string, symbol.getId());
   }
 

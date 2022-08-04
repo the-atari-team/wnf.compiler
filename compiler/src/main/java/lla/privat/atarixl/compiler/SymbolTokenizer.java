@@ -195,6 +195,24 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
       ++zeiger;
       symbol = new Symbol(str, SymbolEnum.string);
     }
+    // Strings, starts with " and ends with "
+    else if (ch == '\"') {
+      int p1 = zeiger;
+      char chold = ' ';
+      ch = program.charAt(zeiger);
+      boolean endQuote = false;
+      // TODO: Erkennung '' oder \"
+      while (!endQuote) {
+        chold = ch;
+        ch = program.charAt(++zeiger);
+        if (ch == '\"' && chold != '\\') {
+          endQuote = true;
+        }
+      }
+      String str = program.substring(p1, zeiger + 1);
+      ++zeiger;
+      symbol = new Symbol(str, SymbolEnum.string);
+    }
     if (symbol.getId() == SymbolEnum.variable_name || symbol.getId() == SymbolEnum.reserved_word
         || symbol.getId() == SymbolEnum.number) {
       symbol.changeValue(symbol.get().toUpperCase());
