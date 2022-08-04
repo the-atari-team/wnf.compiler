@@ -12,7 +12,7 @@ en_EN:: WNF stays for "WiNeFi" project or "Will never finished" (german gov. com
 
 This is a compiler for an Algol 68 like language.
 It only produces assembler code for the old https://en.wikipedia.org/wiki/MOS_Technology_6502[MOS-6502] CPU.
-The compiler based on ideas of https://compilers.iecc.com/crenshaw/[Jack Crenshaws].
+The compiler based also on ideas of https://compilers.iecc.com/crenshaw/[Jack Crenshaws] documents "Let's Build a Compiler".
 It is hardcoded to 6502 assembler for simplicity.
 
 == For what?
