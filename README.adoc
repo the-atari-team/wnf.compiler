@@ -8,11 +8,20 @@ de_DE:: WNF für "WiNiFe"-Projekt oder "Wird nie fertig" (ak. Baumann und Clause
 
 en_EN:: WNF stays for "WiNeFi" project or "Will never finished" (german gov. comedy)
 
+== What is this?
+
+This is a compiler for an Algol 68 like language.
+It only produces assembler code for the old https://en.wikipedia.org/wiki/MOS_Technology_6502[MOS-6502] CPU.
+The compiler based on ideas of https://compilers.iecc.com/crenshaw/[Jack Crenshaws].
+It is hardcoded to 6502 assembler for simplicity.
+
+== For what?
+
+This is just a simple but full working demonstration to build assembler code for computers like Atari 8bit.
 
 == Licenses
 The Atari 8bit WNF Compiler sources are licensed under
 https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses].
-
 
 
 This small Java application has been rewritten in Java language
@@ -20,7 +29,7 @@ since october 2020.
 
 It reads Atari 8bit wnf-files and compile these files to 6502-assembler.
 The assembler files are full compatible to
-https://atari.miribilist.com/atasm/[atasm-Assembler],
+https://github.com/CycoPH/atasm/[atasm-Assembler],
 and mostly compatible to mac/65 from OSS.
 
 * [x] read full wnf file
