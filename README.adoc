@@ -75,24 +75,38 @@ wnfc [OPTIONS] [FILE]
 
 OPTIONS::
 
--O level:: give the wished optimization level,
-0 for no optimization,
-1 for normal optimization,
-2 for also branch optimizations.
+-O level:: Give the wished optimization level,
+* 0 for no optimization,
+* 1 for normal optimization,
+* 2 for also branch optimizations. +
 The wnfc compiler contains a very rudimentare peephole optimizer.
-Which takes a look into the generated assembler source and replace some constructs by faster one.
+Which takes a look into the generated assembler source and replace some constructs by faster one. +
+The compiler produce really simple code with parameter -O 0.
 
--v level:: give the verbose level
+-v level:: Give the verbose level
 
--I path:: path where to search for include files.
-The current path is default.
-The -I parameter can give more than once
+-I path:: Path where to search for include files.
+The current path is default. +
+The -I parameter can give more than once.
 
--o path:: the output path, where to copy the generated ASM/INC files.
+-o path:: The output path, where to copy the generated ASM/INC files.
 
--noscm:: Deactivate the shift/(add|sub) and use @IMULT function all the time.
+-smc:: If given, allow self modified code (smc). +
+This is very experimental, do not use!
 
-FILE:: give one source file. Currently it is not possible to
+-noscm:: Deactivate the shift/(add|sub) for hard coded multiplications.
+
+-noshift:: Multiplication/divisions with 2-complement will not use. e.g. x := y * 2 or x:=y / 4...
+
+-smallHeapPtr:: if given, only 256 bytes will use as heap. This means less than 256 Bytes for parameter and local variables. Be careful!
+
+-noHeader:: If given, header.wnf will not automatically import, if file exists.
+
+-precalculate (w|e):: If given, expressions without variables may be precalculatable. This will result in warnings or build errors. If such expression found.
+
+-h:: Show this help.
+
+FILE:: Give one source file. Currently it is not possible to
 give more than one file.
 
 
