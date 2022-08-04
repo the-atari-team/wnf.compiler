@@ -888,9 +888,43 @@ public class TestAssignment {
     Assert.assertEquals("; (5)", source.getCode().get(++n));
     Assert.assertEquals(" LDY #<1", source.getCode().get(++n));
     Assert.assertEquals(" LDX #>1", source.getCode().get(++n));
-    Assert.assertEquals(" TYA", source.getCode().get(++n));
-    Assert.assertEquals(" PUTARRAYW Y", source.getCode().get(++n));
 
+/*
+ * tya           ; 2
+ * stx @reg+1    ; 3
+ * asl a         ; 2
+ * rol @reg+1    ; 5 sollte immer carry loeschen, sonst kommen wir in Teufels Kueche
+ * adc #<Y       ; 2
+ * sta @putarray ; 3
+ * lda @reg+1    ; 3
+ * adc #>Y       ; 2
+ * sta @putarray+1 ; 3 25 Zyklen 16 Bytes
+ * */
+
+    Assert.assertEquals(" TYA", source.getCode().get(++n)); //          ; 2
+//    Assert.assertEquals(" PUTARRAYW Y", source.getCode().get(++n));
+//    Assert.assertEquals(" ASL A", source.getCode().get(++n)); //        ; 2 Mult (x,y)*2
+//    Assert.assertEquals(" TAY", source.getCode().get(++n)); //          ; 2
+//    Assert.assertEquals(" TXA", source.getCode().get(++n)); //          ; 2
+//    Assert.assertEquals(" ROL A", source.getCode().get(++n)); //        ; 2
+//    Assert.assertEquals(" TAX", source.getCode().get(++n)); //          ; 2
+//    Assert.assertEquals(" CLC", source.getCode().get(++n)); //          ; 2 add %1 to the nth value
+//    Assert.assertEquals(" TYA", source.getCode().get(++n)); //          ; 2
+//    Assert.assertEquals(" ADC # <Y", source.getCode().get(++n)); //     ; 2
+//    Assert.assertEquals(" STA @PUTARRAY", source.getCode().get(++n)); //; 3
+//    Assert.assertEquals(" TXA", source.getCode().get(++n)); //          ; 2
+//    Assert.assertEquals(" ADC # >Y", source.getCode().get(++n)); //     ; 2
+//    Assert.assertEquals(" STA @PUTARRAY+1", source.getCode().get(++n)); //  ; 3 in Summe 28 zyklen 17 Bytes
+    Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n)); //          ; 2
+    Assert.assertEquals(" ASL A", source.getCode().get(++n)); //          ; 2
+    Assert.assertEquals(" ROL @PUTARRAY+1", source.getCode().get(++n)); //          ; 2
+    Assert.assertEquals(" ADC #<Y", source.getCode().get(++n)); //          ; 2
+    Assert.assertEquals(" STA @PUTARRAY", source.getCode().get(++n)); //          ; 2
+    Assert.assertEquals(" LDA @PUTARRAY+1", source.getCode().get(++n)); //          ; 2
+    Assert.assertEquals(" ADC #>Y", source.getCode().get(++n)); //          ; 2
+    Assert.assertEquals(" STA @PUTARRAY+1", source.getCode().get(++n)); //          ; 2
+
+    
     Assert.assertEquals("; (6)", source.getCode().get(++n));
     Assert.assertEquals(" LDY X", source.getCode().get(++n));
     Assert.assertEquals(" LDX X+1", source.getCode().get(++n));

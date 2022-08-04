@@ -119,7 +119,42 @@ public class Assignment extends Code {
             code(" ldx #0"); // word_array
           }
           code(" tya");
-          code(" putarrayw " + name);
+//          code(" putarrayw " + name);
+//          if (false) {
+//          code(" ASL A"); // ; 2 Mult (x,y)*2
+//          code(" TAY"); //          ; 2
+//          code(" TXA"); //          ; 2
+//          code(" ROL A"); //        ; 2
+//          code(" TAX"); //          ; 2
+//          code(" CLC"); //          ; 2 add %1 to the nth value
+//          code(" TYA"); //          ; 2
+//          code(" ADC # <" + name); //    ; 2
+//          code(" STA @PUTARRAY"); //  ; 3
+//          code(" TXA"); //          ; 2
+//          code(" ADC # >" + name); //    ; 2
+//          code(" STA @PUTARRAY+1"); //  ; 3
+//          }
+
+          /*
+           * tya           ; 2
+           * stx @reg+1    ; 3
+           * asl a         ; 2
+           * rol @reg+1    ; 5 sollte immer carry loeschen, sonst kommen wir in Teufels Kueche
+           * adc #<Y       ; 2
+           * sta @putarray ; 3
+           * lda @reg+1    ; 3
+           * adc #>Y       ; 2
+           * sta @putarray+1 ; 3 25 Zyklen 16 Bytes
+           * */
+
+          code(" stx @putarray+1"); // ; 3
+          code(" asl a"); //           ; 2
+          code(" rol @putarray+1"); // ; 5
+          code(" adc #<"+name); //     ; 2
+          code(" sta @putarray"); //   ; 3
+          code(" lda @putarray+1"); // ; 3
+          code(" adc #>"+name); //     ; 2
+          code(" sta @putarray+1"); // ; 3
         }
         else {
           source.error(arrayAccess, String.format("Given variable '{%s}' is not of type array.", name));
