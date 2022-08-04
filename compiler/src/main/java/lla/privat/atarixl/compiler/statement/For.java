@@ -39,8 +39,6 @@ public class For extends Code {
   private String forloop;
   private String exitVariable;
 
-  private Expression expressionAfterToOrDownto;
-
   public For(Source source) {
     super(source);
 
@@ -106,7 +104,7 @@ public class For extends Code {
     // FOR variable := <Expression> (to|downto) <Expression> (STEP <Expression>) DO
     //                                          ^^^^^^^^^^^^
 
-    expressionAfterToOrDownto = new Expression(source).setType(typ).expression(nextSymbol);
+    Expression expressionAfterToOrDownto = new Expression(source).setType(typ).expression(nextSymbol);
     nextSymbol = expressionAfterToOrDownto.getLastSymbol();
 
     //
@@ -141,7 +139,7 @@ public class For extends Code {
 
     source.match(nextSymbol, "DO");
 
-    nextSymbol = expressionAfterToOrDownto(variableSymbol);
+    nextSymbol = handleExpressionAfterToOrDownto(expressionAfterToOrDownto, variableSymbol);
 
     nextSymbol = source.nextElement();
     nextSymbol = new Statement(source).statement(nextSymbol).build();
@@ -214,7 +212,7 @@ public class For extends Code {
 
 
 
-  private Symbol expressionAfterToOrDownto(Symbol variableSymbol) {
+  private Symbol handleExpressionAfterToOrDownto(Expression expressionAfterToOrDownto, Symbol variableSymbol) {
 
     Symbol nextSymbol = expressionAfterToOrDownto.build();
 
