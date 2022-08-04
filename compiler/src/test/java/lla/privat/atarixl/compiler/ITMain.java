@@ -84,7 +84,11 @@ public class ITMain {
     String testPlayer = "src/test/resources/lla/privat/atarixl/compiler/test-player.wnf";
     int optimize = 0;
     int verbose = 3;
-    new Main(testPlayer, optimize, verbose).readFile().compile().optimize(optimize).setOutputPath(tempPath).write();
+    Options options = new Options();
+    options.setOptimisationLevel(optimize);
+    options.setVerboseLevel(verbose);
+
+    new Main(testPlayer, null, options).readFile().compile().optimize(optimize).setOutputPath(tempPath).write();
 
     File file = new File(tempPath + "/TESTPM1.ASM");
     Assert.assertTrue(file.exists());
@@ -95,7 +99,11 @@ public class ITMain {
     String testPlayer = "src/test/resources/lla/privat/atarixl/compiler/test-sprite.wnf";
     int optimize = 0;
     int verbose = 3;
-    new Main(testPlayer, optimize, verbose).readFile().compile().optimize(optimize).setOutputPath(tempPath).write();
+    Options options = new Options();
+    options.setOptimisationLevel(optimize);
+    options.setVerboseLevel(verbose);
+    
+    new Main(testPlayer, null, options).readFile().compile().optimize(optimize).setOutputPath(tempPath).write();
 
     File file = new File(tempPath + "/SPRITE.ASM");
     Assert.assertTrue(file.exists());
@@ -108,8 +116,14 @@ public class ITMain {
     String testOxygeneBe = "src/test/resources/lla/privat/atarixl/compiler/test-player-missile.wnf";
     int optimize = 2;
     int verbose = 1;
-    Main main = new Main(testOxygeneBe, optimize, verbose).readFile().compile().optimize(optimize)
+    Options options = new Options();
+    options.setOptimisationLevel(optimize);
+    options.setVerboseLevel(verbose);
+    options.setPrecalculate('e');
+    
+    Main main = new Main(testOxygeneBe, null, options).readFile().compile().optimize(optimize)
         .setOutputPath(tempPath).write();
+    
     File file = new File(tempPath + "/OXYGENBE.ASM");
     Assert.assertTrue(file.exists());
 
@@ -222,4 +236,18 @@ public class ITMain {
     Source source = new Source("program name\n byte i\n { \n assert(i==0,'show if false')\n }\n");
     new Main(source).compile();
   }
+
+  @Test(expected = IllegalStateException.class)
+  public void testPrecalculationError() throws IOException {
+    Source source = new Source("program name byte i begin i := 1 + 1 end ");
+    int optimize = 2;
+    int verbose = 1;
+    Options options = new Options();
+    options.setOptimisationLevel(optimize);
+    options.setVerboseLevel(verbose);
+    options.setPrecalculate('e');
+    new Main(source).setOptions(options).compile();    
+  }
+
 }
+

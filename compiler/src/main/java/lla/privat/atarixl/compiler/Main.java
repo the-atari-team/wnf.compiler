@@ -66,16 +66,38 @@ public class Main {
   }
 
   public Main(String filename, int optimize, int verboseLevel) {
-    this(filename, optimize, verboseLevel, null, false, true, true, false, true, false, false, false);
+//    this(filename, optimize, verboseLevel, null, false, true, true, false, true, false, false, false, false);
+
+    options = new Options();
+    options.setOptimisationLevel(optimize);
+    options.setVerboseLevel(verboseLevel);
+    this.outputPath = null;
+    this.filename = filename;
   }
 
-  public Main(String filename, int optimize, int verboseLevel, String outputPath,
-      boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
-      boolean smallAddSubHeapPtr, boolean importHeader, boolean showVariableUsage,
-      boolean showVariableUnused, boolean showPeepholeOptimize) {
+  public Main(String filename, String outputPath, final Options options) {
     this.filename = filename;
-    this.options = new Options(optimize, verboseLevel, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader, showVariableUsage, showVariableUnused, showPeepholeOptimize);
     this.outputPath = outputPath;
+    this.options = options;
+  }
+  
+//  public Main(String filename, int optimize, int verboseLevel, String outputPath,
+//      boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
+//      boolean smallAddSubHeapPtr, boolean importHeader, boolean showVariableUsage,
+//      boolean showVariableUnused, boolean showPeepholeOptimize,
+//      boolean errorIfPrecalculatable) {
+//    this.filename = filename;
+//    this.options = new Options(optimize, verboseLevel, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader, showVariableUsage, showVariableUnused, showPeepholeOptimize, errorIfPrecalculatable);
+//    this.outputPath = outputPath;
+//  }
+
+  public Main setOptions(final Options options) {
+    this.options.setOptimisationLevel(options.getOptimisationLevel());
+    this.options.setVerboseLevel(options.getVerboseLevel());
+    this.options.setPrecalculate(options.getPrecalculate());
+    // TODO: fill with all options
+    source.setOptions(this.options);
+    return this;
   }
 
   public Main setOutputPath(String outputPath) {
@@ -106,6 +128,7 @@ public class Main {
     LOGGER.info(" -showVariableUsage    - if given, show how often a variable is used.");
     LOGGER.info(" -showVariableUnused   - if given, show a hint if a variable is unused.");
     LOGGER.info(" -showPeepholeOptimize - if given, show which peephole optimize will applied.");
+    LOGGER.info(" -precalculate (w|e)   - if given, expressions without variables (precalculatable) will result in build warning or error.");    
     LOGGER.info("");
     LOGGER.info(" -h | --help           - display this help and exit.");
   }
@@ -128,7 +151,8 @@ public class Main {
     boolean showVariableUsage = false;
     boolean showVariableUnused = false;
     boolean showPeepholeOptimize = false;
-
+    char precalculate = 'n';
+    
     String outputpath = "";
     List<String> includePaths = new ArrayList<>();
 
@@ -182,6 +206,11 @@ public class Main {
         LOGGER.info("Parameter for peephole optimize is given, show which optimization is applied.");
         showPeepholeOptimize = true;
       }
+      else if (parameter.equalsIgnoreCase("-precalculate")) {
+        LOGGER.info("Parameter for precalculate is given, if an expression is precalculatable, it will stop with error or give a warning.");
+        precalculate = args[index + 1].charAt(0);
+        ++index;
+      }
       else if (parameter.equals("-I")) {
         String additionalIncludePath = args[index + 1];
 
@@ -220,7 +249,25 @@ public class Main {
         basename = new File(file.getAbsolutePath()).getParent();
         outputpath = basename;
       }
-      final Main main = new Main(filename, optimisationLevel, verboseLevel, outputpath, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader, showVariableUsage, showVariableUnused, showPeepholeOptimize);
+//      final Main main = new Main(filename, optimisationLevel, verboseLevel, outputpath,
+//          selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader,
+//          showVariableUsage, showVariableUnused, showPeepholeOptimize, errorIfPrecalculatable);
+      
+      Options options = new Options();
+      options.setOptimisationLevel(optimisationLevel);
+      options.setVerboseLevel(verboseLevel);
+      options.setSelfModifiedCode(selfModifiedCode);
+      options.setStarChainMult(starChainMult);
+      options.setShiftMultDiv(shiftMultDiv);
+      options.setSmallAddSubHeapPtr(smallAddSubHeapPtr);
+      options.setImportHeader(importHeader);
+      options.setShowVariableUnused(showVariableUnused);
+      options.setShowVariableUsage(showVariableUsage);
+      options.setShowPeepholeOptimize(showPeepholeOptimize);
+      options.setPrecalculate(precalculate);
+
+      final Main main = new Main(filename, outputpath, options);
+      
       main.setIncludePath(includePaths);
       if (!basename.isEmpty()) {
         main.addIncludePath(basename);

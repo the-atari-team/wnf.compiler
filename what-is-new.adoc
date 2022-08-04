@@ -3,6 +3,9 @@
 
 == What is new
 
+* Parameter -precalculate (w|e) if given, every expression will check if the developer should
+  calculate the fixed digits. The single path compiler can't help here? Maybe yes!
+
 * `@mem[address] := <byte value>` this is a fast replacement for function call `@poke(address, <byte value>)`
 
 * `value := @mem[address]` this is a fast replacement for function call `value := @peek(address)`

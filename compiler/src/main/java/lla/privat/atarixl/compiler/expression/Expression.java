@@ -38,7 +38,7 @@ public class Expression extends Code {
     parameterCount = 0;
     ergebnis = Type.BYTE;
     ergebnisMayBe = Type.UNKNOWN;
-    precalculationPossible = true;
+    precalculationPossible = false;
     countArithmeticSymbols = 0;
   }
 
@@ -82,6 +82,49 @@ public class Expression extends Code {
     return codeGen(sourcecodeline);
   }
 
+  private void calculatePrecalculation() {
+    precalculationPossible = true;
+//    System.out.print("PCode: ");
+//    try {
+      for (int i = 0; i < p_code.size(); i++) {
+        int pcode = p_code.get(i);
+//        System.out.print(pcode);
+        
+        if (pcode == PCode.ZAHL.getValue()) {
+          ++i; // naechste Zahl interessiert nicht
+//          System.out.print(" <" + p_code.get(i) + ">");
+        }
+        else if (pcode == PCode.PUSH.getValue() || pcode == PCode.PULL.getValue()) {        
+        }
+        else if (pcode >= PCode.UPN_ADD.getValue() && pcode <= PCode.UPN_MODULO.getValue()) {
+        }
+        else if (pcode == PCode.NOP.getValue()) {          
+        }
+        else if (pcode == PCode.ADDRESS.getValue()) {
+          ++i; // naechste Zahl interessiert nicht
+        }
+        else {
+          precalculationPossible = false;
+        }
+//        System.out.print(" ");
+      }
+//      System.out.println();
+    
+      // Sonderlocke, single Value
+      if (p_code.size() == 2 && p_code.get(0) == PCode.ZAHL.getValue()) {
+        precalculationPossible = false;
+      }
+      // Sonderlocke, single address
+      if (p_code.size() == 3 && p_code.get(0) == PCode.NOP.getValue() && p_code.get(1) == PCode.ADDRESS.getValue()) {
+        precalculationPossible = false;
+      }
+//    }
+//    catch (IndexOutOfBoundsException e) {
+//      System.out.println("ERROR: " + p_code.size());
+//      source.error(new Symbol(null, null), "UNKNOWN ERROR!");
+//    }
+  } 
+  
   public Symbol build() {
     // TODO: ergebnis im PCode hinterlegen?
     code(";#3 vor optimierung");
@@ -93,6 +136,19 @@ public class Expression extends Code {
 //      }
 //    }
 
+    // If parameter -errorIfPrecalculatable is given and an expression contains only fix digits
+    // it should precalculated by the developer. Due to the fact it is a single path compiler
+    // the compiler is NOT be able to help here in precalculate itself.
+    
+    if (precalculationPossible) {
+      if (source.getOptions().isErrorPrecalculate()) {
+        source.error(Symbol.noSymbol(), "Error: Precalculation is possible here. Fix it!");
+      }
+      if (source.getOptions().isWarningPrecalculate()) {
+        source.warn("Warning: Precalculation is possible here.");
+      }
+    }
+    
     optimisation();
 
     LOGGER.debug("PCode is " + joinedPCode());
@@ -170,6 +226,7 @@ public class Expression extends Code {
     }
     lastSymbol = nextSymbol;
 
+    calculatePrecalculation();
     // fluid interface
     return this;
   }
@@ -240,7 +297,6 @@ public class Expression extends Code {
         p_code.add(0);
         p_code.add(PCode.PUSH.getValue());
         nextSymbol = substract(symbol);
-        precalculationPossible = false; // negative variable not precalculateable
       }
     }
     else if (id == SymbolEnum.string && symbol.get().length() == 3) {
@@ -283,7 +339,6 @@ public class Expression extends Code {
       nextSymbol = source.nextElement();
       nextSymbol = expression(nextSymbol).getLastSymbol();
       match(nextSymbol, "]");
-      precalculationPossible = false;
     }
     else {
       source.error(symbol, "unknown factor value");
@@ -369,11 +424,9 @@ public class Expression extends Code {
 
       peekSymbol = source.peekSymbol();
       functionCallAccess(namePtr.get(), Type.FUNCTION_POINTER);
-      precalculationPossible = false; // functioncall not precalculateable
     }
     else if (peekSymbol.get().equals("(")) {
       functionCallAccess(name, Type.FUNCTION);
-      precalculationPossible = false; // functioncall not precalculateable
     }
     else if (peekSymbol.get().equals(":")) {
       switch (name) {
@@ -389,7 +442,6 @@ public class Expression extends Code {
     }
     else if (peekSymbol.get().equals("[")) {
       arrayAccess(name);
-      precalculationPossible = false; // arrayaccess not precalculateable
     }
     else {
       Type variableType = source.getVariableType(name);
@@ -427,7 +479,6 @@ public class Expression extends Code {
         source.throwIfArrayType(variableType);
 
         p_code.add(PCode.WORD.getValue());
-        precalculationPossible = false; // variable access not precalculateable
         int variablePosition = source.getVariablePosition(name);
         if (variablePosition == -1) {
           source.throwIfVariableUndefined(name);

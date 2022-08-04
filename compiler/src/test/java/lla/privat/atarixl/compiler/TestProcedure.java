@@ -114,13 +114,21 @@ public class TestProcedure {
     Assert.assertEquals(";", code.get(++n));
 
     Assert.assertEquals("NAME", code.get(++n));
+    // zwei Parameter, somit gibt es auch die Funktion NAME_II (2 I)
     Assert.assertEquals("NAME_II", code.get(++n));
+
+    // Wir holen den Parameter vom Heap, gleichzeitig sichern die Variable ONE auf dem Heap
+    // hier ein Byte
+    
     Assert.assertEquals(" LDX ONE", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals(" STA ONE", code.get(++n));
     Assert.assertEquals(" TXA", code.get(++n));
     Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+
+    // Wir holen den Parameter vom Heap, gleichzeitig sichern die Variable ONE auf dem Heap
+    // hier zwo Bytes
 
     Assert.assertEquals(" LDX TWO", code.get(++n));
     Assert.assertEquals(" LDY #3", code.get(++n));
@@ -155,6 +163,8 @@ public class TestProcedure {
     Assert.assertEquals(" BCS *+4", code.get(++n));
     Assert.assertEquals(" DEC @HEAP_PTR+1", code.get(++n));
 
+    // Wir stellen den 2. Parameter wieder her
+    
     Assert.assertEquals(" LDY #3", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals(" STA TWO", code.get(++n));
@@ -162,6 +172,8 @@ public class TestProcedure {
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals(" STA TWO+1", code.get(++n));
 
+    // Wir stellen den 1. Parameter wieder her
+    
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals(" STA ONE", code.get(++n));

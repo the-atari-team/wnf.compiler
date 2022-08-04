@@ -100,6 +100,10 @@ public class Source implements Enumeration<Symbol> {
     this.options = options;
   }
 
+  public Options getOptions() {
+    return this.options;
+  }
+  
   /**
    * Der Name des zu erstellenden Programs kommt aus der 1. Zeile PROGRAM <name>
    *

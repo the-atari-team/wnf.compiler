@@ -11,6 +11,7 @@ public class Options {
   private boolean showVariableUsage = false;
   private boolean showVariableUnused = false;
   private boolean showPeepholeOptimize = false;
+  private char precalculate;
   
   public Options() {
     verboseLevel = 0;
@@ -23,13 +24,15 @@ public class Options {
     showVariableUsage = false;
     showVariableUnused = false;
     showPeepholeOptimize = false;
+    precalculate = 'n';
   }
   
   public Options(int optimisationLevel,
       int verboseLevel,
       boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
       boolean smallAddSubHeapPtr, boolean importHeader, boolean showVariableUsage,
-      boolean showVariableUnused, boolean showPeepholeOptimize) {
+      boolean showVariableUnused, boolean showPeepholeOptimize,
+      char precalculate) {
     this.optimisationLevel = optimisationLevel;
     this.verboseLevel = verboseLevel;
     this.selfModifiedCode = selfModifiedCode;
@@ -40,6 +43,7 @@ public class Options {
     this.showVariableUsage = showVariableUsage;
     this.showVariableUnused = showVariableUnused;
     this.showPeepholeOptimize = showPeepholeOptimize;
+    this.precalculate = precalculate;
   }
 
   public int getOptimisationLevel() {
@@ -120,6 +124,20 @@ public class Options {
 
   public void setShowVariableUnused(boolean showVariableUnused) {
     this.showVariableUnused = showVariableUnused;
+  }
+
+  public boolean isErrorPrecalculate() {
+    return precalculate=='e';
+  }
+  public boolean isWarningPrecalculate() {
+    return precalculate=='w';
+  }
+  public char getPrecalculate() {
+    return precalculate;
+  }
+
+  public void setPrecalculate(char precalculate) {
+    this.precalculate = precalculate;
   }
   
   
