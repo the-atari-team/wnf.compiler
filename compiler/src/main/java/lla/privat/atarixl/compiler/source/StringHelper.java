@@ -3,14 +3,9 @@
 
 package lla.privat.atarixl.compiler.source;
 
-import java.text.ParseException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class StringHelper {
   
-  private static final Logger LOGGER = LoggerFactory.getLogger(StringHelper.class);
+  // private static final Logger LOGGER = LoggerFactory.getLogger(StringHelper.class);
   
   public static String maybeString(String text) {
     if (isSingleQuotedString(text)) {

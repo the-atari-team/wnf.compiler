@@ -28,7 +28,7 @@ public class TestBlock {
     Assert.assertEquals(17, code.size());
   }
 
-  // The Variable =@ makes the variable visible in the inner variable list
+  // The Variable 'byte col_bk=@' makes the variable visible in the inner variable list
   // but only with a well known memory representation from variables.inc or hardware.inc
   @Test
   public void testProgramBlockWithVariable() {
