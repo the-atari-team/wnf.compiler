@@ -231,6 +231,7 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
     }
     if (symbol.getId() == SymbolEnum.reserved_word) {
       if (symbol.get().equals("ADR") ||
+          symbol.get().equals("ABS") ||
           symbol.get().equals("B2W")) { // TODO: prüfen ob ADR eine variable sein muss
         symbol.changeId(SymbolEnum.variable_name);
       }

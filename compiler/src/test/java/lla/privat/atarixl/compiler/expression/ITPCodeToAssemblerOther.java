@@ -968,4 +968,60 @@ public class ITPCodeToAssemblerOther {
 
   }
 
+  @Test
+  public void testExpressionAbsoluteWord() {
+    Source source = new Source("abs:x ");
+    source.addVariable("X", Type.WORD);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (19b)", code.get(++n));
+    Assert.assertEquals(" LDX X+1", code.get(++n));
+    Assert.assertEquals(" BPL ?ABS_POSITIVE1", code.get(++n));
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" LDA #0", code.get(++n));
+    Assert.assertEquals(" SBC X", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA #0", code.get(++n));
+    Assert.assertEquals(" SBC X+1", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+    Assert.assertEquals(" JMP ?ABS_WAS_NEGATIVE1", code.get(++n));
+    Assert.assertEquals("?ABS_POSITIVE1", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals("?ABS_WAS_NEGATIVE1", code.get(++n));
+    
+    Assert.assertEquals(14, code.size());
+  }
+  
+  @Test
+  public void testExpressionAbsoluteInt8() {
+    Source source = new Source("abs:x ");
+    source.addVariable("X", Type.INT8);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.INT8;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (19c)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" BPL ?ABS_POSITIVE1", code.get(++n));
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" LDA #0", code.get(++n));
+    Assert.assertEquals(" SBC X", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals("?ABS_POSITIVE1", code.get(++n));
+    
+    Assert.assertEquals(8, code.size());
+  }
+
 }

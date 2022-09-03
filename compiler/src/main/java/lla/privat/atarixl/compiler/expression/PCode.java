@@ -46,8 +46,9 @@ public enum PCode {
   STRING(172),
   WORD_SPLIT_ARRAY(174),
   // very short math routines
-  ABSOLUTE(175),
+  ABSOLUTE_WORD(175),
   TOWORD(176),
+  ABSOLUTE_INT8(177),
 
   PARAMETER_START_ADD_TO_HEAP_PTR(180),
   PARAMETER_PUSH(181),

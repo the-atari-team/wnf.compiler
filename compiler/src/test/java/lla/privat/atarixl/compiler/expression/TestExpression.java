@@ -5,7 +5,6 @@ package lla.privat.atarixl.compiler.expression;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import lla.privat.atarixl.compiler.Symbol;
@@ -158,8 +157,6 @@ public class TestExpression {
     Assert.assertEquals(Type.BYTE, source.getTypeOfLastExpression());
   }
 
-
-
   @Test
   public void testWordExpressionWithVariableConst() {
     Source source = new Source("x");
@@ -174,7 +171,6 @@ public class TestExpression {
     Assert.assertEquals("254 171 0 9999999", expressionSUT.joinedPCode());
     Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
-
 
   @Test
   public void testExpressionWithString() {
@@ -381,7 +377,6 @@ public class TestExpression {
     Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
-
   @Test
   public void testMultiplyWithNegativInExpression() {
     Source source = new Source("2 * -1");
@@ -507,7 +502,8 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     System.out.println(expressionSUT.joinedPCode());
-    Assert.assertEquals("180 0 172 2 181 0 180 1 167 1 181 0 64 1 1 182 1 181 1 64 0 2 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("180 0 172 2 181 0 180 1 167 1 181 0 64 1 1 182 1 181 1 64 0 2 9999999",
+        expressionSUT.joinedPCode());
   }
 
   @Test
@@ -526,7 +522,7 @@ public class TestExpression {
   @Test
   public void testExpressionAddressOfWordVariableButAtVariableUnknown() {
     Source source = new Source("adr:@x");
-    //    source.addVariable("@X", Type.WORD);
+    // source.addVariable("@X", Type.WORD);
 
     // Variablen die mit @ beginnen, brauchen nicht initialisiert werden
     // die werden evtl. einfach mit angelegt und es wird angenommen das
@@ -551,17 +547,28 @@ public class TestExpression {
     setupWordExpression(source);
   }
 
-  @Ignore
   @Test
   public void testExpressionAbsoluteValueWordVariable() {
     Source source = new Source("abs:x");
     source.addVariable("X", Type.WORD);
-
+//TODO: add test with int8 and byte
     setupWordExpression(source);
     Assert.assertEquals("254 175 0", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
     Assert.assertEquals("254 175 0 9999999", expressionSUT.joinedPCode());
+  }
+
+  
+  @Test
+  public void testExpressionAbsoluteValueInt8Variable() {
+    Source source = new Source("abs:x");
+    source.addVariable("X", Type.INT8);
+    setupWordExpression(source);
+    Assert.assertEquals("254 177 0", expressionSUT.joinedPCode());
+
+    expressionSUT.optimisation();
+    Assert.assertEquals("254 177 0 9999999", expressionSUT.joinedPCode());
   }
 
   @Test
@@ -697,7 +704,6 @@ public class TestExpression {
     Assert.assertEquals("180 0 168 0 181 0 160 159 162 168 1 163 9 181 1 64 2 2", joinedPCode);
     Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
-
 
   @Test
   public void testWordExpression() {

@@ -195,6 +195,7 @@ public class PeepholeOptimizer {
       ldy_ldx_tya(); // (45)
       ldx_ldx();
       tay_ldx_sty(); // (46)
+      ldx_txa_ldx(); // (48)
       if (optimisationLevel > 1) {
 
         bne_fa_jmp_then();
@@ -730,6 +731,33 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
      incrementStatus(type);
     }
   }
+  
+  // @formatter:off
+  //LDX #>
+  //TXA
+  //LDX ...
+  private void ldx_txa_ldx() {
+    for (int i = 0; i < codeList.size() - 4; i++) {
+      ldx_txa_ldx(i, PeepholeType.LDX_TXA);
+    }
+  
+  }
+  
+  private void ldx_txa_ldx(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDX") &&
+        codeList.get(index + 1).startsWith(" TXA") &&
+        codeList.get(index + 2).startsWith(" LDX")
+       ) {
+  
+      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+  
+      String newLoad = codeList.get(index).replace(" LDX", " LDA");
+      codeList.set(index, newLoad + " ; (48)");
+      codeList.set(index+1, ";opt (48)");
+      incrementStatus(type);
+    }
+  }  
+  
 //@formatter:off
 //tritt auf bei Byte-Vergleich == !=
 // LDY C

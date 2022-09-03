@@ -433,6 +433,9 @@ public class Expression extends Code {
       case "ADR":
         addressAccess();
         break;
+      case "ABS":
+        absoluteValue();
+        break;
       case "B2W":
         toWord();
         break;
@@ -604,6 +607,38 @@ public class Expression extends Code {
       if (name.startsWith("@")) {
         source.addVariable(name, Type.FUNCTION);
         variablePosition = source.getVariablePosition(name);
+      }
+      else {
+        source.throwIfVariableUndefined(name);
+      }
+    }
+    p_code.add(variablePosition);
+    source.getVariable(nameSymbol.get()).setRead();
+  }
+  
+  protected void absoluteValue() {
+    Symbol peekSymbol = source.nextElement(); // ":"
+    source.match(peekSymbol, ":");
+
+    Symbol nameSymbol = source.nextElement(); // address of name
+    p_code.add(PCode.NOP.getValue());
+    if (source.getVariableType(nameSymbol.get()) == Type.WORD) {
+      p_code.add(PCode.ABSOLUTE_WORD.getValue());
+      ergebnis = Type.WORD; // Egal was es vorher war, wir sind jetzt word breit!      
+    }
+    else if (source.getVariableType(nameSymbol.get()) == Type.INT8) {
+      p_code.add(PCode.ABSOLUTE_INT8.getValue());
+      ergebnis = Type.INT8;      
+    }
+    else {
+      source.error(Symbol.noSymbol(), "Error: abs:VARIABLE must of type WORD or INT8 other are not supported yet.");      
+    }
+    String name = nameSymbol.get();
+
+    int variablePosition = source.getVariablePosition(name);
+    if (variablePosition == -1) {
+      if (name.startsWith("@")) {
+        source.error(Symbol.noSymbol(), "Error: abs:@VAR is not supported.");
       }
       else {
         source.throwIfVariableUndefined(name);

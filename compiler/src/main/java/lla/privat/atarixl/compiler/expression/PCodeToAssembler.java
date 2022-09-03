@@ -572,7 +572,7 @@ public class PCodeToAssembler extends Code {
         code(" ldx #>" + a$);
         a = a + 2;
       }
-   // -------------------------------
+      // -------------------------------
       else if (currentPCode == PCode.TOWORD) {
         code(";#2 (19)");
         int num = p_code.get(a + 1);
@@ -592,6 +592,48 @@ public class PCodeToAssembler extends Code {
         }
         else {
         }
+        a = a + 2;
+      }
+      // -------------------------------
+      else if (currentPCode == PCode.ABSOLUTE_WORD) {
+        code(";#2 (19b)");
+        int num = p_code.get(a + 1);
+        a$ = source.getVariableAt(num);
+
+        source.incrementNegativeCount();
+        
+        code(" ldx " + a$ + "+1");
+        code(" bpl ?abs_positive"+source.getNegativeCount());
+        code(" sec");
+        code(" lda #0");
+        code(" sbc " + a$);
+        code(" tay");
+        code(" lda #0");
+        code(" sbc " + a$ + "+1");
+        code(" tax");
+        code(" jmp ?abs_was_negative"+source.getNegativeCount());
+        code("?abs_positive"+source.getNegativeCount());
+        code(" ldy " + a$);
+        code("?abs_was_negative"+source.getNegativeCount());
+               
+        a = a + 2;
+      }
+      // -------------------------------
+      else if (currentPCode == PCode.ABSOLUTE_INT8) {
+        code(";#2 (19c)");
+        int num = p_code.get(a + 1);
+        a$ = source.getVariableAt(num);
+
+        source.incrementNegativeCount();
+        
+        code(" ldy " + a$);
+        code(" bpl ?abs_positive"+source.getNegativeCount());
+        code(" sec");
+        code(" lda #0");
+        code(" sbc " + a$);
+        code(" tay");
+        code("?abs_positive"+source.getNegativeCount());
+               
         a = a + 2;
       }
 // -------------------------------
