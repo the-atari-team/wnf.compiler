@@ -5,5 +5,5 @@
 @LONGIVALUE  = 1 ; hier folgt ein Kommentar
 
 ; sample
-@LONG
+@Long
   RTS

@@ -33,10 +33,13 @@ public class Includes extends Code {
   
   // TODO: könnte man automatisieren, dann werden unnoetige includes
   // weggelassen/automatisch hinzugefügt (Linker)
+  List<String> currentIncludes;
+  
   public Includes readAllIncludes(Symbol symbol) {
+    currentIncludes = new ArrayList<>();
+    
     nextSymbol = symbol;
     boolean isIncludes = true;
-    int count = 0;
     while (isIncludes) {
       String mnemonic = nextSymbol.get();
       if (mnemonic.equals("INCLUDE")) {
@@ -44,8 +47,7 @@ public class Includes extends Code {
         if (filenameSymbol.getId() == SymbolEnum.string) {
           final String filenameWithoutQuotes = StringHelper.removeQuotes(filenameSymbol.get());
           final String absFilename = fileHelper.findInPaths(filenameWithoutQuotes);
-          code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(absFilename));
-          ++count;
+          currentIncludes.add(absFilename);
           nextSymbol = source.nextElement();
         }
         else {
@@ -56,16 +58,25 @@ public class Includes extends Code {
         isIncludes = false;
       }
     }
-    if (count == 0) {
-      List<String> includes = new IncludeGenerator(source.getIncludePaths(), getFunctions()).build();
-
-      for (String include : includes) {
-         code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(include));
-       }
-    }
     return this;
   }
 
+  public Includes testIncludes() {
+    if (source.getOptions().isTestIncludes() == true) {
+      LOGGER.info("test includes: show possible includes to add");
+      List<String> allIncludePaths = source.getIncludePaths();
+      List<String> functions = getFunctions();
+      
+      IncludeGenerator includeGenerator = new IncludeGenerator(allIncludePaths, currentIncludes, functions);
+      includeGenerator.collectIncludeFiles();
+      includeGenerator.showAllUnknownFunctionsButIncludeExistsForIt();
+
+      LOGGER.info("test includes: all unknown functions");
+      includeGenerator.showAllUnknownFunctions();
+    }
+    return this;
+  }
+  
   /**
    * getFunctions return a list of all function start with '@'
    * @return
@@ -90,6 +101,10 @@ public class Includes extends Code {
   }
 
   public Symbol build() {
+    for (String include : currentIncludes) {
+      code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(include));
+    }
+
     // runtime hier anhaengen!
     code(" .INCLUDE " + StringHelper.makeDoubleQuotedString(fileHelper.findInPaths("RUNTIME.INC")));
     return nextSymbol;

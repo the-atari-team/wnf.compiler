@@ -129,6 +129,7 @@ public class Main {
     LOGGER.info(" -showVariableUnused   - if given, show a hint if a variable is unused.");
     LOGGER.info(" -showPeepholeOptimize - if given, show which peephole optimize will applied.");
     LOGGER.info(" -precalculate (w|e)   - if given, expressions without variables (precalculatable) will result in build warning or error.");    
+    LOGGER.info(" -testincludes         - if given, test given includes");
     LOGGER.info("");
     LOGGER.info(" -h | --help           - display this help and exit.");
   }
@@ -151,6 +152,8 @@ public class Main {
     boolean showVariableUsage = false;
     boolean showVariableUnused = false;
     boolean showPeepholeOptimize = false;
+    boolean testInclude = false;
+    
     char precalculate = 'n';
     
     String outputpath = "";
@@ -211,6 +214,10 @@ public class Main {
         precalculate = args[index + 1].charAt(0);
         ++index;
       }
+      else if (parameter.equalsIgnoreCase("-testincludes")) {
+        LOGGER.info("Parameter for test includes is given, we check all includes.");
+        testInclude = true;
+      }
       else if (parameter.equals("-I")) {
         String additionalIncludePath = args[index + 1];
 
@@ -265,7 +272,8 @@ public class Main {
       options.setShowVariableUsage(showVariableUsage);
       options.setShowPeepholeOptimize(showPeepholeOptimize);
       options.setPrecalculate(precalculate);
-
+      options.setTestIncludes(testInclude);
+      
       final Main main = new Main(filename, outputpath, options);
       
       main.setIncludePath(includePaths);

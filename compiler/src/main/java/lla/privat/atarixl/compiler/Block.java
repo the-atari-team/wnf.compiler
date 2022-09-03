@@ -97,7 +97,7 @@ public class Block extends Code {
       source.generateVariables();
 
       // (include 'include-file')+
-      nextSymbol = new Includes(source, fileHelper).readAllIncludes(nextSymbol).build();
+      nextSymbol = new Includes(source, fileHelper).readAllIncludes(nextSymbol).testIncludes().build();
 
       if (source.isRunAd()) {
         // LOMEM=<ADDR>,RUNAD is given, we must use .bank here

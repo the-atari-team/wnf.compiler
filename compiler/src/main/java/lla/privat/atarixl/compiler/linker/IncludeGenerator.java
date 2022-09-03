@@ -26,14 +26,15 @@ public class IncludeGenerator {
   private static final Logger LOGGER = LoggerFactory.getLogger(IncludeGenerator.class);
   
   private List<String> includes;
-  private List<String> includeFilenames;
+  private List<String> currentIncludes; // already given by source
   private List<String> functionsToSearchFor;
 
   private Map<String, String> functionInFilename;
   
-  public IncludeGenerator(List<String> includes, List<String> functions) {
+  public IncludeGenerator(List<String> includes, List<String> currentIncludes, List<String> functions) {
     this.includes = includes;
     this.functionsToSearchFor = functions;
+    this.currentIncludes = currentIncludes;
     functionInFilename = new HashMap<>();
   }
   
@@ -43,16 +44,19 @@ public class IncludeGenerator {
     public boolean accept(File file) {
 
       // if the file extension is .log return true, else false
-      if (file.getName().endsWith(".INC")) {
+      if (file.getName().toUpperCase().endsWith(".INC")) {
         return true;
       }
       return false;
     }
   };
-  
-  public IncludeGenerator collectIncludeFiles() {
 
-    includeFilenames = new ArrayList<>();
+  /**
+   * run through all given paths and collect the *.INC files found there
+   */
+  public List<String> collectIncludeFiles() {
+
+    List<String> includeFilenames = new ArrayList<>();
     
     for (String pathName : includes) {
       File directory = new File(pathName);
@@ -61,10 +65,13 @@ public class IncludeGenerator {
         includeFilenames.add(file.getAbsolutePath());
       }
     }
-    
-    return this;
+    return includeFilenames;
   }
 
+  public List<String> getIncludeFilenames() {
+    return collectIncludeFiles();
+  }
+  
   public List<String> build() {
     List<String> includeList = new ArrayList<>();
     if (includes == null) {
@@ -84,56 +91,156 @@ public class IncludeGenerator {
     return new ArrayList<String>(includes);
   }
 
-  private void collectAllFunctionsOutOfFiles() {
+  public Map<String, String> collectAllFunctionsFromOneInclude(String includeFilename) {
+    Map<String, String> functionsInOneInclude = new HashMap<>();
+
+    File file = new File(includeFilename);
+    try {
+      List<String> lines = readLines(file);
+    
+      for (String line : lines) {
+        String filename = includeFilename;
+        if (line.startsWith("@")) {
+          int remark = line.indexOf(";");
+          if (remark != -1) {
+            line = line.substring(0, remark);  
+          }
+          int equates = line.indexOf("=");
+          if (equates != -1) {
+            continue;
+          }
+          String functionName = line.trim().toUpperCase();
+//          // TODO: hier etwas generisches bauen
+//          if (functionName.endsWith("_I") ||
+//              functionName.endsWith("_II") ||
+//              functionName.endsWith("_III") ||
+//              functionName.endsWith("_IIII") ||
+//              functionName.endsWith("_IIIII") ||
+//              functionName.endsWith("_IIIIII") ||
+//              functionName.endsWith("_IIIIIII") ||
+//              functionName.endsWith("_IIIIIIII") ||
+//              functionName.endsWith("_IIIIIIIII") ||
+//              functionName.endsWith("_IIIIIIIIII") ||
+//              functionName.endsWith("_IIIIIIIIIII") ||
+//              functionName.endsWith("_IIIIIIIIIIII")
+//              )
+//          {
+//            continue;
+//          }
+          functionsInOneInclude.put(functionName, filename);
+        }
+      }
+    } catch (IOException e) {
+      LOGGER.error("Caught IOException", e);
+    }
+    return functionsInOneInclude;
+  }
+  
+  private Map<String, String> collectAllFunctionsOutOfFiles(List<String> includeFilenames) {
+    Map<String, String> functionsInAllIncludes = new HashMap<>();
+
     for (String includeFilename: includeFilenames) {
-      File file = new File(includeFilename);
-      try {
-        List<String> lines = readLines(file);
-      
-        for (String line : lines) {
-          String filename = includeFilename;
-          if (line.startsWith("@")) {
-            int remark = line.indexOf(";");
-            if (remark != -1) {
-              line = line.substring(0, remark);  
-            }
-            int equates = line.indexOf("=");
-            if (equates != -1) {
-              continue;
-            }
-            String functionName = line.trim();
-            if (functionInFilename.containsKey(functionName)) {
-              String alreadyExistInFile = functionInFilename.get(functionName);
-              LOGGER.error("Functionname {} in file {} already exists in {}", functionName, filename, alreadyExistInFile);
-              functionName = functionName + " // AMBIGUOUS";
-              filename = filename + " // AMBIGUOUS";
-            }
-            functionInFilename.put(line, filename);
+      Map<String, String> functionsInOneInclude = collectAllFunctionsFromOneInclude(includeFilename);
+
+      for (Map.Entry<String, String> entry: functionsInOneInclude.entrySet()) {
+        String functionName = entry.getKey();
+        String value = entry.getValue();
+        
+        if (functionsInAllIncludes.containsKey(functionName)) {
+          String alreadyExistInFile = functionsInAllIncludes.get(functionName);
+          functionsInAllIncludes.put(functionName, alreadyExistInFile + "," + value);
+        }
+        else {
+          functionsInAllIncludes.put(functionName, value);
+        }
+      }
+    }
+    return functionsInAllIncludes;
+  }
+
+  public Map<String, String> collectAllFunctionsOutOfFiles() {
+    List<String> includeFilenames = collectIncludeFiles();
+    return collectAllFunctionsOutOfFiles(includeFilenames);
+  }
+  
+  public Map<String, String> collectAllFunctionsLeaveOutAlreadyIncluded() {
+    Map<String, String> functionsInAllIncludes = collectAllFunctionsOutOfFiles();
+    Map<String, String> functionsAlreadyIncluded = collectAllFunctionsOutOfFiles(currentIncludes);
+   
+    for (Map.Entry<String, String> entry: functionsAlreadyIncluded.entrySet()) {
+      String functionName = entry.getKey();
+      if (functionsInAllIncludes.containsKey(functionName)) {
+        functionsInAllIncludes.remove(functionName);
+//        LOGGER.info("Function {} removed", functionName);
+      }
+      else {
+//        LOGGER.info("Function {}", functionName);        
+      }
+    }
+    return functionsInAllIncludes;
+  }
+
+  public Map<String, String> getAllUnknownFunctionsButIncludeExistsForIt() {
+    Map<String, String> allFunctionsWithoutAlreadyIncluded = collectAllFunctionsLeaveOutAlreadyIncluded();
+    Map<String, String> allFunctionsWeSearchFor = new HashMap<>();
+    
+    for (String functionToSearchFor : functionsToSearchFor) {
+      String upperCaseFunctionToSearchFor = functionToSearchFor.toUpperCase();
+      if (allFunctionsWithoutAlreadyIncluded.containsKey(upperCaseFunctionToSearchFor)) {
+        String path = allFunctionsWithoutAlreadyIncluded.get(upperCaseFunctionToSearchFor);
+        allFunctionsWeSearchFor.put(upperCaseFunctionToSearchFor, path);
+      }
+    }
+    return allFunctionsWeSearchFor;
+  }
+
+  public void showAllUnknownFunctionsButIncludeExistsForIt() {
+    Map<String, String> allFunctionsWithoutAlreadyIncluded = getAllUnknownFunctionsButIncludeExistsForIt();
+    List<String> alreadyShows = new ArrayList<>();
+    
+    for (String functionToSearchFor : functionsToSearchFor) {
+      if (allFunctionsWithoutAlreadyIncluded.containsKey(functionToSearchFor)) {
+        String path = allFunctionsWithoutAlreadyIncluded.get(functionToSearchFor);
+        if (alreadyShows.contains(path)) {
+          
+        }
+        else {
+          if (path.contains(";")) {
+            LOGGER.warn("found function {} in different files {}", functionToSearchFor, path);
+          }
+          else {
+            File shortPath = new File(path);
+            LOGGER.warn("add include '{}' // for {}", shortPath.getName(), functionToSearchFor);
+            alreadyShows.add(path);
           }
         }
-      } catch (IOException e) {
-        LOGGER.error("Caught IOException", e);
       }
     }
   }
   
-//  private boolean fileContainsFunction(File file, List<String> functions) {
-//    try {
-//      List<String> lines = readLines(file);
-//      for (String function : functions) {
-//        for (String line : lines) {
-//          String value = line;
-//          if (value.startsWith(function) && function.startsWith(value)) {
-//            return true;
-//          }
-//        }
-//      }
-//    }
-//    catch (IOException e) {
-//      // LOGGER.error("can't read file: {}", file.getAbsoluteFile());
-//    }
-//    return false;
-//  }
+  public List<String> getAllUnknownFunctions() {
+//    Map<String, String> allFunctionsWithoutAlreadyIncluded = getAllUnknownFunctionsButIncludeExistsForIt();
+    Map<String, String> allFunctionsOnlyFromInclude = collectAllFunctionsOutOfFiles(currentIncludes);
+    List<String> unknownFunctions = new ArrayList<>();
+    
+    for (String functionToSearchFor : functionsToSearchFor) {
+      if (allFunctionsOnlyFromInclude.containsKey(functionToSearchFor)) {
+      }
+      else
+      {
+        unknownFunctions.add(functionToSearchFor);
+      }
+    }
+    return unknownFunctions;
+  }
+
+  public void showAllUnknownFunctions() {
+    List<String> allUnknownFunctions = getAllUnknownFunctions();
+
+    for (String unknown: allUnknownFunctions) {
+      LOGGER.warn("function {}() not found in any known include", unknown);      
+    }
+  }
 
   private List<String> readLines(File file) throws IOException {
     List<String> lines = new ArrayList<>();

@@ -11,6 +11,7 @@ public class Options {
   private boolean showVariableUsage = false;
   private boolean showVariableUnused = false;
   private boolean showPeepholeOptimize = false;
+  private boolean testIncludes = false;
   private char precalculate;
   
   public Options() {
@@ -24,6 +25,7 @@ public class Options {
     showVariableUsage = false;
     showVariableUnused = false;
     showPeepholeOptimize = false;
+    testIncludes = false;
     precalculate = 'n';
   }
   
@@ -138,6 +140,14 @@ public class Options {
 
   public void setPrecalculate(char precalculate) {
     this.precalculate = precalculate;
+  }
+
+  public boolean isTestIncludes() {
+    return testIncludes;
+  }
+
+  public void setTestIncludes(boolean testIncludes) {
+    this.testIncludes = testIncludes;
   }
   
   
