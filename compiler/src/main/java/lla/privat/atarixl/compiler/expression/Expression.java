@@ -429,6 +429,8 @@ public class Expression extends Code {
       functionCallAccess(name, Type.FUNCTION);
     }
     else if (peekSymbol.get().equals(":")) {
+      // TODO: name sollte hier reserviertes Word sein!
+      // source.throwIfVariableNotReservedWord(name);
       switch (name) {
       case "ADR":
         addressAccess();
@@ -438,6 +440,9 @@ public class Expression extends Code {
         break;
       case "B2W":
         toWord();
+        break;
+      case "HI":
+        hibyte();
         break;
       default:
         source.error(symbol, "Expect only ADR or B2W before ':' was: " + name);
@@ -584,12 +589,32 @@ public class Expression extends Code {
     String name = nameSymbol.get();
     source.throwIfVariableUndefined(name);
     if (Type.BYTE != source.getVariableType(name)) {
-      source.error(nameSymbol, "Only Variables of type BYTE allowed after W:<var>");
+      source.error(nameSymbol, "Only Variables of type BYTE allowed after B2W:<var>");
     }
 
     int variablePosition = source.getVariablePosition(name);
     p_code.add(variablePosition);
     source.getVariable(nameSymbol.get()).setRead();
+  }
+
+  protected void hibyte() {
+    Symbol peekSymbol = source.nextElement(); // ":"
+    source.match(peekSymbol, ":");
+
+    Symbol nameSymbol = source.nextElement(); // name
+    p_code.add(PCode.NOP.getValue());
+    p_code.add(PCode.HI_BYTE.getValue());
+    ergebnis = Type.BYTE; // Egal was es vorher war, wir sind jetzt byte breit!
+    String name = nameSymbol.get();
+    source.throwIfVariableUndefined(name);
+    if (source.getVariableSize(name) == 2 || source.getVariableType(name) == Type.CONST) {
+      int variablePosition = source.getVariablePosition(name);
+      p_code.add(variablePosition);
+      source.getVariable(nameSymbol.get()).setRead();
+    }
+    else {
+      source.error(nameSymbol, "Only Variables of type WORD/UINT16 or type CONST allowed after HI:<var>");
+    }
   }
 
   protected void addressAccess() {

@@ -1024,4 +1024,70 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(8, code.size());
   }
 
+  @Test
+  public void testExpressionHiByteOfWordAccess() {
+    Source source = new Source("hi:x ");
+    source.addVariable("X", Type.WORD);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.BYTE;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (20)", code.get(++n));
+    Assert.assertEquals(" LDY X+1", code.get(++n));
+//    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(2, code.size());
+  }
+
+  @Test
+  public void testExpressionHiByteOfConstAccess() {
+    Source source = new Source("hi:CONST_VALUE ");
+    source.addVariable("CONST_VALUE", Type.CONST);
+    source.setVariableAddress("CONST_VALUE", "123");
+    
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.BYTE;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (20)", code.get(++n));
+    Assert.assertEquals(" LDY #>CONST_VALUE", code.get(++n));
+//    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(2, code.size());
+  }
+
+  @Test
+  public void testExpressionHiByteOfUint16Access() {
+    Source source = new Source("hi:x ");
+    source.addVariable("X", Type.UINT16);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.BYTE;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (20)", code.get(++n));
+    Assert.assertEquals(" LDY X+1", code.get(++n));
+//    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(2, code.size());
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testExpressionHiByteOfByteAccess() {
+    Source source = new Source("hi:x ");
+    source.addVariable("X", Type.BYTE);
+    /*List<Integer> p_code = */ getPCodeOf(source); // Must throw here due to wrong size of variable
+  }
+
 }

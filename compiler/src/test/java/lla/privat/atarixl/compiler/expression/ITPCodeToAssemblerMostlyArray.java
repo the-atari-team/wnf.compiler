@@ -8,6 +8,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import lla.privat.atarixl.compiler.ReadOnly;
 import lla.privat.atarixl.compiler.Symbol;
 import lla.privat.atarixl.compiler.SymbolEnum;
 import lla.privat.atarixl.compiler.source.Source;
@@ -249,7 +250,7 @@ public class ITPCodeToAssemblerMostlyArray {
   @Test
   public void testExpressionByteArrayLength() {
     Source source = new Source("x_length ");
-    source.addVariable("X", Type.BYTE_ARRAY, 2);
+    source.addVariable("X", Type.BYTE_ARRAY, 2, ReadOnly.NO);
     source.addVariable("Y", Type.BYTE);
 
     List<Integer> p_code = getPCodeOf(source);
@@ -265,5 +266,5 @@ public class ITPCodeToAssemblerMostlyArray {
     Assert.assertEquals(" LDX #>2", code.get(++n));
     Assert.assertEquals(3, code.size());
   }
-
+  
 }

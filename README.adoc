@@ -105,6 +105,9 @@ This small Java application has been rewritten in Java language
 since october 2020.
 
 It reads Atari 8bit wnf-files and compile these files to 6502-assembler.
+The assembler files are full compatible to
+https://github.com/CycoPH/atasm/[atasm-Assembler],
+and mostly compatible to mac/65 from OSS.
 
 * [x] read full wnf file
 * [x] expressions

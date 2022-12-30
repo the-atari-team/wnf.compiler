@@ -94,7 +94,12 @@ public class PCodeToAssembler extends Code {
     do {
       PCode currentPCode = PCode.fromInt(p_code.get(a));
       if (currentPCode == PCode.UNKNOWN) {
-        throw new IllegalStateException("unhandled 0");
+        throw new IllegalStateException("unhandled 0") {
+          @Override
+          public synchronized Throwable fillInStackTrace() {
+            return null;
+          }
+        };
       }
 
       final int value = p_code.get(a + 1); // wert
@@ -325,7 +330,12 @@ public class PCodeToAssembler extends Code {
                   }
                   else {
                     String message = "Ergebnis: " + ergebnis + " typeOfa$ " + typOfa$;
-                    throw new IllegalStateException("ivar falsch: " + message);
+                    throw new IllegalStateException("ivar falsch: " + message) {
+                      @Override
+                      public synchronized Throwable fillInStackTrace() {
+                        return null;
+                      }
+                    };
                   }
                   a = a + 2;
                 }
@@ -563,7 +573,7 @@ public class PCodeToAssembler extends Code {
         }
         a = a + 2;
       }
-// -------------------------------
+      // -------------------------------
       else if (currentPCode == PCode.ADDRESS) {
         code(";#2 (13)");
         int num = p_code.get(a + 1);
@@ -634,6 +644,24 @@ public class PCodeToAssembler extends Code {
         code(" tay");
         code("?abs_positive"+source.getNegativeCount());
                
+        a = a + 2;
+      }
+      // -------------------------------
+      else if (currentPCode == PCode.HI_BYTE) {
+        code(";#2 (20)");
+        int num = p_code.get(a + 1);
+        a$ = source.getVariableAt(num);
+        if (source.getVariableSize(a$) == 2) {
+          code(" ldy " + a$ + "+1"); //  + " ; hibyte");          
+        }
+        else if (source.getVariableType(a$) == Type.CONST) {
+          code(" ldy #>" + a$); //  + " ; hibyte");
+        }
+        else {
+          // Fehler
+          source.error(new Symbol("", SymbolEnum.noSymbol), "HI: with other than WORD/UINT16 or CONST is not supported.");
+        }
+//        code(" ldx #0");
         a = a + 2;
       }
 // -------------------------------

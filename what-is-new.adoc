@@ -3,17 +3,24 @@
 
 == What is new
 
+* Due to a write problem to an array, we now support readonly values.
+  It is not like const.
+  `byte readonly a` now a can not be written. Helpful for some arrays.
+
+* Assign multi values to the @mem array.
+  `@mem[addr] := [1,2,3]` set addr=1, addr+1=2, addr+2=3 This only works with @mem array at the moment
+
 * Due to the fact the compiler has no 'inline' for functions, the often need @abs(variable) is
   usable as abs:variable construct which produce faster but slightly more code.
-  
+
 * Parameter -testincludes if given, check if all used functions which start with @ are present
   in the given includes at the end of the program.
   If this is not the case, a WARNING will shown. It will try to find the need file to include.
   Due to the fact of the possibility of ambigous you must copy the include by hand.
   If a function can't found in all possible includes, not just the already included it will
   present also a WARNING.
-  After compile, the needed assembler run will produce an error, if a function is not present. 
-  
+  After compile, the needed assembler run will produce an error, if a function is not present.
+
 * Parameter -precalculate (w|e) if given, every expression will check if the developer should
   calculate the fixed digits. The single path compiler can't help here? Maybe yes!
 

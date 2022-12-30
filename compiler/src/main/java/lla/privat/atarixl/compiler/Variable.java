@@ -52,7 +52,9 @@ public class Variable {
    * Sonderfall (n > 255) (fat_byte_array)
    * <li>byte array name[256]
    * <li>const name=1
-   *
+   * 
+   * <li>{type} readonly (name|array) mark a variable readonly. Throws is a write access is festgestellt
+   * 
    * word array wird jetzt grundsätzlich ein split array sein, es sei den:
    * <li>n ist größer als 256
    * <li>es wird EINE Zahl (Adresse) oder Variable zugewiesen
@@ -92,10 +94,18 @@ public class Variable {
     while (isVariables) {
       boolean isWordArraySplitForced = false;
       mnemonic = nextSymbol.get();
+
+      ReadOnly readOnly = ReadOnly.NO;
+      if (mnemonic.equals("READONLY")) {
+        readOnly = ReadOnly.YES;
+        nextSymbol = source.nextElement();
+        mnemonic = nextSymbol.get();       
+      }
+      
       if (nextSymbol.getId() == SymbolEnum.variable_name) {
         name = nextSymbol.get();
 
-        source.addVariable(name, lastType);
+        source.addVariable(name, lastType, readOnly);
         nextSymbol = source.nextElement();
       }
       else if (mnemonic.equals("ARRAY")) {
@@ -130,7 +140,7 @@ public class Variable {
           source.error(nextSymbol, "unexpected array size, number, const variable or '@SPLIT' expected.");
         }
         lastType = makeArrayType(lastType, n);
-        source.addVariable(name, lastType, n);
+        source.addVariable(name, lastType, n, readOnly);
         nextSymbol = source.nextElement();
       }
       else {

@@ -28,6 +28,8 @@ public class VariableDefinition {
   private int writes;
   private int calls;
 
+  private boolean readOnly;
+  
   // Hier ablegen, aus welcher Datei die Definition kommt, so kann ich Fehler besser verfolgen
   private final String sourcecode_filename;
 
@@ -49,6 +51,7 @@ public class VariableDefinition {
     reads=0;
     writes=0;
     calls=0;
+    readOnly = false;
   }
 
   public String getName() {
@@ -104,7 +107,12 @@ public class VariableDefinition {
 
   public void setWrite() {
     if (type.equals(Type.CONST)) {
-      throw new IllegalStateException("CONST Variable "+name+" can't be written.");
+      throw new IllegalStateException("CONST Variable "+name+" can't be written.") {
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+          return null;
+        }
+      };
     }
     artOfUsage = artOfUsage.getAtLeastUsage(ArtOfUsageEnum.WRITE);
   }
@@ -182,5 +190,12 @@ public class VariableDefinition {
 
   public int getWrites() {
     return writes;
+  }
+  
+  public void setReadOnly() {
+    readOnly = true;
+  }
+  public boolean isReadOnly() {
+    return readOnly;
   }
 }

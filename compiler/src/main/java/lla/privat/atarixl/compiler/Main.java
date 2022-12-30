@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import lla.privat.atarixl.compiler.optimization.PeepholeOptimizer;
+import lla.privat.atarixl.compiler.optimization.RegisterOptimizer;
 import lla.privat.atarixl.compiler.source.Source;
 
 /**
@@ -111,7 +112,7 @@ public class Main {
     LOGGER.info("Compiler for a programming language similar to Algol.");
     LOGGER.info("Generates mostly mac/65 kompatible 6502-assembler file.");
     LOGGER.info("");
-    LOGGER.info(" -O level | --optimize level - 0, 1 or 2 possible (not ready yet!)");
+    LOGGER.info(" -O level | --optimize level - 0, 1,2 or 3 possible (not ready yet!)");
     LOGGER.info(" -v level | --verbose level  - be more verbose");
     LOGGER.info(" -I path               - include given path to the list for search to includes,");
     LOGGER.info("                         can given more than once.");
@@ -283,7 +284,12 @@ public class Main {
       main.start();
     } catch (final IllegalArgumentException e) {
       LOGGER.error("ERROR: {}", e.getMessage());
-      throw new IllegalArgumentException(e);
+      throw new IllegalArgumentException(e) {
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+          return null;
+        }
+      };
     }
   }
 
@@ -367,6 +373,11 @@ public class Main {
     optimizer.showStatus();
 
     setUsedOptimisations(optimizer.getUsedOptimisations());
+
+    RegisterOptimizer regOptimizer = new RegisterOptimizer(source);
+    regOptimizer.optimize().build();
+    regOptimizer.showStatus();
+    
     return this;
   }
 
@@ -425,7 +436,12 @@ public class Main {
 
   private void error(Source source, String errorMessage) {
     LOGGER.error("Error at line: {}, Message:{}", source.getLine(), errorMessage);
-    throw new IllegalStateException(errorMessage);
+    throw new IllegalStateException(errorMessage) {
+      @Override
+      public synchronized Throwable fillInStackTrace() {
+        return null;
+      }
+    };
   }
 
   public int getUsedOptimisations() {

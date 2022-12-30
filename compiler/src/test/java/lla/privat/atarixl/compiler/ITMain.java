@@ -76,7 +76,7 @@ public class ITMain {
     File file = new File(tempPath + "/TSTSIEVE.ASM");
     Assert.assertTrue(file.exists());
 
-    Assert.assertEquals(72, main.getUsedOptimisations());
+    Assert.assertEquals(71, main.getUsedOptimisations());
   }
 
   @Test
@@ -170,7 +170,7 @@ public class ITMain {
 
   @Test
   public void testArrayAssignment() {
-    Source source = new Source("program name byte array x[2] x := 1");
+    Source source = new Source("program name byte array x[2] begin x[0] := 1 end");
     new Main(source).compile();
 
     Assert.assertTrue(source.hasVariable("X"));

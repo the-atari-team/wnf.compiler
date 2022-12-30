@@ -695,4 +695,23 @@ public class TestVariable {
 
     /*Symbol nextSymbol =*/ new Variable(source).variable(symbol).build();
   }
+  
+  @Test
+  public void testReadonlyByteArray() {
+    Source source = new Source("byte readonly array y[2] = 123");
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("Y"));
+    Assert.assertEquals(Type.BYTE_ARRAY, source.getVariableType("Y"));
+    Assert.assertEquals(2, source.getVariableArraySize("Y"));
+    Assert.assertTrue(source.isVariableReadOnly("Y"));
+  }
+  
+  
 }

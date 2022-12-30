@@ -159,6 +159,81 @@ public class TestAssignment {
   }
 
   @Test
+  public void testAssignmentWordVariableDiv256ToXByte() {
+    Source source = new Source("x:=WORD_VARIABLE/256").setVerboseLevel(2);
+    source.addVariable("WORD_VARIABLE", Type.WORD);
+    source.addVariable("X", Type.BYTE);
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Assignment(source).assign(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertEquals(Type.WORD, source.getTypeOfLastExpression());
+
+    int n=-1;
+    Assert.assertEquals("; (4)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY WORD_VARIABLE", source.getCode().get(++n));
+    Assert.assertEquals(" LDX WORD_VARIABLE+1", source.getCode().get(++n));
+    Assert.assertEquals(" TXA", source.getCode().get(++n));
+    Assert.assertEquals(" TAY", source.getCode().get(++n));
+    Assert.assertEquals(" LDX #0", source.getCode().get(++n));
+    Assert.assertEquals(" STY X", source.getCode().get(++n));
+    
+    Assert.assertEquals(7, source.getCode().size());
+  }
+
+  @Test
+  public void testAssignmentWordVariableHiValueXByte() {
+    Source source = new Source("x:=HI:WORD_VARIABLE").setVerboseLevel(2);
+    source.addVariable("WORD_VARIABLE", Type.WORD);
+    source.addVariable("X", Type.BYTE);
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Assignment(source).assign(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertEquals(Type.BYTE, source.getTypeOfLastExpression());
+
+    int n=-1;
+    Assert.assertEquals("; (20)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY WORD_VARIABLE+1", source.getCode().get(++n));
+    Assert.assertEquals(" STY X", source.getCode().get(++n));    
+    Assert.assertEquals(3, source.getCode().size());
+  }
+
+  @Test
+  public void testAssignmentValue512Div256ToXByte() {
+    Source source = new Source("x:=512/256").setVerboseLevel(2);
+    source.addVariable("X", Type.BYTE);
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Assignment(source).assign(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertEquals(Type.WORD, source.getTypeOfLastExpression());
+
+    int n=-1;
+    Assert.assertEquals("; (4)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #<512", source.getCode().get(++n));
+    Assert.assertEquals(" LDX #>512", source.getCode().get(++n));
+    Assert.assertEquals(" TXA", source.getCode().get(++n));
+    Assert.assertEquals(" TAY", source.getCode().get(++n));
+    Assert.assertEquals(" LDX #0", source.getCode().get(++n));
+    Assert.assertEquals(" STY X", source.getCode().get(++n));
+    
+    Assert.assertEquals(7, source.getCode().size());
+  }
+
+  @Test
   public void testAssignmentXisByteYisByteArray() {
     Source source = new Source("x:=y[1]").setVerboseLevel(2);
     source.addVariable("X", Type.BYTE);
@@ -463,6 +538,33 @@ public class TestAssignment {
   }
 
   @Test
+  public void testAssignmentToByteArrayWithIndex() {
+    Source source = new Source("y[index]:=1").setVerboseLevel(2);
+    source.addVariable("INDEX", Type.BYTE);
+    source.addVariable("Y", Type.BYTE_ARRAY);
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Assignment(source).assign(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("INDEX"));
+
+    int n=-1;
+    Assert.assertEquals("; (6)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY INDEX", source.getCode().get(++n));
+    Assert.assertEquals(" STY @PUTARRAY", source.getCode().get(++n));
+
+    Assert.assertEquals("; (5)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #<1", source.getCode().get(++n));
+    Assert.assertEquals(" TYA", source.getCode().get(++n));
+    Assert.assertEquals(" LDX @PUTARRAY", source.getCode().get(++n));
+    Assert.assertEquals(" STA Y,X", source.getCode().get(++n));
+  }
+
+  @Test
   public void testWordAssignmentToString() {
     Source source = new Source("y[1]:=x").setVerboseLevel(2);
     source.addVariable("X", Type.WORD);
@@ -591,8 +693,56 @@ public class TestAssignment {
  // ldy @putarray_byteindex
     Assert.assertEquals(" STA (@PUTARRAY),Y", source.getCode().get(++n));
   }
+ 
+  @Test
+  public void testAssignmentSmallByteListToFatByteArrayMem() {
+    Source source = new Source("@mem[710]:=[$01, $02]").setVerboseLevel(2);
+    // source.addVariable("BIG", Type.FAT_BYTE_ARRAY);
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Assignment(source).assign(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertEquals(Type.BYTE, source.getTypeOfLastExpression());
+
+    int n=-1;
+    Assert.assertEquals("; (5)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #<710", source.getCode().get(++n));
+    Assert.assertEquals(" LDX #>710", source.getCode().get(++n));   
+    Assert.assertEquals(" STY @PUTARRAY", source.getCode().get(++n));
+    Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n));
+
+    Assert.assertEquals("; (5)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #<1", source.getCode().get(++n));
+    Assert.assertEquals(" TYA", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #0", source.getCode().get(++n));
+ // ldy @putarray_byteindex
+    Assert.assertEquals(" STA (@PUTARRAY),Y", source.getCode().get(++n));
+    
+    Assert.assertEquals("; (5)", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #<2", source.getCode().get(++n));
+    Assert.assertEquals(" TYA", source.getCode().get(++n));
+    Assert.assertEquals(" LDY #1", source.getCode().get(++n));
+ // ldy @putarray_byteindex
+    Assert.assertEquals(" STA (@PUTARRAY),Y", source.getCode().get(++n));
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testAssignmentWrongAssignToByteArray() {
+    Source source = new Source("big:=x").setVerboseLevel(2);
+    source.addVariable("X", Type.WORD);
+    source.addVariable("BIG", Type.FAT_BYTE_ARRAY);
+
+    Symbol symbol = source.nextElement();
+
+    /* Symbol nextSymbol =*/ new Assignment(source).assign(symbol).build();
+
+  }
   
-//
+  //
 //                                      OO
 //                                      OO
 // OO     OO  OOOOOOO  OOOOOOOO   OOOOOOOO
@@ -1040,7 +1190,7 @@ public class TestAssignment {
     source.addVariable("X", Type.BYTE);
 
     // TODO: Y als Array anlegen, dann soll Y_LENGTH als const mit angelegt werden
-    source.addVariable("Y", Type.BYTE_ARRAY, 123);
+    source.addVariable("Y", Type.BYTE_ARRAY, 123, ReadOnly.NO);
 //    source.addVariable("Y_LENGTH", Type.CONST);
 //    source.setVariableAddress("Y_LENGTH", "123");
 

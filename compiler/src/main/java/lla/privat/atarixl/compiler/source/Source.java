@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import lla.privat.atarixl.compiler.Options;
+import lla.privat.atarixl.compiler.ReadOnly;
 import lla.privat.atarixl.compiler.Symbol;
 import lla.privat.atarixl.compiler.SymbolEnum;
 import lla.privat.atarixl.compiler.SymbolTokenizer;
@@ -392,7 +393,11 @@ public class Source implements Enumeration<Symbol> {
    * @param type
    */
   public void addVariable(String name, Type type) {
-    addVariable(name, type, 0);
+    addVariable(name, type, 0, ReadOnly.NO);
+  }
+
+  public void addVariable(String name, Type type, ReadOnly readOnly) {
+    addVariable(name, type, 0, readOnly);
   }
 
   /**
@@ -401,7 +406,7 @@ public class Source implements Enumeration<Symbol> {
    * @param name
    * @param type
    */
-  public void addVariable(String name, Type type, int countArray) {
+  public void addVariable(String name, Type type, int countArray, ReadOnly readOnly) {
     if (variables.containsKey(name)) {
       if (name.startsWith("@") && type == Type.FUNCTION) {
         return;
@@ -412,6 +417,9 @@ public class Source implements Enumeration<Symbol> {
       error(new Symbol(name, SymbolEnum.noSymbol), "variable already defined");
     }
     final VariableDefinition newVariable = new VariableDefinition(name, type, countArray, filename);
+    if (readOnly == ReadOnly.YES) {
+      newVariable.setReadOnly();
+    }
     variables.put(name, newVariable);
     variableList.add(name);
 
@@ -421,6 +429,7 @@ public class Source implements Enumeration<Symbol> {
       if (! StringHelper.isSingleQuotedString(name)) {
         final String nameWithLength = name + "_LENGTH";
         final VariableDefinition newConstVariable = new VariableDefinition(nameWithLength, Type.CONST, 0, filename);
+        newConstVariable.setReadOnly();
         variables.put(nameWithLength, newConstVariable);
         variableList.add(nameWithLength);
         setVariableAddress(nameWithLength, String.valueOf(countArray));
@@ -587,6 +596,9 @@ public class Source implements Enumeration<Symbol> {
     return name;
   }
 
+  public boolean isVariableReadOnly(String name) {
+    return getVariable(name).isReadOnly();
+  }
   //
 //  OOOOOO                                                      OO                                                  OO            OO        OOO
 // OO    OO                                                     OO                                                                OO         OO

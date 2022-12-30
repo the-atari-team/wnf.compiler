@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import lla.privat.atarixl.compiler.source.Source;
@@ -241,7 +242,27 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(2, source.getCode().size());
-    Assert.assertEquals(" INC A ; (17)", source.getCode().get(0));
+    Assert.assertEquals(" INC A ; (17a)", source.getCode().get(0));
+  }
+  
+  @Test
+  public void testNoInc() {
+    List<String> list = new ArrayList<>();
+    list.add(" CLC");
+    list.add(" LDA TIMERCOUNT");
+    list.add(" ADC #<1");
+    list.add(" STA TIMER");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY TIMERCOUNT ; (17b)", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" STY TIMER", code.get(++n));
   }
 
   @Test
@@ -280,6 +301,22 @@ public class TestPeepholeOptimizer {
   }
 
   @Test
+  public void testNotDec() {
+    List<String> list = new ArrayList<>();
+    list.add(" SEC");
+    list.add(" LDA TIMERCOUNT");
+    list.add(" SBC #<1");
+    list.add(" STA TIMER");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(4, source.getCode().size());
+  }
+
+  @Test
   public void testLdxClcAdcStaTxa() {
     List<String> list = new ArrayList<>();
     list.add(" LDX");
@@ -313,11 +350,158 @@ public class TestPeepholeOptimizer {
   }
 
   @Test
+  public void testCompareLdyStyLdyCpy_equal() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY first");
+    list.add(" STY @ERG");
+    list.add(" LDY second");
+    list.add(" CPY @ERG");
+    list.add(" BNE ?FA1");
+    list.add(" JMP ?THEN1");
+    list.add("?FA1");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY first ; (14b) a==b", code.get(++n));
+    Assert.assertEquals(" CPY second", code.get(++n));
+    Assert.assertEquals(" BEQ ?THEN1", code.get(++n));
+  }
+
+  @Test
+  public void testCompareLdyStyLdyCpy_not_equal() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY first");
+    list.add(" STY @ERG");
+    list.add(" LDY second");
+    list.add(" CPY @ERG");
+    list.add(" BEQ ?FA1");
+    list.add(" JMP ?THEN1");
+    list.add("?FA1");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY first ; (14c) a!=b", code.get(++n));
+    Assert.assertEquals(" CPY second", code.get(++n));
+    Assert.assertEquals(" BNE ?THEN1", code.get(++n));
+  }
+
+  @Test
+  public void testCompareLdyStyLdyCpy_a_less_b() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY first");
+    list.add(" STY @ERG");
+    list.add(" LDY second");
+    list.add(" CPY @ERG");
+    list.add(" BEQ ?FA1");
+    list.add(" BCC ?FA1");
+    list.add(" JMP ?THEN1");
+    list.add("?FA1");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY first ; (14d) a<b", code.get(++n));
+    Assert.assertEquals(" CPY second", code.get(++n));
+    Assert.assertEquals(" BCC ?THEN1", code.get(++n));
+  }
+
+  @Test
+  public void testCompareLdyStyLdyCpy_a_greater_equal_b() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY first");
+    list.add(" STY @ERG");
+    list.add(" LDY second");
+    list.add(" CPY @ERG");
+    list.add(" BEQ ?TR1");
+    list.add(" BCS ?FA1");
+    list.add("?TR1");
+    list.add(" JMP ?THEN1");
+    list.add("?FA1");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY first ; (14e) a>=b", code.get(++n));
+    Assert.assertEquals(" CPY second", code.get(++n));
+    Assert.assertEquals(" BCS ?THEN1", code.get(++n));
+  }
+
+  @Test
+  public void testCompareLdyStyLdyCpy_a_less_equal_b() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY first");
+    list.add(" STY @ERG");
+    list.add(" LDY second");
+    list.add(" CPY @ERG");
+    list.add(" BCC ?FA1");
+    list.add(" JMP ?THEN1");
+    list.add("?FA1");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY second ; (14f) a<=b", code.get(++n));
+    Assert.assertEquals(" CPY first", code.get(++n));
+    Assert.assertEquals(" BCS ?THEN1", code.get(++n));
+  }
+
+  @Test
+  public void testCompareLdyStyLdyCpy_a_greater_b() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY first");
+    list.add(" STY @ERG");
+    list.add(" LDY second");
+    list.add(" CPY @ERG");
+    list.add(" BCS ?FA1");
+    list.add(" JMP ?THEN1");
+    list.add("?FA1");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY second ; (14g) a>b", code.get(++n));
+    Assert.assertEquals(" CPY first", code.get(++n));
+    Assert.assertEquals(" BCC ?THEN1", code.get(++n));
+  }
+
+  @Test
   public void testCompareLdyStyLdyCpy() {
     List<String> list = new ArrayList<>();
-    list.add(" LDY");
+    list.add(" LDY first");
     list.add(" STY @ERG");
-    list.add(" LDY");
+    list.add(" LDY second");
     list.add(" CPY @ERG");
     list.add(" ...");
     source.resetCode(list);
@@ -326,6 +510,11 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY second", code.get(++n));
+    Assert.assertEquals(" CPY first ; (14)", code.get(++n));
   }
 
   @Test
@@ -850,8 +1039,8 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(4, source.getCode().size());
-    Assert.assertEquals(" LDX #<low ; (38)", source.getCode().get(0));
-    Assert.assertEquals(" LDA schnubbel", source.getCode().get(1));
+    Assert.assertEquals(" LDA schnubbel", source.getCode().get(0));
+    Assert.assertEquals(" LDX #<low ; (38a)", source.getCode().get(1));
     Assert.assertEquals(" STA array,X", source.getCode().get(2));
     Assert.assertEquals(" ...", source.getCode().get(3));
   }
@@ -885,7 +1074,7 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
     Assert.assertEquals(4, source.getCode().size());
-    Assert.assertEquals(" LDY J ; (40)", source.getCode().get(0));
+    Assert.assertEquals(" LDY J ; (17b)", source.getCode().get(0));
     Assert.assertEquals(" INY", source.getCode().get(1));
     Assert.assertEquals(" STY J1", source.getCode().get(2));
     Assert.assertEquals(" ...", source.getCode().get(3));
@@ -987,5 +1176,278 @@ public class TestPeepholeOptimizer {
 
     Assert.assertEquals(4, source.getCode().size());
   }
+
+  // if a[n] < b then
+//  LDY EM_INDEX
+//  LDA EM_YPOS,Y
+//  STA @ERG ; (11)
+//  LDY #<160
+//  CPY @ERG
+//  BEQ ?FA32
+//  BCS ?THEN23 ; (29)
+// ?FA32
+
+  @Test
+  public void testCompare_a_array_less_b() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY INDEX");
+    list.add(" LDA first,y");
+    list.add(" STA @ERG");
+    list.add(" LDY second");
+    list.add(" CPY @ERG");
+    list.add(" BEQ ?FA1");
+    list.add(" BCS ?THEN1");
+    list.add("?FA1");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY INDEX", code.get(++n));
+    Assert.assertEquals(" LDA first,y ; (49) a[i]<b", code.get(++n));
+    Assert.assertEquals(" CMP second", code.get(++n));
+    Assert.assertEquals(" BCC ?THEN1", code.get(++n));
+  }
+
+  @Test
+  public void testCompare_a_array_greater_b() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY INDEX");
+    list.add(" LDA first,y");
+    list.add(" STA @ERG");
+    list.add(" LDY second");
+    list.add(" CPY @ERG");
+    list.add(" BCC ?THEN1");
+    list.add("?FA1");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY INDEX", code.get(++n));
+    Assert.assertEquals(" LDA second ; (49c) a[i]>b", code.get(++n));
+    Assert.assertEquals(" CMP first,y", code.get(++n));
+    Assert.assertEquals(" BCC ?THEN1", code.get(++n));
+  }
+
+//LDY EM_INDEX
+//LDA EM_YPOS,Y
+//STA @ERG ; (11)
+//LDY #<160
+//CPY @ERG
+//BEQ ?TR51
+//BCS ?FA51
+//?TR51
+//JMP ?THEN35
+//?FA51
+  @Test
+  public void testCompare_a_array_greater_equal_b() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY INDEX");
+    list.add(" LDA first,y");
+    list.add(" STA @ERG");
+    list.add(" LDY second");
+    list.add(" CPY @ERG");
+    list.add(" BEQ ?TR1");
+    list.add(" BCS ?FA1");
+    list.add("?TR1");
+    list.add(" JMP ?THEN1");
+    list.add("?FA1");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY INDEX", code.get(++n));
+    Assert.assertEquals(" LDA first,y ; (49b) a[i]>=b", code.get(++n));
+    Assert.assertEquals(" CMP second", code.get(++n));
+    Assert.assertEquals(" BCS ?THEN1", code.get(++n));
+  }
+
+//LDY #<3
+//LDA VARIABLE,Y
+//STA @ERG ; (11)
+//LDY #<4
+//CPY @ERG
+//BCS ?THEN4 ; (29)
+//?FA4
+
+  @Test
+  public void testCompare_a_array_less_equal_b() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY INDEX");
+    list.add(" LDA first,y");
+    list.add(" STA @ERG");
+    list.add(" LDY second");
+    list.add(" CPY @ERG");
+    list.add(" BCS ?THEN1");
+    list.add("?FA1");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDY INDEX", code.get(++n));
+    Assert.assertEquals(" LDA second ; (49d) a[i]<=b", code.get(++n));
+    Assert.assertEquals(" CMP first,y", code.get(++n));
+    Assert.assertEquals(" BCS ?THEN1", code.get(++n));
+  }
+
+// Array Assignment x[i] := 1
+  @Test
+  public void testAssignmentByteArrayI_equal_value() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY INDEX");
+    list.add(" STY @PUTARRAY");
+    list.add(" LDA #>1");
+    list.add(" LDX @PUTARRAY");
+    list.add(" STA X,X");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//    Assert.assertEquals(3, source.getCode().size());
+    
+    int n = -1;
+    List<String> code = source.getCode();
+    Assert.assertEquals(" LDA #>1", code.get(++n));
+    Assert.assertEquals(" LDX INDEX ; (38a)", code.get(++n));
+    Assert.assertEquals(" STA X,X", code.get(++n));
+  }
+
+//  LDY EM_INDEX
+//  STY @PUTARRAY
+//  LDY EM_INDEX
+//  LDA EM_JUMP_ANIMATION,Y
+//  CLC ; (31)
+//  ADC #1
+//  LDX @PUTARRAY
+//  STA EM_JUMP_ANIMATION,X
+
+//Array Assignment jump_animation[index] := jump_animation[index]+1
+ @Test
+ public void testAssignmentByteArrayPlusByteArray() {
+   List<String> list = new ArrayList<>();
+   list.add(";");
+   list.add("; [298]  ypos[index] := ypos[index] + ystep");
+   list.add(";");
+   list.add(" LDY INDEX");
+   list.add(" STY @PUTARRAY");
+   list.add(" LDY INDEX");
+   list.add(" LDA YPOS,Y");
+   list.add(" CLC");
+   list.add(" ADC YSTEP");
+   list.add(" LDX @PUTARRAY");
+   list.add(" STA YPOS,X");
+   list.add(";");
+   list.add("; [299]  jump_animation[index] := jump_animation[index] + 1");
+   list.add(";");
+   list.add(" LDY INDEX");
+   list.add(" STY @PUTARRAY");
+   list.add(" LDY INDEX");
+   list.add(" LDA JUMP_ANIMATION,Y");
+   list.add(" CLC ; (31)");
+   list.add(" ADC #1");
+   list.add(" LDX @PUTARRAY");
+   list.add(" STA JUMP_ANIMATION,X");
+   list.add("; ...");
+   source.resetCode(list);
+
+   peepholeOptimizerSUT.setLevel(2).optimize().build();
+   Assert.assertEquals(3, peepholeOptimizerSUT.getUsedOptimisations());
+
+//   Assert.assertEquals(3, source.getCode().size());
+   
+   int n = -1;
+   List<String> code = source.getCode();
+   Assert.assertEquals(";", code.get(++n));
+   Assert.assertEquals("; [298]  ypos[index] := ypos[index] + ystep", code.get(++n));
+   Assert.assertEquals(";", code.get(++n));
+
+   Assert.assertEquals(" LDY INDEX", code.get(++n));
+   Assert.assertEquals(" LDA YPOS,Y", code.get(++n));
+   Assert.assertEquals(" CLC", code.get(++n));
+   Assert.assertEquals(" ADC YSTEP", code.get(++n));
+   Assert.assertEquals(" LDX INDEX ; (38d)", code.get(++n));
+   Assert.assertEquals(" STA YPOS,X", code.get(++n));
+
+   Assert.assertEquals(";", code.get(++n));
+   Assert.assertEquals("; [299]  jump_animation[index] := jump_animation[index] + 1", code.get(++n));
+   Assert.assertEquals(";", code.get(++n));
+   
+   Assert.assertEquals(" LDX INDEX", code.get(++n));
+   Assert.assertEquals(" INC JUMP_ANIMATION,X ; (50)", code.get(++n));
+   Assert.assertEquals("; ...", code.get(++n));
+ }
+ 
+//Array Assignment with increment x[i] := x[i] + 1
+
+@Test
+public void testAssignmentByteArrayWithIncrement() {
+ List<String> list = new ArrayList<>();
+ list.add(" LDY INDEX");
+ list.add(" STY @PUTARRAY");
+ list.add(" LDY INDEX");
+ list.add(" LDA X,Y");
+ list.add(" CLC");
+ list.add(" ADC #1");  
+ list.add(" LDX @PUTARRAY");
+ list.add(" STA X,X");
+ list.add(" ...");
+ source.resetCode(list);
+
+ peepholeOptimizerSUT.setLevel(2).optimize().build();
+ Assert.assertEquals(2, peepholeOptimizerSUT.getUsedOptimisations());
+
+// Assert.assertEquals(3, source.getCode().size());
+ 
+ int n = -1;
+ List<String> code = source.getCode();
+ Assert.assertEquals(" LDX INDEX", code.get(++n));
+ Assert.assertEquals(" INC X,X ; (50)", code.get(++n));
+}
+
+//Array Assignment with decrement x[i] := x[i] - 1
+
+@Test
+public void testAssignmentByteArrayWithDecrement() {
+  List<String> list = new ArrayList<>();
+  list.add(" LDY INDEX");
+  list.add(" LDA X,Y");
+  list.add(" SEC");
+  list.add(" SBC #1");
+  list.add(" LDX INDEX");
+  list.add(" STA X,X");
+  list.add(" ...");
+  source.resetCode(list);
+
+  peepholeOptimizerSUT.setLevel(2).optimize().build();
+  Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//Assert.assertEquals(3, source.getCode().size());
+
+  int n = -1;
+  List<String> code = source.getCode();
+  Assert.assertEquals(" LDX INDEX", code.get(++n));
+  Assert.assertEquals(" DEC X,X ; (51)", code.get(++n));
+}
 
 }

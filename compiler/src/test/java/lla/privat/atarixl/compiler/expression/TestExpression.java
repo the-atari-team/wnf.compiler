@@ -519,6 +519,7 @@ public class TestExpression {
     Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
+  
   @Test
   public void testExpressionAddressOfWordVariableButAtVariableUnknown() {
     Source source = new Source("adr:@x");
@@ -838,6 +839,19 @@ public class TestExpression {
     source.addVariable("BA", Type.BYTE_ARRAY);
 
     setupWordExpression(source);
+  }
+
+  @Test
+  public void testExpressionHiByteOfWordVariable() {
+    Source source = new Source("hi:x");
+    source.addVariable("X", Type.WORD);
+
+    setupWordExpression(source);
+    Assert.assertEquals("254 178 0", expressionSUT.joinedPCode());
+
+    expressionSUT.optimisation();
+    Assert.assertEquals("254 178 0 9999999", expressionSUT.joinedPCode());
+    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
 }

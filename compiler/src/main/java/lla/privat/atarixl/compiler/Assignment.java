@@ -165,89 +165,49 @@ public class Assignment extends Code {
         Symbol assignment = source.nextElement();
         source.match(assignment, ":=");
 
+        if (isArray == false && source.isArrayType(source.getVariableType(name))) {
+          source.error(assignment, "Variable " + name + " is an array, wrong assignment.");          
+        }
+        
+        if (source.getVariable(name).isReadOnly()) {
+          source.error(assignment, "Variable " + name + " is marked readonly.");
+        }
         source.getVariable(name).setWrite();
 
         Symbol rightHand = source.nextElement();
-        Type wishedType = source.getVariableOverType(name);
-        nextSymbol = new Expression(source).setType(wishedType).expression(rightHand).build();
+        if (rightHand.get().equals("[")) {
+          if (name.equals("@MEM")) {
+            int count = 0;
+            Type wishedType = Type.BYTE;
+            boolean isMoreParameter = true;
+            nextSymbol = source.nextElement();
+            while (isMoreParameter) {
+              nextSymbol = new Expression(source).setType(wishedType).expression(nextSymbol).build();
 
-        LOGGER.debug("(y,x) zuweisen an {}", name);
-        if (!isArray) {
-          code(" sty " + name);
-          source.incrementWrite(name);
-          if (source.getVariableSize(name) == 2) {
-            if (source.getTypeOfLastExpression().getBytes() == 1) {
-              if (source.getTypeOfLastExpression() == Type.BYTE || source.getTypeOfLastExpression() == Type.UINT8 ) {
-                code(" ldx #0");
+              code(" tya");
+              code(" ldy #" + count);
+              code(" sta (@putarray),y");
+              count ++;
+              if (count > 255 ) {
+                source.error(rightHand, "max count of ListElements [...] is 255");                
               }
-              if (source.getTypeOfLastExpression() == Type.INT8) {
-                code(" cpy #$80");
-                code(" ldx #0");
-                code(" bcc *+4");
-                code(" ldx #$FF");
+              String mnemonic = nextSymbol.get();
+              if (mnemonic.equals(",")) {
+                nextSymbol = source.nextElement();
+              }
+              else {
+                source.match(nextSymbol, "]");
+                isMoreParameter = false;
               }
             }
-            code(" stx " + name + "+1");
-            source.incrementWrite(name);
+            nextSymbol = source.nextElement();            
+          }
+          else {
+            source.error(rightHand, "Assignment of ListElements [...] only to @MEM[] allowed");
           }
         }
-        else if (source.getVariableType(name) == Type.BYTE_ARRAY ||
-                 source.getVariableType(name) == Type.STRING) {
-          code(" tya");
-          code(" ldx @putarray");
-          code(" sta " + name + ",x");
-          source.incrementWrite(name);
-        }
-        else if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY) {
-          code(" tya");
-          code(" ldy #0");
-          code(" sta (@putarray),y");
-        }
-        else if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY) {
-          if (source.getTypeOfLastExpression().getBytes() == 1) {
-            if (source.getTypeOfLastExpression() == Type.BYTE || source.getTypeOfLastExpression() == Type.UINT8 ) {
-              code(" ldx #0");
-            }
-            if (source.getTypeOfLastExpression() == Type.INT8) {
-              code(" cpy #$80");
-              code(" ldx #0");
-              code(" bcc *+4");
-              code(" ldx #$FF");
-            }
-          }
-          // y/x contains value should copied to name,x and name,x
-//          code(" stx @putarray+1"); // zwischenspeichern
-//          code(" tya");
-//          code(" ldx @putarray");
-//          code(" sta " + name + "_low,x");
-//          code(" lda @putarray+1"); // aus dem zwischenspeicher holen
-//          code(" sta " + name + "_high,x");
-
-          code(" txa");
-          code(" ldx @putarray");
-          code(" sta " + name + "_high,x");
-          code(" tya");
-          code(" sta " + name + "_low,x");
-        }
-        else if (source.getVariableType(name) == Type.WORD_ARRAY ||
-            source.getVariableType(name) == Type.FAT_WORD_ARRAY) {
-//          if (source.getErgebnis() == Type.BYTE) {
-// TODO herausfinden, ob ich hier hin komme!
-//            code(" ldx #0");
-//          }
-          code(" tya");
-          code(" ldy #0");
-          code(" sta (@putarray),y");
-          if (source.getVariableSize(name) == 2) {
-            code(" iny");
-            if (source.getTypeOfLastExpression() == Type.WORD) {
-              code(" txa");
-            }
-            else {
-              code(" lda #0");
-            }
-            code(" sta (@putarray),y");
-          }
+        else {
+          nextSymbol = handleSingleValue(name, isArray, rightHand);
         }
       }
       else {
@@ -258,6 +218,91 @@ public class Assignment extends Code {
       source.error(symbol, "variable name expected");
     }
     return this;
+  }
+
+  private Symbol handleSingleValue(String name, boolean isArray, Symbol rightHand) {
+    Type wishedType = source.getVariableOverType(name);
+    Symbol nextSymbol = new Expression(source).setType(wishedType).expression(rightHand).build();
+
+    LOGGER.debug("(y,x) zuweisen an {}", name);
+    if (!isArray) {
+      code(" sty " + name);
+      source.incrementWrite(name);
+      if (source.getVariableSize(name) == 2) {
+        if (source.getTypeOfLastExpression().getBytes() == 1) {
+          if (source.getTypeOfLastExpression() == Type.BYTE || source.getTypeOfLastExpression() == Type.UINT8 ) {
+            code(" ldx #0");
+          }
+          if (source.getTypeOfLastExpression() == Type.INT8) {
+            code(" cpy #$80");
+            code(" ldx #0");
+            code(" bcc *+4");
+            code(" ldx #$FF");
+          }
+        }
+        code(" stx " + name + "+1");
+        source.incrementWrite(name);
+      }
+    }
+    else if (source.getVariableType(name) == Type.BYTE_ARRAY ||
+             source.getVariableType(name) == Type.STRING) {
+      code(" tya");
+      code(" ldx @putarray");
+      code(" sta " + name + ",x");
+      source.incrementWrite(name);
+    }
+    else if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY) {
+      code(" tya");
+      code(" ldy #0");
+      code(" sta (@putarray),y");
+    }
+    else if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY) {
+      if (source.getTypeOfLastExpression().getBytes() == 1) {
+        if (source.getTypeOfLastExpression() == Type.BYTE || source.getTypeOfLastExpression() == Type.UINT8 ) {
+          code(" ldx #0");
+        }
+        if (source.getTypeOfLastExpression() == Type.INT8) {
+          code(" cpy #$80");
+          code(" ldx #0");
+          code(" bcc *+4");
+          code(" ldx #$FF");
+        }
+      }
+      // y/x contains value should copied to name,x and name,x
+//          code(" stx @putarray+1"); // zwischenspeichern
+//          code(" tya");
+//          code(" ldx @putarray");
+//          code(" sta " + name + "_low,x");
+//          code(" lda @putarray+1"); // aus dem zwischenspeicher holen
+//          code(" sta " + name + "_high,x");
+
+      code(" txa");
+      code(" ldx @putarray");
+      code(" sta " + name + "_high,x");
+      code(" tya");
+      code(" sta " + name + "_low,x");
+    }
+    else if (source.getVariableType(name) == Type.WORD_ARRAY ||
+        source.getVariableType(name) == Type.FAT_WORD_ARRAY) {
+//          if (source.getErgebnis() == Type.BYTE) {
+// TODO herausfinden, ob ich hier hin komme!
+//            code(" ldx #0");
+//          }
+      code(" tya");
+      code(" ldy #0");
+      code(" sta (@putarray),y");
+      if (source.getVariableSize(name) == 2) {
+        code(" iny");
+        if (source.getTypeOfLastExpression() == Type.WORD) {
+          code(" txa");
+        }
+        else {
+          code(" lda #0");
+        }
+        code(" sta (@putarray),y");
+      }
+    }
+    return nextSymbol;
   }
 
   public Symbol build() {

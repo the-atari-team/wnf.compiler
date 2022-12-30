@@ -3,6 +3,11 @@
 
 package lla.privat.atarixl.compiler.optimization;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +47,10 @@ import lla.privat.atarixl.compiler.source.Source;
  * Die Optimierung ist noch nicht abgeschlossen. Wird aber aktuell nicht weiter
  * verfolgt. War halt auch nur mal ein Test.
  *
+ * Mittlerweile braucht der test-sieve.wnf nur noch 744f (1/50s) (~14.88s) 
+ * und damit ist das Ergebnis 2 1/50s schneller als Action! Was aber eigentlich
+ * nicht wirklich messbar ist. 
+ * 
  * @author lars
  *
  */
@@ -64,13 +73,13 @@ public class PeepholeOptimizer {
     LDY_TYA,
     LDY_LDX_TYA,
     LDX_NTAX_TXA,
-    COMPARE_WORD,
+    COMPARE_WORD, // (8)
     WINC,
     WDEC,
     INC,
     DEC,
     LDX_TXA,
-    COMPARE_BYTE,
+    COMPARE_BYTE, // (14)
     STY_LDY,
     WORD_INDEX_ADD,
     WORD_INDEX_SUB,
@@ -101,7 +110,13 @@ public class PeepholeOptimizer {
     LDX_LDX, // (45)
     TAY_LDX_B_STY_A_STX_C, // (44)
     TAY_LDX_STY, // (46)
-    TAY_CPY_ERG; // (47)
+    TAY_CPY_ERG, // (47)
+    COMPARE_BYTE_ARRAY, // (49)
+
+    INCREMENT_BYTE_ARRAY, // (50)
+    DECREMENT_BYTE_ARRAY, // (51)
+    VALUE_NOT_EQUAL_ZERO, // (52a-b)
+    ENDE;
   }
 
   private Map<PeepholeType, Integer> status;
@@ -130,6 +145,20 @@ public class PeepholeOptimizer {
       }
     }
   }
+
+//  private void writeLines(File file, List<String> lines) throws IOException {
+//    FileOutputStream fstream = new FileOutputStream(file);
+//    BufferedWriter bwr = new BufferedWriter(new OutputStreamWriter(fstream));
+//
+//    for (int i=0;i<lines.size();i++) {
+//      final String strLine = lines.get(i);
+//      bwr.write(strLine);
+//      bwr.newLine();
+//    }
+//    bwr.close();
+//    
+//    fstream.close();
+//  }
 
   public PeepholeOptimizer setLevel(int level) {
     this.optimisationLevel = level;
@@ -186,8 +215,17 @@ public class PeepholeOptimizer {
       byte_index_sub(); // (21)
       removeComments();
       tay_iny_tya(); // (31)
+
+      removeComments();
       ldy_sty_putarray_lda_ldx_putarray_sta();
-      clc_lda_x_adc_1_sta_y(); // (40)
+      
+//      try {
+//        File file = new File("/tmp/lines.txt");
+//        writeLines(file, codeList);
+//      }
+//      catch (IOException e) {}
+      
+      // clc_lda_x_adc_1_sta_y(); // (40)
       tay_ldx_op_sty_op_stx_op(); // (42)
       ldx_pha_txa_pha(); // (43)
       tay_ldx_b_sty_a_stx_c(); // (44)
@@ -215,6 +253,13 @@ public class PeepholeOptimizer {
 
         jsr_rts();
         jmp_nextline();
+        removeComments();
+        
+        compare_byte_array(); // (49)
+        removeComments();
+        increment_array_itself_by_1(); // (50)
+        decrement_array_itself_by_1(); // (51)
+        value_not_equal_zero(); // (52)
       }
       removeComments();
 
@@ -369,11 +414,11 @@ public class PeepholeOptimizer {
     }
 
     for (int i = 0; i < codeList.size() - 2; i++) {
-      tay_sty(i, PeepholeType.LDY_TYA);
+      tay_sty_cpy(i, PeepholeType.LDY_TYA);
     }
 
     for (int i = 0; i < codeList.size() - 3; i++) {
-      tay_sty_cpy(i, PeepholeType.LDY_TYA);
+      tay_sty_cpy_11_1(i, PeepholeType.LDY_TYA);
     }
   }
 
@@ -421,7 +466,7 @@ public class PeepholeOptimizer {
     // @formatter:on
   }
 
-  private void tay_sty(int index, PeepholeType type) {
+  private void tay_sty_cpy(int index, PeepholeType type) {
     // @formatter:off
     if (codeList.get(index).startsWith(" TAY") &&
         codeList.get(index + 1).startsWith(" STY") &&
@@ -436,7 +481,7 @@ public class PeepholeOptimizer {
     // @formatter:on
   }
 
-  private void tay_sty_cpy(int index, PeepholeType type) {
+  private void tay_sty_cpy_11_1(int index, PeepholeType type) {
     // @formatter:off
     if (codeList.get(index).startsWith(" TAY") &&
         codeList.get(index + 1).startsWith(" STY") &&
@@ -545,15 +590,21 @@ public class PeepholeOptimizer {
         codeList.get(index + 6).startsWith(" STA")
         ) {
       String value = codeList.get(index+2).replace(" ADC #<", "");
-      String loadVariable = codeList.get(index+3).replace(" STA ", "");
+      
+      String loadVariable = codeList.get(index+1).replace(" LDA ", "");
       if (loadVariable.contains(" ")) {
         loadVariable = loadVariable.substring(0, loadVariable.indexOf(" "));
       }
+      String storeVariable = codeList.get(index+3).replace(" STA ", "");
+      if (storeVariable.contains(" ")) {
+        storeVariable = storeVariable.substring(0, storeVariable.indexOf(" "));
+      }
       if (value.equals("1") &&
+          loadVariable.equals(storeVariable) &&
           codeList.get(index + 1).startsWith(" LDA " + loadVariable) &&
-          codeList.get(index + 3).startsWith(" STA " + loadVariable) &&
+          codeList.get(index + 3).startsWith(" STA " + storeVariable) &&
           codeList.get(index + 4).startsWith(" LDA " + loadVariable + "+1") &&
-          codeList.get(index + 6).startsWith(" STA " + loadVariable + "+1")
+          codeList.get(index + 6).startsWith(" STA " + storeVariable + "+1")
           ) {
         codeList.set(index, " WINC " + loadVariable + " ; (9)");
         codeList.set(index+1, ";opt (9)");
@@ -592,15 +643,20 @@ public class PeepholeOptimizer {
         codeList.get(index + 6).startsWith(" STA")
         ) {
       String value = codeList.get(index+2).replace(" SBC #<", "");
-      String loadVariable = codeList.get(index+3).replace(" STA ", "");
+      String loadVariable = codeList.get(index+1).replace(" LDA ", "");
       if (loadVariable.contains(" ")) {
         loadVariable = loadVariable.substring(0, loadVariable.indexOf(" "));
       }
+      String storeVariable = codeList.get(index+3).replace(" STA ", "");
+      if (storeVariable.contains(" ")) {
+        storeVariable = storeVariable.substring(0, storeVariable.indexOf(" "));
+      }
       if (value.equals("1") &&
+          loadVariable.equals(storeVariable) &&          
           codeList.get(index + 1).startsWith(" LDA " + loadVariable) &&
-          codeList.get(index + 3).startsWith(" STA " + loadVariable) &&
+          codeList.get(index + 3).startsWith(" STA " + storeVariable) &&
           codeList.get(index + 4).startsWith(" LDA " + loadVariable + "+1") &&
-          codeList.get(index + 6).startsWith(" STA " + loadVariable + "+1")
+          codeList.get(index + 6).startsWith(" STA " + storeVariable + "+1")
           ) {
         codeList.set(index, " WDEC " + loadVariable + " ; (23)");
         codeList.set(index+1, ";opt (23)");
@@ -628,23 +684,36 @@ public class PeepholeOptimizer {
         codeList.get(index + 3).startsWith(" STA")
         ) {
       String value = codeList.get(index+2).replace(" ADC #<", "");
-      String loadVariable = codeList.get(index+3).replace(" STA ", "");
+      String loadVariable = codeList.get(index+1).replace(" LDA ", "");
       if (loadVariable.contains(" ")) {
         loadVariable = loadVariable.substring(0, loadVariable.indexOf(" "));
       }
-      if (value.equals("1") &&
-          codeList.get(index + 1).startsWith(" LDA " + loadVariable) &&
-          codeList.get(index + 3).startsWith(" STA " + loadVariable)
-          ) {
-        codeList.set(index, " INC " + loadVariable + " ; (17)");
-        codeList.set(index+1, ";opt (17)");
-        codeList.set(index+2, ";opt (17)");
-        codeList.set(index+3, ";opt (17)");
-        incrementStatus(type);
+      String storeVariable = codeList.get(index+3).replace(" STA ", "");
+      if (storeVariable.contains(" ")) {
+        storeVariable = storeVariable.substring(0, storeVariable.indexOf(" "));
+      }
+      if (value.equals("1")) {
+        if (! codeList.get(index + 4).startsWith(" LDA " + loadVariable + "+1")) {
+          if (loadVariable.equals(storeVariable)) {
+            codeList.set(index, " INC " + loadVariable + " ; (17a)");
+            codeList.set(index+1, ";opt (17)");
+            codeList.set(index+2, ";opt (17)");
+            codeList.set(index+3, ";opt (17)");
+            incrementStatus(type);
+          }
+          else {
+            codeList.set(index,   " LDY " + loadVariable + " ; (17b)");
+            codeList.set(index+1, " INY");
+            codeList.set(index+2, " STY " + storeVariable);
+            codeList.set(index+3, ";opt (17)");
+            incrementStatus(type);
+            
+          }
+        }
       }
     }
   }
-
+  
   private void dec() {
     for (int i = 0; i < codeList.size() - 4; i++) {
       dec(i, PeepholeType.DEC);
@@ -659,19 +728,32 @@ public class PeepholeOptimizer {
         codeList.get(index + 3).startsWith(" STA")
         ) {
       String value = codeList.get(index+2).replace(" SBC #<", "");
-      String loadVariable = codeList.get(index+3).replace(" STA ", "");
+      String loadVariable = codeList.get(index+1).replace(" LDA ", "");
       if (loadVariable.contains(" ")) {
         loadVariable = loadVariable.substring(0, loadVariable.indexOf(" "));
       }
-      if (value.equals("1") &&
-          codeList.get(index + 1).startsWith(" LDA " + loadVariable) &&
-          codeList.get(index + 3).startsWith(" STA " + loadVariable)
-          ) {
-        codeList.set(index, " DEC " + loadVariable + " ; (24)");
-        codeList.set(index+1, ";opt (24)");
-        codeList.set(index+2, ";opt (24)");
-        codeList.set(index+3, ";opt (24)");
-        incrementStatus(type);
+      String storeVariable = codeList.get(index+3).replace(" STA ", "");
+      if (storeVariable.contains(" ")) {
+        storeVariable = storeVariable.substring(0, storeVariable.indexOf(" "));
+      }
+      
+      if (value.equals("1")) {
+        if (! codeList.get(index + 4).startsWith(" LDA " + loadVariable + "+1")) {
+          if (loadVariable.equals(storeVariable)) {
+            codeList.set(index, " DEC " + loadVariable + " ; (24a)");
+            codeList.set(index+1, ";opt (24)");
+            codeList.set(index+2, ";opt (24)");
+            codeList.set(index+3, ";opt (24)");
+            incrementStatus(type);
+          } 
+          else {
+            codeList.set(index, " LDY " + loadVariable + " ; (24b)");
+            codeList.set(index+1, " DEY");
+            codeList.set(index+2, " STY " + storeVariable);
+            codeList.set(index+3, ";opt (24)");
+            incrementStatus(type);         
+          }
+        }
       }
     }
   }
@@ -766,7 +848,232 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
 // CPY @ERG
   private void compare_byte_ldy_sty_ldy_cpy() {
     for (int i = 0; i < codeList.size() - 4; i++) {
+      compare_byte_ldy_sty_ldy_cpy_bne_jmp(i, PeepholeType.COMPARE_BYTE);
+    }
+
+    for (int i = 0; i < codeList.size() - 6; i++) {
+      compare_byte_ldy_sty_ldy_cpy_beq_jmp_NOT_equal(i, PeepholeType.COMPARE_BYTE);
+    }
+    
+    for (int i = 0; i < codeList.size() - 6; i++) {
+      compare_byte_ldy_sty_ldy_cpy_beq_jmp_a_less_b(i, PeepholeType.COMPARE_BYTE);
+    }
+
+    for (int i = 0; i < codeList.size() - 6; i++) {
+      compare_byte_ldy_sty_ldy_cpy_beq_jmp_a_greater_equal_b(i, PeepholeType.COMPARE_BYTE);
+    }
+    
+    for (int i = 0; i < codeList.size() - 6; i++) {
+      compare_byte_ldy_sty_ldy_cpy_beq_jmp_a_less_equal_b(i, PeepholeType.COMPARE_BYTE);
+    }
+    
+    for (int i = 0; i < codeList.size() - 6; i++) {
+      compare_byte_ldy_sty_ldy_cpy_beq_jmp_a_greater_b(i, PeepholeType.COMPARE_BYTE);
+    }
+    
+    for (int i = 0; i < codeList.size() - 4; i++) {
       compare_byte_ldy_sty_ldy_cpy(i, PeepholeType.COMPARE_BYTE);
+    }
+  }
+
+  // if variable != 1 then
+  private void compare_byte_ldy_sty_ldy_cpy_beq_jmp_NOT_equal(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDY") &&
+       codeList.get(index + 1).startsWith(" STY @ERG") &&
+       codeList.get(index + 2).startsWith(" LDY") &&
+       codeList.get(index + 3).startsWith(" CPY @ERG") &&
+       codeList.get(index + 4).startsWith(" BEQ ?FA") &&
+       codeList.get(index + 5).startsWith(" JMP ?THEN") &&       
+       codeList.get(index + 6).startsWith("?FA")      
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String newLoad = codeList.get(index) + " ; (14c) a!=b";
+     String newCompare = codeList.get(index+2).replace(" LDY", " CPY");
+     String newJump = codeList.get(index+5).replace("JMP", "BNE");
+     
+     codeList.set(index, newLoad);         // lda first
+     codeList.set(index+1, ";opt (14)");
+     codeList.set(index+2, newCompare);    // cmp second
+     codeList.set(index+3, ";opt (14)");
+     codeList.set(index+4, ";opt (14)");
+     codeList.set(index+5, newJump);       // bne then
+//     codeList.set(index+6, ";opt (14)");
+     
+     incrementStatus(type);
+    }
+  }
+
+  // if variable < 1 then
+  private void compare_byte_ldy_sty_ldy_cpy_beq_jmp_a_less_b(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDY") &&
+       codeList.get(index + 1).startsWith(" STY @ERG") &&
+       codeList.get(index + 2).startsWith(" LDY") &&
+       codeList.get(index + 3).startsWith(" CPY @ERG") &&
+       codeList.get(index + 4).startsWith(" BEQ ?FA") &&
+       codeList.get(index + 5).startsWith(" BCC ?FA") &&
+       codeList.get(index + 6).startsWith(" JMP ?THEN") &&       
+       codeList.get(index + 7).startsWith("?FA")      
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String newLoad = codeList.get(index) + " ; (14d) a<b";
+     String newCompare = codeList.get(index+2).replace(" LDY", " CPY");
+     String newJump = codeList.get(index+6).replace("JMP", "BCC");
+     
+     codeList.set(index, newLoad);         // lda first
+     codeList.set(index+1, ";opt (14)");
+     codeList.set(index+2, newCompare);    // cmp second
+     codeList.set(index+3, ";opt (14)");
+     codeList.set(index+4, ";opt (14)");
+     codeList.set(index+5, ";opt (14)");
+     codeList.set(index+6, newJump);       // bcc then
+//     codeList.set(index+7, ";opt (14)");
+     
+     incrementStatus(type);
+    }
+  }
+  
+  /*
+   * @see http://6502.org/tutorials/compare_beyond.html
+   * 
+   2.2 A TRICK SO SIMPLE THAT IT'S OFTEN OVERLOOKED
+
+    A surprisingly common sequence in 6502 code is:
+
+    LDA NUM1
+    CMP NUM2
+    BCC LABEL
+    BEQ LABEL
+
+    (or something similar) which branches to LABEL when NUM1 <= NUM2. (In this case NUM1 and NUM2 are unsigned numbers.) However, consider the following sequence:
+
+    LDA NUM2
+    CMP NUM1
+    BCS LABEL
+
+    which branches to LABEL when NUM2 >= NUM1, which is the same as NUM1 <= NUM2. Not only that, it's shorter and (in many cases) faster.
+  */
+  
+  // if variable <= 1 then
+  private void compare_byte_ldy_sty_ldy_cpy_beq_jmp_a_less_equal_b(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDY") &&
+       codeList.get(index + 1).startsWith(" STY @ERG") &&
+       codeList.get(index + 2).startsWith(" LDY") &&
+       codeList.get(index + 3).startsWith(" CPY @ERG") &&
+       codeList.get(index + 4).startsWith(" BCC ?FA") &&
+       codeList.get(index + 5).startsWith(" JMP ?THEN") &&       
+       codeList.get(index + 6).startsWith("?FA")     
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String newLoad = codeList.get(index+2) + " ; (14f) a<=b";
+     String newCompare = codeList.get(index).replace(" LDY", " CPY");
+     String newJump = codeList.get(index+5).replace("JMP", "BCS");
+     
+     codeList.set(index, newLoad);         // lda second
+     codeList.set(index+1, ";opt (14)");
+     codeList.set(index+2, newCompare);    // cmp first
+     codeList.set(index+3, ";opt (14)");
+     codeList.set(index+4, ";opt (14)");
+     codeList.set(index+5, newJump);       // bcs then
+//     codeList.set(index+6, ";opt (14)");
+     
+     incrementStatus(type);
+    }
+  }
+  
+  // if variable > 1 then
+  private void compare_byte_ldy_sty_ldy_cpy_beq_jmp_a_greater_b(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDY") &&
+       codeList.get(index + 1).startsWith(" STY @ERG") &&
+       codeList.get(index + 2).startsWith(" LDY") &&
+       codeList.get(index + 3).startsWith(" CPY @ERG") &&
+       codeList.get(index + 4).startsWith(" BCS ?FA") &&
+       codeList.get(index + 5).startsWith(" JMP ?THEN") &&
+       codeList.get(index + 6).startsWith("?FA")     
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String newLoad = codeList.get(index+2) + " ; (14g) a>b";
+     String newCompare = codeList.get(index).replace(" LDY", " CPY");
+     String newJump = codeList.get(index+5).replace("JMP", "BCC");
+     
+     codeList.set(index, newLoad);         // lda second
+     codeList.set(index+1, ";opt (14)");
+     codeList.set(index+2, newCompare);    // cmp first
+     codeList.set(index+3, ";opt (14)");
+     codeList.set(index+4, ";opt (14)");
+     codeList.set(index+5, newJump);       // bcc then
+//     codeList.set(index+6, ";opt (14)");
+     
+     incrementStatus(type);
+    }
+  }
+
+  // if variable >= 1 then
+  private void compare_byte_ldy_sty_ldy_cpy_beq_jmp_a_greater_equal_b(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDY") &&
+       codeList.get(index + 1).startsWith(" STY @ERG") &&
+       codeList.get(index + 2).startsWith(" LDY") &&
+       codeList.get(index + 3).startsWith(" CPY @ERG") &&
+       codeList.get(index + 4).startsWith(" BEQ ?TR") &&
+       codeList.get(index + 5).startsWith(" BCS ?FA") &&
+       codeList.get(index + 6).startsWith("?TR") &&      
+       codeList.get(index + 7).startsWith(" JMP ?THEN") &&       
+       codeList.get(index + 8).startsWith("?FA")      
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String newLoad = codeList.get(index) + " ; (14e) a>=b";
+     String newCompare = codeList.get(index+2).replace(" LDY", " CPY");
+     String newJump = codeList.get(index+7).replace("JMP", "BCS");
+     
+     codeList.set(index, newLoad);         // lda first
+     codeList.set(index+1, ";opt (14)");
+     codeList.set(index+2, newCompare);    // cmp second
+     codeList.set(index+3, ";opt (14)");
+     codeList.set(index+4, ";opt (14)");
+     codeList.set(index+5, ";opt (14)");
+     codeList.set(index+6, ";opt (14)");
+     codeList.set(index+7, newJump);       // bcs then
+//     codeList.set(index+8, ";opt (14)");
+     
+     incrementStatus(type);
+    }
+  }
+
+  // if variable == 1 then
+  private void compare_byte_ldy_sty_ldy_cpy_bne_jmp(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDY") &&
+       codeList.get(index + 1).startsWith(" STY @ERG") &&
+       codeList.get(index + 2).startsWith(" LDY") &&
+       codeList.get(index + 3).startsWith(" CPY @ERG") &&
+       codeList.get(index + 4).startsWith(" BNE ?FA") &&
+       codeList.get(index + 5).startsWith(" JMP ?THEN") &&       
+       codeList.get(index + 6).startsWith("?FA")      
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String newLoad = codeList.get(index) + " ; (14b) a==b";
+     String newCompare = codeList.get(index+2).replace(" LDY", " CPY");
+     String newJump = codeList.get(index+5).replace("JMP", "BEQ");
+     
+     codeList.set(index, newLoad);       // lda first
+     codeList.set(index+1, ";opt (14)");
+     codeList.set(index+2, newCompare);  // cmp second
+     codeList.set(index+3, ";opt (14)");
+     codeList.set(index+4, ";opt (14)");
+     codeList.set(index+5, newJump);     // beq then
+//     codeList.set(index+6, ";opt (14)");
+     
+     incrementStatus(type);
     }
   }
 
@@ -1323,18 +1630,18 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
       String varOfBNE = codeList.get(index + 5).replace(" BNE ?", "");
       if (!varOfBNE.startsWith("NE")) {
         LOGGER.debug("Peephole Optimization possible at Line: {}", index);
-  
+
         String valuelow = codeList.get(index + 2).replace(" LDY #", "");
         String valuehigh = codeList.get(index + 3).replace(" LDX #", "");
         codeList.set(index, ";opt STY @ERG");
         codeList.set(index + 1, ";opt STX @ERG+1");
         codeList.set(index + 2, ";opt LDY #" + valuelow);
         codeList.set(index + 3, ";opt LDX #" + valuehigh);
-  
+
         codeList.set(index + 4, " CPY #" + valuelow + " ;  (34)");
         // leave BNE ?... untouched
         codeList.set(index + 6, " CPX #" + valuehigh + " ; (34)");
-  
+
         incrementStatus(type);
       }
     }
@@ -1387,78 +1694,95 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
       if (!varOfBNE.startsWith("NE")) {
 
         LOGGER.debug("Peephole Optimization possible at Line: {}", index);
-  
+
         String valuelow = codeList.get(index + 2).replace(" LDY #", "");
         String valuehigh = codeList.get(index + 3).replace(" LDX #", "");
         codeList.set(index, ";opt STY @ERG");
         codeList.set(index + 1, ";opt STX @ERG+1");
         codeList.set(index + 2, ";opt LDY #" + valuelow);
         codeList.set(index + 3, ";opt LDX #" + valuehigh);
-  
+
         codeList.set(index + 4, " CMP #" + valuelow + " ; (35)");
         // leave BNE ?... untouched
         codeList.set(index + 6, " CPX #" + valuehigh + " ; (35)");
-  
+
         incrementStatus(type);
       }
     }
   }
 
-  
   /*
    * LDY #<0 STY @PUTARRAY LDA #<0 ; (10) LDX @PUTARRAY STA PCOLR,X
    *
    * LDX #<0 ; () LDA #<0 ; (10) STA PCOLR,X
    */
   private void ldy_sty_putarray_lda_ldx_putarray_sta() {
+    
     for (int i = 0; i < codeList.size() - 5; i++) {
-      ldy_sty_putarray_lda_ldx_putarray_sta(i, PeepholeType.LDY_STY_PUTARRAY_LDA_LDX_PUTARRAY_STA);
-    }
-    for (int i = 0; i < codeList.size() - 5; i++) {
-      ldy_sty_putarray_ldy_lda_ldx_putarray_sta(i, PeepholeType.LDY_STY_PUTARRAY_LDA_LDX_PUTARRAY_STA);
+      for (int add=1;add<26;add++) {
+        if ((i + add + 4) < codeList.size()) {
+          boolean optimized = ldy_sty_putarray_something_ldx_putarray_sta(i, add, PeepholeType.LDY_STY_PUTARRAY_LDA_LDX_PUTARRAY_STA);
+          if (optimized) {
+            i=i+3+add;
+            break;
+          }
+        }
+      }
     }
   }
 
-  private void ldy_sty_putarray_lda_ldx_putarray_sta(int index, PeepholeType type) {
+  // ldy index
+  // sty @putarray
+  // ... some code
+  // ldx @putarray
+  // sta array,x
+  private boolean ldy_sty_putarray_something_ldx_putarray_sta(int index, int add, PeepholeType type) {
     // @formatter:off
+    boolean foundOptimize = false;
     if (codeList.get(index).    startsWith(" LDY ") &&
         codeList.get(index + 1).startsWith(" STY @PUTARRAY") &&
-        codeList.get(index + 2).startsWith(" LDA ") &&
-        codeList.get(index + 3).startsWith(" LDX @PUTARRAY") &&
-        codeList.get(index + 4).startsWith(" STA ")
+
+        codeList.get(index + 2 + add).startsWith(" LDX @PUTARRAY") &&
+        codeList.get(index + 3 + add).startsWith(" STA ")
       ) {
       // @formatter:on
+      // We must make sure that there are NO '; comments' from get(index+2) until get(index+2+add)
+      boolean optimize = true;
+      for (int i=2;i<2+add;i++) {
+        if (codeList.get(index + i).startsWith(";")) {
+          optimize = false;
+        }
+      }
+      if (optimize) {
+        LOGGER.debug("Peephole Optimization possible at Line: {}", index);
 
-      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
-
-      String loadPointer = codeList.get(index).replace(" LDY ", " LDX ");
-      codeList.set(index, loadPointer + " ; (38)");
-      codeList.set(index + 1, ";opt STY @PUTARRAY");
-      codeList.set(index + 3, ";opt LDX @PUTARRAY");
-      incrementStatus(type);
+        String loadIndex = codeList.get(index).replace(" LDY ", " LDX ");
+        codeList.set(index, ";opt load index");
+        codeList.set(index + 1, ";opt STY @PUTARRAY");
+        char buchstabe = (char)(96 + add);
+        codeList.set(index + 2 + add, loadIndex + " ; (38"+ buchstabe +")");
+//        show(codeList, index, 3+add);
+        incrementStatus(type);
+        foundOptimize = true;
+      }
     }
+    return foundOptimize;
   }
 
-  private void ldy_sty_putarray_ldy_lda_ldx_putarray_sta(int index, PeepholeType type) {
-    // @formatter:off
-    if (codeList.get(index).    startsWith(" LDY ") &&
-        codeList.get(index + 1).startsWith(" STY @PUTARRAY") &&
-        codeList.get(index + 2).startsWith(" LDY ") &&
-        codeList.get(index + 3).startsWith(" LDA ") &&
-        codeList.get(index + 4).startsWith(" LDX @PUTARRAY") &&
-        codeList.get(index + 5).startsWith(" STA ")
-      ) {
-      // @formatter:on
-
-      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
-
-      String loadPointer = codeList.get(index).replace(" LDY ", " LDX ");
-      codeList.set(index, loadPointer + " ; (38)");
-      codeList.set(index + 1, ";opt STY @PUTARRAY");
-      codeList.set(index + 4, ";opt LDX @PUTARRAY");
-      incrementStatus(type);
-    }
-  }
+//  /*
+//   * Show some Source-Code
+//   */
+//  private void show(List<String> codeList, int index, int count) {
+//    System.out.println("Line: " + index);
+//    int start = -3;
+//    if ((index - 3) < 0) {
+//      start = 0;
+//    }
+//    for (int i=start; i <= count;i++) {
+//      System.out.println(codeList.get(index+i));
+//    }
+//    System.out.println();
+//  }
 
   private void jsr_rts() {
     for (int i = 0; i < codeList.size() - 2; i++) {
@@ -1500,7 +1824,6 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
     }
     // @formatter:on
   }
-
 
   private void jsr_rts(int index, PeepholeType type) {
     // @formatter:off
@@ -1583,45 +1906,46 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
    *
    * ; 2 zyklen weniger, 2 bytes weniger ldy j iny sta j1 ;
    */
-
-  private void clc_lda_x_adc_1_sta_y() {
-    for (int i = 0; i < codeList.size() - 4; i++) {
-      clc_lda_x_adc_1_sta_y(i, PeepholeType.CLC_LDA_X_ADC_1_STA_Y);
-    }
-  }
-
-  private void clc_lda_x_adc_1_sta_y(int index, PeepholeType type) {
-    // @formatter:off
-    if (codeList.get(index).    startsWith(" CLC") &&
-        codeList.get(index + 1).startsWith(" LDA ") &&
-        codeList.get(index + 2).startsWith(" ADC #<1") &&
-        codeList.get(index + 3).startsWith(" STA ") &&
-        !codeList.get(index + 4).startsWith(" LDA ")
-      ) {
-      // @formatter:on
-
-      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
-
-      String value = codeList.get(index+2).replace(" ADC #<", "");
-      if (value.equals("1")) {
-        String firstVariable = codeList.get(index + 1).replace(" LDA ", "");
-        if (firstVariable.contains(" ")) {
-          firstVariable = firstVariable.substring(0, firstVariable.indexOf(" "));
-        }
-        String secondVariable = codeList.get(index + 3).replace(" STA ", "");
-        if (secondVariable.contains(" ")) {
-          secondVariable = secondVariable.substring(0, secondVariable.indexOf(" "));
-        }
-        if (!firstVariable.equals(secondVariable)) {
-          codeList.set(index, ";opt (40)");
-          codeList.set(index + 1, " LDY " + firstVariable + " ; (40)");
-          codeList.set(index + 2, " INY");
-          codeList.set(index + 3, " STY " + secondVariable);
-          incrementStatus(type);
-        }
-      }
-    }
-  }
+// Already done by optimisation (17b)
+//  
+//  private void clc_lda_x_adc_1_sta_y() {
+//    for (int i = 0; i < codeList.size() - 4; i++) {
+//      clc_lda_x_adc_1_sta_y(i, PeepholeType.CLC_LDA_X_ADC_1_STA_Y);
+//    }
+//  }
+//
+//  private void clc_lda_x_adc_1_sta_y(int index, PeepholeType type) {
+//    // @formatter:off
+//    if (codeList.get(index).    startsWith(" CLC") &&
+//        codeList.get(index + 1).startsWith(" LDA ") &&
+//        codeList.get(index + 2).startsWith(" ADC #<1") &&
+//        codeList.get(index + 3).startsWith(" STA ") &&
+//        !codeList.get(index + 4).startsWith(" LDA ")
+//      ) {
+//      // @formatter:on
+//
+//      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+//
+//      String value = codeList.get(index + 2).replace(" ADC #<", "");
+//      if (value.equals("1")) {
+//        String firstVariable = codeList.get(index + 1).replace(" LDA ", "");
+//        if (firstVariable.contains(" ")) {
+//          firstVariable = firstVariable.substring(0, firstVariable.indexOf(" "));
+//        }
+//        String secondVariable = codeList.get(index + 3).replace(" STA ", "");
+//        if (secondVariable.contains(" ")) {
+//          secondVariable = secondVariable.substring(0, secondVariable.indexOf(" "));
+//        }
+//        if (!firstVariable.equals(secondVariable)) {
+//          codeList.set(index, ";opt (40)");
+//          codeList.set(index + 1, " LDY " + firstVariable + " ; (40)");
+//          codeList.set(index + 2, " INY");
+//          codeList.set(index + 3, " STY " + secondVariable);
+//          incrementStatus(type);
+//        }
+//      }
+//    }
+//  }
 
   public void build() {
     if (codeList != null) {
@@ -1700,7 +2024,7 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
       ) {
       // @formatter:on
 
-      String firstVariable = codeList.get(index+2).replace(" STY ", "");
+      String firstVariable = codeList.get(index + 2).replace(" STY ", "");
       if (firstVariable.contains(" ")) {
         firstVariable = firstVariable.substring(0, firstVariable.indexOf(" "));
       }
@@ -1826,5 +2150,362 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
   BEQ ?FA29
   */
   
+
   
+  private void compare_byte_array() {
+    for (int i = 0; i < codeList.size() - 4; i++) {
+      compare_byte_a_array_less_b(i, PeepholeType.COMPARE_BYTE_ARRAY);
+    }
+    
+    for (int i = 0; i < codeList.size() - 4; i++) {
+      compare_byte_a_array_greater_b(i, PeepholeType.COMPARE_BYTE_ARRAY);
+    }
+    
+    for (int i = 0; i < codeList.size() - 4; i++) {
+      compare_byte_a_array_greater_equal_b(i, PeepholeType.COMPARE_BYTE_ARRAY);
+    }
+
+    for (int i = 0; i < codeList.size() - 4; i++) {
+      compare_byte_a_array_less_equal_b(i, PeepholeType.COMPARE_BYTE_ARRAY);
+    }
+    
+  }
+  
+//LDY EM_INDEX
+//LDA EM_YPOS,Y
+//STA @ERG ; (11)
+//LDY #<160
+//CPY @ERG
+//BEQ ?FA32
+//BCS ?THEN23 ; (29)
+//?FA32
+
+  // if first[n] < second then
+  private void compare_byte_a_array_less_b(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDY") &&
+       codeList.get(index + 1).startsWith(" LDA") &&
+       codeList.get(index + 2).startsWith(" STA @ERG") &&
+       codeList.get(index + 3).startsWith(" LDY") &&       
+       codeList.get(index + 4).startsWith(" CPY @ERG") &&
+       codeList.get(index + 5).startsWith(" BEQ ?FA") &&
+       codeList.get(index + 6).startsWith(" BCS ?THEN") &&
+       codeList.get(index + 7).startsWith("?FA")      
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String newLoad = codeList.get(index+1) + " ; (49) a[i]<b";
+     String newCompare = codeList.get(index+3).replace(" LDY", " CMP");
+     String newJump = codeList.get(index+6).replace("BCS", "BCC");
+     
+     codeList.set(index+1, newLoad);       // lda first,y
+     codeList.set(index+2, ";opt (14)");
+     codeList.set(index+3, newCompare);    // cmp second
+     codeList.set(index+4, ";opt (14)");
+     codeList.set(index+5, ";opt (14)");
+     codeList.set(index+6, newJump);       // bcc then
+//     codeList.set(index+7, ";opt (14)");
+     
+     incrementStatus(type);
+    }
+  }
+
+  // if first[n] > second then
+  private void compare_byte_a_array_greater_b(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDY") &&
+       codeList.get(index + 1).startsWith(" LDA") &&
+       codeList.get(index + 2).startsWith(" STA @ERG") &&
+       codeList.get(index + 3).startsWith(" LDY") &&       
+       codeList.get(index + 4).startsWith(" CPY @ERG") &&
+       codeList.get(index + 5).startsWith(" BCC ?THEN") &&
+       codeList.get(index + 6).startsWith("?FA")      
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String newLoad = codeList.get(index+3).replace(" LDY", " LDA") + " ; (49c) a[i]>b";
+     String newCompare = codeList.get(index+1).replace(" LDA", " CMP");
+     String newJump = codeList.get(index+5);
+     
+     codeList.set(index+1, newLoad);       // lda second
+     codeList.set(index+2, ";opt (14)");
+     codeList.set(index+3, newCompare);    // cmp first,y
+     codeList.set(index+4, ";opt (14)");
+     codeList.set(index+5, newJump);       // bcc then
+//     codeList.set(index+7, ";opt (14)");
+     
+     incrementStatus(type);
+    }
+  }
+
+//  LDY EM_INDEX
+//  LDA EM_YPOS,Y
+//  STA @ERG ; (11)
+//  LDY #<160
+//  CPY @ERG
+//  BEQ ?TR51
+//  BCS ?FA51
+// ?TR51
+//  JMP ?THEN35
+// ?FA51
+
+  // if first[n] >= second then
+  private void compare_byte_a_array_greater_equal_b(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDY") &&
+       codeList.get(index + 1).startsWith(" LDA") &&
+       codeList.get(index + 2).startsWith(" STA @ERG") &&
+       codeList.get(index + 3).startsWith(" LDY") &&       
+       codeList.get(index + 4).startsWith(" CPY @ERG") &&
+       codeList.get(index + 5).startsWith(" BEQ ?TR") &&
+       codeList.get(index + 6).startsWith(" BCS ?FA") &&
+       codeList.get(index + 7).startsWith("?TR") &&      
+       codeList.get(index + 8).startsWith(" JMP ?THEN") &&
+       codeList.get(index + 9).startsWith("?FA") 
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String newLoad = codeList.get(index+1) + " ; (49b) a[i]>=b";
+     String newCompare = codeList.get(index+3).replace(" LDY", " CMP");
+     String newJump = codeList.get(index+8).replace("JMP", "BCS");
+     
+     codeList.set(index+1, newLoad);       // lda first,y
+     codeList.set(index+2, ";opt (14)");
+     codeList.set(index+3, newCompare);    // cmp second
+     codeList.set(index+4, ";opt (14)");
+     codeList.set(index+5, ";opt (14)");
+     codeList.set(index+6, ";opt (14)");
+     codeList.set(index+7, ";opt (14)");
+     codeList.set(index+8, newJump);       // bcs then
+//     codeList.set(index+7, ";opt (14)");
+     
+     incrementStatus(type);
+    }
+  }
+  
+//  LDY #<3
+//  LDA VARIABLE,Y
+//  STA @ERG ; (11)
+//  LDY #<4
+//  CPY @ERG
+//  BCS ?THEN4 ; (29)
+// ?FA4
+  // if first[n] <= second then
+  private void compare_byte_a_array_less_equal_b(int index, PeepholeType type) {
+    if (codeList.get(index).startsWith(" LDY") &&
+       codeList.get(index + 1).startsWith(" LDA") &&
+       codeList.get(index + 2).startsWith(" STA @ERG") &&
+       codeList.get(index + 3).startsWith(" LDY") &&       
+       codeList.get(index + 4).startsWith(" CPY @ERG") &&
+       codeList.get(index + 5).startsWith(" BCS ?THEN") &&
+       codeList.get(index + 6).startsWith("?FA") 
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String newLoad = codeList.get(index+3).replace(" LDY", " LDA") + " ; (49d) a[i]<=b";
+     String newCompare = codeList.get(index+1).replace(" LDA", " CMP");
+     String newJump = codeList.get(index+5);
+    
+     codeList.set(index+1, newLoad);       // lda second
+     codeList.set(index+2, ";opt (14)");
+     codeList.set(index+3, newCompare);    // cmp first,y
+     codeList.set(index+4, ";opt (14)");
+     codeList.set(index+5, newJump);       // bcs then
+//     codeList.set(index+6, ";opt (14)");
+     
+     incrementStatus(type);
+    }
+  }
+/*
+ * TODO:
+ fly_count[index] := fly_count[index] - 1
+ 
+ LDY EM_INDEX
+ LDA EM_FLY_COUNT,Y
+ SEC
+ SBC #<1
+ LDX EM_INDEX ; (38d)
+ STA EM_FLY_COUNT,X
+
+ ==> LDY em_index
+ ==> DEC em_fly_count,y
+  */
+  
+  private void decrement_array_itself_by_1() {
+    for (int i = 0; i < codeList.size() - 4; i++) {
+      decrement_array_itself_by_1(i, PeepholeType.DECREMENT_BYTE_ARRAY);
+    }
+  }
+  
+  // x[i] := x[i] + 1
+  private void decrement_array_itself_by_1(int index, PeepholeType type) {
+    if (codeList.get(index    ).startsWith(" LDY") &&
+        codeList.get(index + 1).startsWith(" LDA") &&       
+        codeList.get(index + 2).startsWith(" SEC") &&
+        codeList.get(index + 3).equals(    " SBC #1") &&
+        codeList.get(index + 4).startsWith(" LDX") &&
+        codeList.get(index + 5).startsWith(" STA")
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String indexVariable = codeList.get(index).replace(" LDY ", "");
+     String indexVariable2 = codeList.get(index+4).replace(" LDX ", "");
+     int space = indexVariable2.indexOf(" ;");
+     if (space != -1) {
+       indexVariable2 = indexVariable2.substring(0, space);
+     }
+     String variable = codeList.get(index+1).replace(" LDA ", "").replace(",Y", "");
+     String variable2 = codeList.get(index+5).replace(" STA ", "").replace(",X", "");
+     
+     if (indexVariable.equals(indexVariable2)) {
+       if (variable.equals(variable2)) {
+         codeList.set(index, " LDX " + indexVariable);
+         codeList.set(index+1, " DEC " + variable + ",X" + " ; (51)"); // only with X-Register possible!
+         codeList.set(index+2, ";opt (51)");
+         codeList.set(index+3, ";opt (51)");
+         codeList.set(index+4, ";opt (51)");
+         codeList.set(index+5, ";opt (51)");
+         
+         incrementStatus(type);
+       }
+     }
+    }
+  }
+ 
+  /*
+   * TODO:
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_FLY_INDEX,Y
+ CLC ; (31)
+ ADC #1
+ LDX @PUTARRAY
+ STA EM_FLY_INDEX,X
+
+ // sollte zu diesem Code werden
+  * 
+  Assert.assertEquals(" LDY INDEX", code.get(++n));
+  Assert.assertEquals(" LDA X,Y", code.get(++n));
+  Assert.assertEquals(" CLC", code.get(++n));
+  Assert.assertEquals(" ADC #1", code.get(++n));
+  Assert.assertEquals(" LDX INDEX ; (38d)", code.get(++n));
+  Assert.assertEquals(" STA X,X", code.get(++n));
+
+ // und dann zu diesem hier
+  * 
+ ==> LDY EM_INDEX
+ ==> INC EM_FLY_INDEX,Y
+*/
+  private void increment_array_itself_by_1() {
+    for (int i = 0; i < codeList.size() - 4; i++) {
+      increment_array_itself_by_1(i, PeepholeType.INCREMENT_BYTE_ARRAY);
+    }
+  }
+  
+  // x[i] := x[i] + 1
+  private void increment_array_itself_by_1(int index, PeepholeType type) {
+    if (codeList.get(index    ).startsWith(" LDY") &&
+        codeList.get(index + 1).startsWith(" LDA") &&       
+        codeList.get(index + 2).startsWith(" CLC") &&
+        codeList.get(index + 3).equals(    " ADC #1") &&
+        codeList.get(index + 4).startsWith(" LDX") &&
+        codeList.get(index + 5).startsWith(" STA")
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String indexVariable = codeList.get(index).replace(" LDY ", "");
+     String indexVariable2 = codeList.get(index+4).replace(" LDX ", "");
+     int space = indexVariable2.indexOf(" ;");
+     if (space != -1) {
+       indexVariable2 = indexVariable2.substring(0, space);
+     }
+     String variable = codeList.get(index+1).replace(" LDA ", "").replace(",Y", "");
+     String variable2 = codeList.get(index+5).replace(" STA ", "").replace(",X", "");
+     
+     if (indexVariable.equals(indexVariable2)) {
+       if (variable.equals(variable2)) {
+         codeList.set(index, " LDX " + indexVariable);
+         codeList.set(index+1, " INC " + variable + ",X" + " ; (50)");
+         codeList.set(index+2, ";opt (50)");
+         codeList.set(index+3, ";opt (50)");
+         codeList.set(index+4, ";opt (50)");
+         codeList.set(index+5, ";opt (50)");
+         
+         incrementStatus(type);
+       }
+     }
+    }
+  }
+  /*
+   * TODO: 
+  ;
+  ; [308]  if sandclock_screen != 0 then
+  ;
+   LDA PF_SANDCLOCK_SCREEN ; (45)
+   LDX PF_SANDCLOCK_SCREEN+1
+   STX @ERG ; (34b)
+   ORA @ERG
+   BEQ ?FA21
+  ?TR21
+   JMP ?THEN23   
+   */
+
+  private void value_not_equal_zero() {
+    for (int i = 0; i < codeList.size() - 4; i++) {
+      value_not_equal_zero(i, PeepholeType.VALUE_NOT_EQUAL_ZERO);
+    }
+  }
+  
+  // if Wvalue != 0 then
+  private void value_not_equal_zero(int index, PeepholeType type) {
+    if (codeList.get(index    ).startsWith(" LDA") &&
+        codeList.get(index + 1).startsWith(" LDX") &&       
+        codeList.get(index + 2).startsWith(" STX @ERG") &&
+        codeList.get(index + 3).equals(    " ORA @ERG") &&
+        codeList.get(index + 4).startsWith(" BEQ ?FA") &&
+        codeList.get(index + 5).startsWith("?TR")
+     ) {
+
+     LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+     String indexVariable = codeList.get(index).replace(" LDA ", "");
+     int space = indexVariable.indexOf(" ;");
+     if (space != -1) {
+       indexVariable = indexVariable.substring(0, space);
+     }
+
+     String indexVariablePlus1 = codeList.get(index+1).replace(" LDX ", "");
+     space = indexVariablePlus1.indexOf(" ;");
+     if (space != -1) {
+       indexVariablePlus1 = indexVariablePlus1.substring(0, space);
+     }
+
+     String testVariable = indexVariable + "+1";
+     if (testVariable.equals(indexVariablePlus1)) {
+       // codeList.set(index, " LDA " + indexVariable);
+       codeList.set(index+1, " ORA " + indexVariablePlus1 + " ; (52a)");
+       codeList.set(index+2, ";opt (52a)");
+       codeList.set(index+3, ";opt (52a)");
+       
+       incrementStatus(type);
+     }
+    }
+  }
+  
+  /*
+   * NICE to know:
+   * 
+    TYA
+    STX @ERG ; (34b)
+    ORA @ERG         ; 8 cycles
+    BEQ ?FA7
+   ?TR7
+   
+   -> TYA
+   -> ORA _TABLE_0_255,X ; 6 cycles if table at 256 align
+  */ 
 }

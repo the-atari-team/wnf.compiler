@@ -36,9 +36,22 @@ public class ITVariable {
     new Main(source).compile();
   }
 
+  @Test
+  public void testknownVariable() throws IOException {
+    Source source = new Source("program name byte known procedure name() begin end begin known:=1 end");
+    new Main(source).compile();
+  }
+
   @Test(expected = IllegalStateException.class)
   public void testUnknownParameter() throws IOException {
     Source source = new Source("program name procedure name(unknown) begin end begin unknown:=1 end");
     new Main(source).compile();
   }
+
+  @Test(expected = IllegalStateException.class)
+  public void testWriteReadOnlyVariable() throws IOException {
+    Source source = new Source("program name byte readonly nowrite begin nowrite:=1 end");
+    new Main(source).compile();
+  }
+
 }

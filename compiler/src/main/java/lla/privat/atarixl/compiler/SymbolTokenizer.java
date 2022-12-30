@@ -232,7 +232,8 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
     if (symbol.getId() == SymbolEnum.reserved_word) {
       if (symbol.get().equals("ADR") ||
           symbol.get().equals("ABS") ||
-          symbol.get().equals("B2W")) { // TODO: prüfen ob ADR eine variable sein muss
+          symbol.get().equals("B2W") ||
+          symbol.get().equals("HI")) { // TODO: prüfen ob ADR eine variable sein muss
         symbol.changeId(SymbolEnum.variable_name);
       }
     }
@@ -243,7 +244,12 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
     StringBuilder newNumber = new StringBuilder();
     newNumber.append('%');
     if (number.length() != 5) {
-      throw new IllegalStateException("Kein Quad");
+      throw new IllegalStateException("Kein Quad") {
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+          return null;
+        }
+      };
     }
     for (int i = 1; i < 5;i++) {
       char charAt = number.charAt(i);
@@ -267,7 +273,12 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
     int value = 0;
     int bit = 1;
     if (number.length() != 9) {
-      throw new IllegalStateException("Kein Binary");
+      throw new IllegalStateException("Kein Binary") {
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+          return null;
+        }
+      };
     }
     int i = number.length() - 1;
     while (i >= 1) {
@@ -352,7 +363,12 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
 
     final String errorMessage =createErrorMessage(symbol, message);
     LOGGER.error(errorMessage);
-    throw new IllegalStateException(errorMessage);
+    throw new IllegalStateException(errorMessage) {
+      @Override
+      public synchronized Throwable fillInStackTrace() {
+        return null;
+      }
+    };
   }
 
   public void warning(Symbol symbol, String message) {

@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import lla.privat.atarixl.compiler.ReadOnly;
 import lla.privat.atarixl.compiler.Symbol;
 import lla.privat.atarixl.compiler.SymbolEnum;
 import lla.privat.atarixl.compiler.expression.Type;
@@ -100,7 +101,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 15);
+    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 15, ReadOnly.NO);
 
     sourceSUT.generateVariables();
 //    sourceSUT.generateVariable(new VariableDefinition("HALLO", Type.BYTE_ARRAY, 15));
@@ -117,7 +118,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10);
+    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10, ReadOnly.NO);
     sourceSUT.setVariableAddress("HALLO", "123");
 
     sourceSUT.generateVariables();
@@ -133,7 +134,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10);
+    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10, ReadOnly.NO);
     List<String> arrayValues = Arrays.asList("1", "-1", "255");
     sourceSUT.setVariableArray("HALLO", arrayValues);
 
@@ -151,7 +152,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10);
+    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10, ReadOnly.NO);
     List<String> arrayValues = new ArrayList<>();
     arrayValues.add("'Dies ist ein String'");
     arrayValues.add("255");
@@ -174,7 +175,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10);
+    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10, ReadOnly.NO);
     List<String> arrayValues = new ArrayList<>();
     arrayValues.add("'String mit \\'Quotes\\' und \"DoubleQuotes\"'");
     arrayValues.add("255");
@@ -195,7 +196,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10);
+    sourceSUT.addVariable("HALLO", Type.BYTE_ARRAY, 10, ReadOnly.NO);
     List<String> arrayValues = new ArrayList<>();
     arrayValues.add("'String mit \\'Quotes\\' und \"DoubleQuotes\" '");
     arrayValues.add("255");
@@ -262,7 +263,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.WORD_ARRAY, 15);
+    sourceSUT.addVariable("HALLO", Type.WORD_ARRAY, 15, ReadOnly.NO);
 
     sourceSUT.generateVariables();
 
@@ -278,7 +279,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.WORD_ARRAY, 10);
+    sourceSUT.addVariable("HALLO", Type.WORD_ARRAY, 10, ReadOnly.NO);
     sourceSUT.setVariableAddress("HALLO", "123");
 
     sourceSUT.generateAllNotAlreadyGeneratedEquatesVariables();
@@ -295,7 +296,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.WORD_ARRAY, 10);
+    sourceSUT.addVariable("HALLO", Type.WORD_ARRAY, 10, ReadOnly.NO);
     List<String> arrayValues = Arrays.asList("1", "-1", "255");
     sourceSUT.setVariableArray("HALLO", arrayValues);
 
@@ -313,7 +314,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 15);
+    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 15, ReadOnly.NO);
 
     sourceSUT.generateVariables();
 
@@ -332,7 +333,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 10);
+    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 10, ReadOnly.NO);
     List<String> arrayValues = Arrays.asList("1", "-1", "255");
     sourceSUT.setVariableArray("HALLO", arrayValues);
 
@@ -353,7 +354,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 10);
+    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 10, ReadOnly.NO);
     List<String> arrayValues = Arrays.asList("1.0", "1.49", "1.50", "1.51","1.99");
     sourceSUT.setVariableArray("HALLO", arrayValues);
 
@@ -374,7 +375,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 10);
+    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, 10, ReadOnly.NO);
     sourceSUT.addVariable("'one'", Type.STRING_ANONYM);
     sourceSUT.addVariable("'two'", Type.STRING_ANONYM);
 
@@ -398,7 +399,7 @@ public class TestSource {
     String program = "";
     Source sourceSUT = new Source(program);
 
-    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, -1);
+    sourceSUT.addVariable("HALLO", Type.WORD_SPLIT_ARRAY, -1, ReadOnly.NO);
     sourceSUT.setVariableAddress("HALLO", "@VARIABLE");
 
     sourceSUT.generateAllNotAlreadyGeneratedEquatesVariables();
