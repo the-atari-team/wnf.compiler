@@ -41,5 +41,4 @@ jobs:
         title: "Development Build"
         files: |
           LICENSE
-          *.jar
-          
+          wnf.compiler/compiler/target/wnf-compiler.jar
