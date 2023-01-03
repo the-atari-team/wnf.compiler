@@ -1,0 +1,4115 @@
+; Compiled with WiNiFe Compiler
+; cdw by 'The Atari Team' 1990-2022
+; LLA: make it work again
+ .LOCAL
+; Header variables
+EM_GAME_MODE = @GAME_MODE
+EM_SHOW_SCREEN = @SHOW_SCREEN
+EM_PLAYFIELD_SCREEN = 0
+EM_MESSAGE_SCREEN = 1
+EM_INTRO_SCREEN = 2
+EM_OUTRO_SCREEN = 3
+EM_SPEED_50 = 2
+EM_SPEED_66 = 3
+EM_SPEED_75 = 4
+EM_SPEED_80 = 5
+EM_SPEED_85 = 7
+EM_SPEED_90 = 10
+EM_SPEED_95 = 21
+EM_SPEED_98 = 50
+EM_MODE_INTRO = 1
+EM_MODE_PLAY = 2
+EM_MODE_GAME_OVER = 3
+EM_MODE_ABBRUCH = 4
+EM_MODE_LOST_LIVE = 5
+EM_MODE_LEVEL_DONE = 6
+EM_MODE_OUT_OF_TIME = 7
+EM_MODE_NO_MORE_LIVES = 8
+EM_DIRECTION_STAY_LOOK_RIGHT = 1
+EM_DIRECTION_STAY_LOOK_LEFT = 2
+EM_DIRECTION_WALK = 4
+EM_DIRECTION_WALK_RIGHT = 5
+EM_DIRECTION_WALK_LEFT = 6
+EM_DIRECTION_JUMP = 8
+EM_DIRECTION_JUMP_RIGHT = 9
+EM_DIRECTION_JUMP_LEFT = 10
+EM_DIRECTION_DEAD = 16
+EM_DIRECTION_DEAD_RIGHT = 17
+EM_DIRECTION_DEAD_LEFT = 18
+EM_DIRECTION_BLOW_AWAY = 128
+EM_MAX_SPRITES = 16
+EM_MAX_ENEMIES = 14
+EM_WALL_1 = 2
+EM_WALL_2 = 3
+EM_BACKGROUND_DASH_1 = 5
+EM_BACKGROUND_DASH_2 = 6
+EM_BACKGROUND_DASH_3 = 7
+EM_BACKGROUND_DASH_4 = 8
+EM_FLOOR_YELLOW_1 = 137
+EM_FLOOR_YELLOW_2 = 138
+EM_FLOOR_1 = 11
+EM_FLOOR_2 = 12
+EM_DOOR_CLOSED_1 = 147
+EM_DOOR_CLOSED_2 = 148
+EM_DOOR_CLOSED_3 = 149
+EM_DOOR_CLOSED_4 = 150
+EM_DOOR_CLOSED_5 = 151
+EM_DOOR_CLOSED_6 = 152
+EM_DOOR_OPENED_1 = 153
+EM_DOOR_OPENED_2 = 154
+EM_DOOR_OPENED_3 = 155
+EM_DOOR_OPENED_4 = 156
+EM_DOOR_OPENED_5 = 157
+EM_DOOR_OPENED_6 = 158
+EM_KEY_1 = 159
+EM_KEY_2 = 160
+EM_BODEN_MESSER_1 = 13
+EM_BODEN_MESSER_2 = 14
+EM_BODEN_MESSER_1HI = 141
+EM_BODEN_MESSER_2HI = 142
+EM_ELEVATOR_1 = 86
+EM_ELEVATOR_2 = 87
+EM_ELEVATOR_3 = 88
+EM_ELEVATOR_4 = 89
+EM_ELEVATOR_5 = 90
+EM_ELEVATOR_6 = 91
+EM_SANDCLOCK_1 = 220
+EM_SANDCLOCK_2 = 221
+EM_SANDCLOCK_3 = 222
+EM_SANDCLOCK_4 = 223
+EM_STOPWATCH_1 = 224
+EM_STOPWATCH_2 = 225
+EM_STOPWATCH_3 = 226
+EM_STOPWATCH_4 = 227
+EM_SHIELD_1 = 228
+EM_SHIELD_2 = 229
+EM_SHIELD_3 = 230
+EM_SHIELD_4 = 231
+EM_GEMS_1 = 232
+EM_GEMS_2 = 233
+EM_GEMS_3 = 234
+EM_GEMS_4 = 235
+EM_GAME_SCREEN = @GAME_SCREEN
+EM_SCORE_TEXT = @SCORE_TEXT
+EM_XOFFSET = 48
+EM_THE_DUDE = 127
+EM_KEY = 126
+EM_DOOR = 125
+EM_SANDCLOCK = 124
+EM_SHIELD = 123
+EM_GEMS = 122
+EM_STOPWATCH = 121
+EM_E_SKELETON = 119
+EM_E_ARCHER = 118
+EM_E_DARK_KNIGHT = 117
+EM_E_GHOST = 116
+EM_E_VAMPIRE = 115
+EM_E_WIZARD = 114
+EM_E_WERWOLF = 113
+EM_E_CAT = 112
+EM_IDX_SKELETON = 1
+EM_IDX_ARCHER = 2
+EM_IDX_DARK_KNIGHT = 3
+EM_IDX_GHOST = 4
+EM_IDX_VAMPIRE = 5
+EM_IDX_WIZARD = 6
+EM_IDX_WERWOLF = 7
+EM_IDX_CAT = 8
+EM_IDX_ARROW = 9
+EM_IDX_BAT = 10
+EM_COLOR_SKELETON = $0A
+EM_COLOR_ARCHER = $FC
+EM_COLOR_DARK_KNIGHT = $8A
+EM_COLOR_GHOST = $0F
+EM_COLOR_VAMPIRE = $78
+EM_COLOR_WIZARD = $68
+EM_COLOR_WERWOLF = $38
+EM_COLOR_CAT = $B8
+EM_COLOR_ARROW = $18
+EM_COLOR_DUDE_P1 = $2F
+EM_COLOR_DUDE_P2 = $18
+EM_COLOR_YELLOW = $EF
+EM_COLOR_WHITE = $0F
+EM_KEY_OPTION = 3
+EM_KEY_SELECT = 2
+EM_KEY_START = 1
+EM_KEY_ESCAPE = 27
+EM_KEY_SPACE = 32
+EM_KEY_LEFT = 30
+EM_KEY_RIGHT = 31
+EM_SCORE_ENTER_FLOOR = $10
+EM_SCORE_REST_SECONDS = $10
+EM_SCORE_GEMS = $500
+EM_PACMAN_CANAL = 0
+EM_GHOST_CANAL = 1
+EM_AUGEN_CANAL = 2
+EM_TIC_TOC_CANAL = 3
+EM_RANDOM = $D20A
+EM_WAITFORENEMYANIMATION = @WAITFORENEMYANIMATION
+EM_TYPE = @ENEMY_TYPE
+EM_TYPE_LENGTH = 14
+EM_LAST_ENEMY_TO_DRAW_LENGTH = 14
+EM_JUMP_YSTEP = @JUMP_TABLE
+EM_JUMP_YSTEP_LENGTH = 1
+EM_ANIM_NUMBER = @ENEMY_ANIM_NUMBER
+EM_ANIM_NUMBER_LENGTH = 14
+EM_ANIM_WAITFOR = @ENEMY_ANIM_WAITFOR
+EM_ANIM_WAITFOR_LENGTH = 14
+EM_XPOS = @ENEMY_XPOS
+EM_XPOS_LENGTH = 14
+EM_YPOS = @ENEMY_YPOS
+EM_YPOS_LENGTH = 14
+EM_XSTEP = @ENEMY_XSTEP
+EM_XSTEP_LENGTH = 14
+EM_YSTEP = @ENEMY_YSTEP
+EM_YSTEP_LENGTH = 14
+EM_ENEMY_DIRECTION = @ENEMY_DIRECTION
+EM_ENEMY_DIRECTION_LENGTH = 14
+EM_IS_JUMP = @ENEMY_IS_JUMP
+EM_IS_JUMP_LENGTH = 14
+EM_IS_JUMP_UP = @ENEMY_IS_JUMP_UP
+EM_IS_JUMP_UP_LENGTH = 14
+EM_JUMP_ANIMATION = @ENEMY_JUMP_ANIMATION
+EM_JUMP_ANIMATION_LENGTH = 14
+EM_WAITFORANI = @ENEMY_WAITFORANI
+EM_WAITFORANI_LENGTH = 14
+EM_WAITFORANI_WALK_INIT = @ENEMY_WAITFORANI_WALK_INIT
+EM_SPRITE_X = @SPRITE_X
+EM_SPRITE_X_LENGTH = 16
+EM_SPRITE_Y = @SPRITE_Y
+EM_SPRITE_Y_LENGTH = 16
+EM_SPRITE_SHAPE = @SPRITE_SHAPE
+EM_SPRITE_SHAPE_LENGTH = 16
+EM_SPRITE_COLOR = @SPRITE_COLOR
+EM_SPRITE_COLOR_LENGTH = 16
+EM_ARROW_IN_MOVE_LENGTH = 16
+EM_FLY_COUNT_LENGTH = 16
+EM_FLY_INDEX_LENGTH = 16
+EM_FLY_DIRECTIONS_LENGTH = 1
+EM_FLY_DIRECTIONS_ELEMENTS = 7
+;
+; [70]  procedure @init_enemy()
+;
+@INIT_ENEMY
+; @INIT_ENEMY
+;
+; [72]  waitForEnemyAnimation := 0
+;
+ LDY #<0
+ STY EM_WAITFORENEMYANIMATION
+;
+; [73]  for index:=0 to MAX_SPRITES-1 do
+;
+ LDY #<0
+ STY EM_INDEX
+ SEC
+ LDA #<16
+ SBC #<1
+ TAY
+ STY ?FOR1
+?FORLOOP1
+ LDY ?FOR1
+ CPY EM_INDEX
+ BCS ?GO1
+ JMP ?EXIT1
+?GO1
+;
+; [75]  arrow_in_move[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_ARROW_IN_MOVE,X
+;
+; [76]  fly_count[index] := 1     // slowdown for fly_index increment
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_FLY_COUNT,X
+;
+; [77]  fly_index[index] := 255   // start with -1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<255
+ TYA
+ LDX @PUTARRAY
+ STA EM_FLY_INDEX,X
+ INC EM_INDEX
+ JMP ?FORLOOP1
+?EXIT1
+;
+; [79]  index := 0
+;
+ LDY #<0
+ STY EM_INDEX
+;
+; [81]  fly_direction := 0 // first fly direction
+;
+ LDY #<0
+ STY EM_FLY_DIRECTION
+?RETURN1
+ RTS
+;
+; [86]  procedure @clear_all_enemy()
+;
+@CLEAR_ALL_ENEMY
+; @CLEAR_ALL_ENEMY
+;
+; [88]  for i:=0 to MAX_ENEMIES-1 do
+;
+ LDY #<0
+ STY EM_I
+ SEC
+ LDA #<14
+ SBC #<1
+ TAY
+ STY ?FOR2
+?FORLOOP2
+ LDY ?FOR2
+ CPY EM_I
+ BCS ?GO2
+ JMP ?EXIT2
+?GO2
+;
+; [90]  sprite_x[i+2] := 0
+;
+ CLC
+ LDA EM_I
+ ADC #<2
+ TAY
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_X,X
+ INC EM_I
+ JMP ?FORLOOP2
+?EXIT2
+?RETURN2
+ RTS
+EM_ENEMY_COLOR = @ENEMY_COLOR
+EM_ENEMY_COLOR_LENGTH = 1
+;
+; [104]  procedure @add_enemy(xpos_, ypos_, editor_enemy_type)
+;
+@ADD_ENEMY
+@ADD_ENEMY_III
+ LDX EM_XPOS_
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA EM_XPOS_
+ TXA
+ STA (@HEAP_PTR),Y
+ LDX EM_YPOS_
+ LDY #3
+ LDA (@HEAP_PTR),Y
+ STA EM_YPOS_
+ TXA
+ STA (@HEAP_PTR),Y
+ LDX EM_EDITOR_ENEMY_TYPE
+ LDY #5
+ LDA (@HEAP_PTR),Y
+ STA EM_EDITOR_ENEMY_TYPE
+ TXA
+ STA (@HEAP_PTR),Y
+ CLC
+ LDA @HEAP_PTR
+ ADC #7
+ STA @HEAP_PTR
+;
+; [106]  if index >= MAX_ENEMIES-1 then return 0
+;
+ LDY EM_INDEX
+ STY @ERG
+ SEC
+ LDA #<14
+ SBC #<1
+ TAY
+; Bedingung (a>=b)
+ CPY @ERG
+ BEQ ?TR1
+ BCS ?FA1
+?TR1
+ JMP ?THEN3
+?FA1
+ .IF .NOT .DEF ?ELSE3
+ JMP ?ENDIF3
+ .ELSE
+ JMP ?ELSE3
+ .ENDIF
+?THEN3
+;
+; [106]  
+;
+ LDY #<0
+ LDX #0
+ JMP ?RETURN3
+?ENDIF3
+;
+; [119]  if xpos_ < 80 then
+;
+ LDY EM_XPOS_
+ STY @ERG
+ LDY #<80
+; Bedingung (a<b)
+ CPY @ERG
+ BEQ ?FA2
+ BCC ?FA2
+ JMP ?THEN4
+?FA2
+ .IF .NOT .DEF ?ELSE4
+ JMP ?ENDIF4
+ .ELSE
+ JMP ?ELSE4
+ .ENDIF
+?THEN4
+;
+; [120]  direction := 1
+;
+ LDY #<1
+ STY EM_DIRECTION
+ JMP ?ENDIF4
+?ELSE4
+;
+; [122]  direction := 255
+;
+ LDY #<255
+ STY EM_DIRECTION
+?ENDIF4
+;
+; [124]  xpos[index] := xpos_
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_XPOS_
+ TYA
+ LDX @PUTARRAY
+ STA EM_XPOS,X
+;
+; [125]  ypos[index] := ypos_ // 40 64 88 112 136 160
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_YPOS_
+ TYA
+ LDX @PUTARRAY
+ STA EM_YPOS,X
+;
+; [126]  xstep[index] := direction
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_DIRECTION
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+;
+; [127]  ystep[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_YSTEP,X
+;
+; [129]  anim_number[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_ANIM_NUMBER,X
+;
+; [131]  is_jump[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_IS_JUMP,X
+;
+; [132]  is_jump_up[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_IS_JUMP_UP,X
+;
+; [133]  jump_animation[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_JUMP_ANIMATION,X
+;
+; [135]  waitforani[index] := waitForEnemyAnimation
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_WAITFORENEMYANIMATION
+ TYA
+ LDX @PUTARRAY
+ STA EM_WAITFORANI,X
+;
+; [136]  waitforani_walk_init := 2
+;
+ LDY #<2
+ STY EM_WAITFORANI_WALK_INIT
+;
+; [138]  anim_waitfor[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_ANIM_WAITFOR,X
+;
+; [142]  if editor_enemy_type == E_SKELETON then
+;
+ LDY EM_EDITOR_ENEMY_TYPE
+ STY @ERG
+ LDY #<119
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA3
+ JMP ?THEN5
+?FA3
+ .IF .NOT .DEF ?ELSE5
+ JMP ?ENDIF5
+ .ELSE
+ JMP ?ELSE5
+ .ENDIF
+?THEN5
+;
+; [144]  type_value := IDX_SKELETON
+;
+ LDY #<1
+ STY EM_TYPE_VALUE
+;
+; [145]  color_value := COLOR_SKELETON
+;
+ LDY #<10
+ STY EM_COLOR_VALUE
+ JMP ?ENDIF5
+?ELSE5
+;
+; [148]  else if editor_enemy_type == E_ARCHER then
+;
+ LDY EM_EDITOR_ENEMY_TYPE
+ STY @ERG
+ LDY #<118
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA4
+ JMP ?THEN6
+?FA4
+ .IF .NOT .DEF ?ELSE6
+ JMP ?ENDIF6
+ .ELSE
+ JMP ?ELSE6
+ .ENDIF
+?THEN6
+;
+; [150]  type_value := IDX_ARCHER
+;
+ LDY #<2
+ STY EM_TYPE_VALUE
+;
+; [151]  color_value := COLOR_ARCHER
+;
+ LDY #<252
+ STY EM_COLOR_VALUE
+ JMP ?ENDIF6
+?ELSE6
+;
+; [154]  else if editor_enemy_type == E_DARK_KNIGHT then
+;
+ LDY EM_EDITOR_ENEMY_TYPE
+ STY @ERG
+ LDY #<117
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA5
+ JMP ?THEN7
+?FA5
+ .IF .NOT .DEF ?ELSE7
+ JMP ?ENDIF7
+ .ELSE
+ JMP ?ELSE7
+ .ENDIF
+?THEN7
+;
+; [156]  type_value := IDX_DARK_KNIGHT
+;
+ LDY #<3
+ STY EM_TYPE_VALUE
+;
+; [157]  color_value := COLOR_DARK_KNIGHT
+;
+ LDY #<138
+ STY EM_COLOR_VALUE
+ JMP ?ENDIF7
+?ELSE7
+;
+; [160]  else if editor_enemy_type == E_GHOST then
+;
+ LDY EM_EDITOR_ENEMY_TYPE
+ STY @ERG
+ LDY #<116
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA6
+ JMP ?THEN8
+?FA6
+ .IF .NOT .DEF ?ELSE8
+ JMP ?ENDIF8
+ .ELSE
+ JMP ?ELSE8
+ .ENDIF
+?THEN8
+;
+; [162]  type_value := IDX_GHOST
+;
+ LDY #<4
+ STY EM_TYPE_VALUE
+;
+; [163]  color_value := COLOR_GHOST
+;
+ LDY #<15
+ STY EM_COLOR_VALUE
+ JMP ?ENDIF8
+?ELSE8
+;
+; [166]  else if editor_enemy_type == E_VAMPIRE then
+;
+ LDY EM_EDITOR_ENEMY_TYPE
+ STY @ERG
+ LDY #<115
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA7
+ JMP ?THEN9
+?FA7
+ .IF .NOT .DEF ?ELSE9
+ JMP ?ENDIF9
+ .ELSE
+ JMP ?ELSE9
+ .ENDIF
+?THEN9
+;
+; [168]  type_value := IDX_VAMPIRE
+;
+ LDY #<5
+ STY EM_TYPE_VALUE
+;
+; [169]  color_value := COLOR_VAMPIRE
+;
+ LDY #<120
+ STY EM_COLOR_VALUE
+ JMP ?ENDIF9
+?ELSE9
+;
+; [172]  else if editor_enemy_type == E_WIZARD then
+;
+ LDY EM_EDITOR_ENEMY_TYPE
+ STY @ERG
+ LDY #<114
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA8
+ JMP ?THEN10
+?FA8
+ .IF .NOT .DEF ?ELSE10
+ JMP ?ENDIF10
+ .ELSE
+ JMP ?ELSE10
+ .ENDIF
+?THEN10
+;
+; [174]  type_value := IDX_WIZARD
+;
+ LDY #<6
+ STY EM_TYPE_VALUE
+;
+; [175]  color_value := COLOR_WIZARD
+;
+ LDY #<104
+ STY EM_COLOR_VALUE
+ JMP ?ENDIF10
+?ELSE10
+;
+; [178]  else if editor_enemy_type == E_WERWOLF then
+;
+ LDY EM_EDITOR_ENEMY_TYPE
+ STY @ERG
+ LDY #<113
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA9
+ JMP ?THEN11
+?FA9
+ .IF .NOT .DEF ?ELSE11
+ JMP ?ENDIF11
+ .ELSE
+ JMP ?ELSE11
+ .ENDIF
+?THEN11
+;
+; [180]  type_value := IDX_WERWOLF
+;
+ LDY #<7
+ STY EM_TYPE_VALUE
+;
+; [181]  color_value := COLOR_WERWOLF
+;
+ LDY #<56
+ STY EM_COLOR_VALUE
+ JMP ?ENDIF11
+?ELSE11
+;
+; [184]  else if editor_enemy_type == E_CAT then
+;
+ LDY EM_EDITOR_ENEMY_TYPE
+ STY @ERG
+ LDY #<112
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA10
+ JMP ?THEN12
+?FA10
+ .IF .NOT .DEF ?ELSE12
+ JMP ?ENDIF12
+ .ELSE
+ JMP ?ELSE12
+ .ENDIF
+?THEN12
+;
+; [186]  type_value := IDX_CAT
+;
+ LDY #<8
+ STY EM_TYPE_VALUE
+;
+; [187]  color_value := COLOR_CAT
+;
+ LDY #<184
+ STY EM_COLOR_VALUE
+?ENDIF12
+?ENDIF11
+?ENDIF10
+?ENDIF9
+?ENDIF8
+?ENDIF7
+?ENDIF6
+?ENDIF5
+;
+; [190]  type[index] := type_value
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_TYPE_VALUE
+ TYA
+ LDX @PUTARRAY
+ STA EM_TYPE,X
+;
+; [191]  enemy_color[index] := color_value
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_COLOR_VALUE
+ TYA
+ LDX @PUTARRAY
+ STA EM_ENEMY_COLOR,X
+;
+; [193]  index := index + 1
+;
+ CLC
+ LDA EM_INDEX
+ ADC #<1
+ TAY
+ STY EM_INDEX
+;
+; [195]  if editor_enemy_type == E_ARCHER then
+;
+ LDY EM_EDITOR_ENEMY_TYPE
+ STY @ERG
+ LDY #<118
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA11
+ JMP ?THEN13
+?FA11
+ .IF .NOT .DEF ?ELSE13
+ JMP ?ENDIF13
+ .ELSE
+ JMP ?ELSE13
+ .ENDIF
+?THEN13
+;
+; [197]  type[index] := IDX_ARROW
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<9
+ TYA
+ LDX @PUTARRAY
+ STA EM_TYPE,X
+;
+; [198]  enemy_color[index] := COLOR_ARROW
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<24
+ TYA
+ LDX @PUTARRAY
+ STA EM_ENEMY_COLOR,X
+;
+; [201]  index := index + 1
+;
+ CLC
+ LDA EM_INDEX
+ ADC #<1
+ TAY
+ STY EM_INDEX
+?ENDIF13
+;
+; [204]  waitForEnemyAnimation := waitForEnemyAnimation + 1
+;
+ CLC
+ LDA EM_WAITFORENEMYANIMATION
+ ADC #<1
+ TAY
+ STY EM_WAITFORENEMYANIMATION
+?RETURN3
+ SEC
+ LDA @HEAP_PTR
+ SBC #7
+ STA @HEAP_PTR
+ LDY #5
+ LDA (@HEAP_PTR),Y
+ STA EM_EDITOR_ENEMY_TYPE
+ LDY #3
+ LDA (@HEAP_PTR),Y
+ STA EM_YPOS_
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA EM_XPOS_
+ RTS
+EM_YPOSDIV8MUL40 = @YPOSDIV8MUL40
+EM_YPOSDIV8MUL40_LOW = @YPOSDIV8MUL40_LOW
+EM_YPOSDIV8MUL40_HIGH = @YPOSDIV8MUL40_HIGH
+EM_YPOSDIV8MUL40_LENGTH = -1
+EM_SCREEN = @SCREEN
+;
+; [233]  function @isFloorToWalk(floor)
+;
+@ISFLOORTOWALK
+@ISFLOORTOWALK_I
+ LDX EM_FLOOR
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA EM_FLOOR
+ TXA
+ STA (@HEAP_PTR),Y
+ CLC
+ LDA @HEAP_PTR
+ ADC #3
+ STA @HEAP_PTR
+;
+; [235]  if floor == FLOOR_YELLOW_1 or floor == FLOOR_YELLOW_2 or floor == FLOOR_1 or floor == FLOOR_2 or floor == WALL_1 or floor == WALL_2 then
+;
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<137
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA12
+ JMP ?THEN14
+?FA12
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<138
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA13
+ JMP ?THEN14
+?FA13
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<11
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA14
+ JMP ?THEN14
+?FA14
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<12
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA15
+ JMP ?THEN14
+?FA15
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<2
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA16
+ JMP ?THEN14
+?FA16
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<3
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA17
+ JMP ?THEN14
+?FA17
+ .IF .NOT .DEF ?ELSE14
+ JMP ?ENDIF14
+ .ELSE
+ JMP ?ELSE14
+ .ENDIF
+?THEN14
+;
+; [237]  
+;
+ LDY #<1
+ LDX #0
+ JMP ?RETURN4
+?ENDIF14
+;
+; [239]  
+;
+ LDY #<0
+ LDX #0
+ JMP ?RETURN4
+?RETURN4
+ STY @REG+2
+ SEC
+ LDA @HEAP_PTR
+ SBC #3
+ STA @HEAP_PTR
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA EM_FLOOR
+ LDY @REG+2
+ RTS
+;
+; [242]  function @isFloorToJump(floor)
+;
+@ISFLOORTOJUMP
+@ISFLOORTOJUMP_I
+ LDX EM_FLOOR
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA EM_FLOOR
+ TXA
+ STA (@HEAP_PTR),Y
+ CLC
+ LDA @HEAP_PTR
+ ADC #3
+ STA @HEAP_PTR
+;
+; [244]  if floor == FLOOR_YELLOW_1 or floor == FLOOR_YELLOW_2 or floor == FLOOR_1 or floor == FLOOR_2 then
+;
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<137
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA18
+ JMP ?THEN15
+?FA18
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<138
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA19
+ JMP ?THEN15
+?FA19
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<11
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA20
+ JMP ?THEN15
+?FA20
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<12
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA21
+ JMP ?THEN15
+?FA21
+ .IF .NOT .DEF ?ELSE15
+ JMP ?ENDIF15
+ .ELSE
+ JMP ?ELSE15
+ .ENDIF
+?THEN15
+;
+; [246]  
+;
+ LDY #<1
+ LDX #0
+ JMP ?RETURN5
+?ENDIF15
+;
+; [248]  
+;
+ LDY #<0
+ LDX #0
+ JMP ?RETURN5
+?RETURN5
+ STY @REG+2
+ SEC
+ LDA @HEAP_PTR
+ SBC #3
+ STA @HEAP_PTR
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA EM_FLOOR
+ LDY @REG+2
+ RTS
+;
+; [254]  procedure move_arrow(index)
+;
+EM_MOVE_ARROW
+EM_MOVE_ARROW_I
+ LDX EM_INDEX
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA EM_INDEX
+ TXA
+ STA (@HEAP_PTR),Y
+ CLC
+ LDA @HEAP_PTR
+ ADC #3
+ STA @HEAP_PTR
+;
+; [256]  if arrow_in_move[index] == 0 then return 0
+;
+ LDY EM_INDEX
+ LDA EM_ARROW_IN_MOVE,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA22
+ JMP ?THEN16
+?FA22
+ .IF .NOT .DEF ?ELSE16
+ JMP ?ENDIF16
+ .ELSE
+ JMP ?ELSE16
+ .ENDIF
+?THEN16
+;
+; [256]  
+;
+ LDY #<0
+ LDX #0
+ JMP ?RETURN6
+?ENDIF16
+;
+; [258]  arrow_in_move[index] := arrow_in_move[index] - 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_ARROW_IN_MOVE,Y
+ TAY
+ SEC
+ TYA
+ SBC #<1
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_ARROW_IN_MOVE,X
+;
+; [260]  i2 := index + 2
+;
+ CLC
+ LDA EM_INDEX
+ ADC #<2
+ TAY
+ STY EM_I2
+;
+; [261]  if arrow_in_move[index] == 0 then
+;
+ LDY EM_INDEX
+ LDA EM_ARROW_IN_MOVE,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA23
+ JMP ?THEN17
+?FA23
+ .IF .NOT .DEF ?ELSE17
+ JMP ?ENDIF17
+ .ELSE
+ JMP ?ELSE17
+ .ENDIF
+?THEN17
+;
+; [264]  sprite_x[i2] := 0
+;
+ LDY EM_I2
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_X,X
+ JMP ?ENDIF17
+?ELSE17
+;
+; [268]  if enemy_direction[index] == DIRECTION_STAY_LOOK_LEFT then
+;
+ LDY EM_INDEX
+ LDA EM_ENEMY_DIRECTION,Y
+ TAY
+ STY @ERG
+ LDY #<2
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA24
+ JMP ?THEN18
+?FA24
+ .IF .NOT .DEF ?ELSE18
+ JMP ?ENDIF18
+ .ELSE
+ JMP ?ELSE18
+ .ENDIF
+?THEN18
+;
+; [270]  sprite_shape[i2] := 70
+;
+ LDY EM_I2
+ STY @PUTARRAY
+ LDY #<70
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_SHAPE,X
+ JMP ?ENDIF18
+?ELSE18
+;
+; [274]  sprite_shape[i2] := 71
+;
+ LDY EM_I2
+ STY @PUTARRAY
+ LDY #<71
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_SHAPE,X
+?ENDIF18
+;
+; [276]  xpos[index] := xpos[index] + xstep[index]
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ TYA
+ PHA
+ LDY EM_INDEX
+ LDA EM_XSTEP,Y
+ TAY
+ STY @OP
+ PLA
+ TAY
+ CLC
+ TYA
+ ADC @OP
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_XPOS,X
+;
+; [278]  sprite_color[i2] := COLOR_ARROW
+;
+ LDY EM_I2
+ STY @PUTARRAY
+ LDY #<24
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_COLOR,X
+;
+; [279]  sprite_x[i2] := xpos[index] + xoffset
+;
+ LDY EM_I2
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ CLC
+ TYA
+ ADC #<48
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_X,X
+;
+; [280]  sprite_y[i2] := ypos[index]
+;
+ LDY EM_I2
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_Y,X
+?ENDIF17
+?RETURN6
+ SEC
+ LDA @HEAP_PTR
+ SBC #3
+ STA @HEAP_PTR
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA EM_INDEX
+ RTS
+;
+; [286]  procedure init_arrow()
+;
+EM_INIT_ARROW
+; EM_INIT_ARROW
+;
+; [288]  anim_number[index] := 13 // ARCHER umstellen auf Bogenschiessen
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<13
+ TYA
+ LDX @PUTARRAY
+ STA EM_ANIM_NUMBER,X
+;
+; [289]  ypos[arrow_index] := ypos[index]
+;
+ LDY EM_ARROW_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_YPOS,X
+;
+; [290]  xpos[arrow_index] := xpos[index]
+;
+ LDY EM_ARROW_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_XPOS,X
+;
+; [291]  xstep[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+;
+; [292]  arrow_in_move[arrow_index] := arrow_in_move[arrow_index] + 50
+;
+ LDY EM_ARROW_INDEX
+ STY @PUTARRAY
+ LDY EM_ARROW_INDEX
+ LDA EM_ARROW_IN_MOVE,Y
+ TAY
+ CLC
+ TYA
+ ADC #<50
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_ARROW_IN_MOVE,X
+?RETURN7
+ RTS
+EM_DUDE_XPOS = @DUDE_XPOS
+EM_DUDE_YPOS = @DUDE_YPOS
+;
+; [306]  procedure move_enemy(index)
+;
+EM_MOVE_ENEMY
+EM_MOVE_ENEMY_I
+ LDX EM_INDEX
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA EM_INDEX
+ TXA
+ STA (@HEAP_PTR),Y
+ CLC
+ LDA @HEAP_PTR
+ ADC #3
+ STA @HEAP_PTR
+;
+; [309]  enemy_type := type[index]
+;
+ LDY EM_INDEX
+ LDA EM_TYPE,Y
+ TAY
+ STY EM_ENEMY_TYPE
+;
+; [311]  if enemy_type == IDX_ARROW then
+;
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<9
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA25
+ JMP ?THEN19
+?FA25
+ .IF .NOT .DEF ?ELSE19
+ JMP ?ENDIF19
+ .ELSE
+ JMP ?ELSE19
+ .ENDIF
+?THEN19
+;
+; [313]  move_arrow(index)
+;
+ LDY EM_INDEX
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR EM_MOVE_ARROW_I
+;
+; [314]  
+;
+ LDY #<0
+ LDX #0
+ JMP ?RETURN8
+?ENDIF19
+;
+; [317]  is_walk := 0
+;
+ LDY #<0
+ STY EM_IS_WALK
+;
+; [318]  enemy_to_draw := last_enemy_to_draw[index]
+;
+ LDY EM_INDEX
+ LDA EM_LAST_ENEMY_TO_DRAW,Y
+ TAY
+ STY EM_ENEMY_TO_DRAW
+;
+; [320]  if is_jump[index] == 0 then
+;
+ LDY EM_INDEX
+ LDA EM_IS_JUMP,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA26
+ JMP ?THEN20
+?FA26
+ .IF .NOT .DEF ?ELSE20
+ JMP ?ENDIF20
+ .ELSE
+ JMP ?ELSE20
+ .ENDIF
+?THEN20
+;
+; [324]  if waitforani[i] != 0 then
+;
+ LDY EM_I
+ LDA EM_WAITFORANI,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a!=b)
+ CPY @ERG
+ BEQ ?FA27
+ JMP ?THEN21
+?FA27
+ .IF .NOT .DEF ?ELSE21
+ JMP ?ENDIF21
+ .ELSE
+ JMP ?ELSE21
+ .ENDIF
+?THEN21
+;
+; [326]  waitforani[i] := waitforani[i] - 1
+;
+ LDY EM_I
+ STY @PUTARRAY
+ LDY EM_I
+ LDA EM_WAITFORANI,Y
+ TAY
+ SEC
+ TYA
+ SBC #<1
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_WAITFORANI,X
+;
+; [327]  
+;
+ LDY #<0
+ LDX #0
+ JMP ?RETURN8
+?ENDIF21
+;
+; [329]  waitforani[i] := waitforani_walk_init
+;
+ LDY EM_I
+ STY @PUTARRAY
+ LDY EM_WAITFORANI_WALK_INIT
+ TYA
+ LDX @PUTARRAY
+ STA EM_WAITFORANI,X
+;
+; [331]  if xstep[index] == 1 then  // move to the right
+;
+ LDY EM_INDEX
+ LDA EM_XSTEP,Y
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA28
+ JMP ?THEN22
+?FA28
+ .IF .NOT .DEF ?ELSE22
+ JMP ?ENDIF22
+ .ELSE
+ JMP ?ELSE22
+ .ENDIF
+?THEN22
+;
+; [334]  enemy_to_draw := @getEnemyToRight(enemy_type, anim_number[index])
+;
+ LDY EM_ENEMY_TYPE
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_ANIM_NUMBER,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #3
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @GETENEMYTORIGHT_II
+ STY EM_ENEMY_TO_DRAW
+;
+; [335]  if enemy_to_draw == 255 then
+;
+ LDY EM_ENEMY_TO_DRAW
+ STY @ERG
+ LDY #<255
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA29
+ JMP ?THEN23
+?FA29
+ .IF .NOT .DEF ?ELSE23
+ JMP ?ENDIF23
+ .ELSE
+ JMP ?ELSE23
+ .ENDIF
+?THEN23
+;
+; [337]  anim_number[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_ANIM_NUMBER,X
+;
+; [338]  enemy_to_draw := @getEnemyToRight(enemy_type, anim_number[index])
+;
+ LDY EM_ENEMY_TYPE
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_ANIM_NUMBER,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #3
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @GETENEMYTORIGHT_II
+ STY EM_ENEMY_TO_DRAW
+?ENDIF23
+;
+; [340]  xpos_floor_add := 2
+;
+ LDY #<2
+ STY EM_XPOS_FLOOR_ADD
+;
+; [341]  xpos_wall_add := 2
+;
+ LDY #<2
+ STY EM_XPOS_WALL_ADD
+;
+; [342]  if enemy_type == IDX_DARK_KNIGHT or enemy_type == IDX_WERWOLF then
+;
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<3
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA30
+ JMP ?THEN24
+?FA30
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<7
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA31
+ JMP ?THEN24
+?FA31
+ .IF .NOT .DEF ?ELSE24
+ JMP ?ENDIF24
+ .ELSE
+ JMP ?ELSE24
+ .ENDIF
+?THEN24
+;
+; [345]  if ypos[index] < 192 then xpos_floor_add := 1
+;
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ STY @ERG
+ LDY #<192
+; Bedingung (a<b)
+ CPY @ERG
+ BEQ ?FA32
+ BCC ?FA32
+ JMP ?THEN25
+?FA32
+ .IF .NOT .DEF ?ELSE25
+ JMP ?ENDIF25
+ .ELSE
+ JMP ?ELSE25
+ .ENDIF
+?THEN25
+;
+; [345]  if ypos[index] < 192 then xpos_floor_add := 1
+;
+ LDY #<1
+ STY EM_XPOS_FLOOR_ADD
+?ENDIF25
+?ENDIF24
+;
+; [348]  enemy_direction[index] := DIRECTION_STAY_LOOK_RIGHT
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_ENEMY_DIRECTION,X
+;
+; [349]  is_walk := 1
+;
+ LDY #<1
+ STY EM_IS_WALK
+ JMP ?ENDIF22
+?ELSE22
+;
+; [351]  else if xstep[index] == 255 then // move to the left
+;
+ LDY EM_INDEX
+ LDA EM_XSTEP,Y
+ TAY
+ STY @ERG
+ LDY #<255
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA33
+ JMP ?THEN26
+?FA33
+ .IF .NOT .DEF ?ELSE26
+ JMP ?ENDIF26
+ .ELSE
+ JMP ?ELSE26
+ .ENDIF
+?THEN26
+;
+; [354]  enemy_to_draw := @getEnemyToLeft(enemy_type, anim_number[index])
+;
+ LDY EM_ENEMY_TYPE
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_ANIM_NUMBER,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #3
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @GETENEMYTOLEFT_II
+ STY EM_ENEMY_TO_DRAW
+;
+; [355]  if enemy_to_draw == 255 then
+;
+ LDY EM_ENEMY_TO_DRAW
+ STY @ERG
+ LDY #<255
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA34
+ JMP ?THEN27
+?FA34
+ .IF .NOT .DEF ?ELSE27
+ JMP ?ENDIF27
+ .ELSE
+ JMP ?ELSE27
+ .ENDIF
+?THEN27
+;
+; [357]  anim_number[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_ANIM_NUMBER,X
+;
+; [358]  enemy_to_draw := @getEnemyToLeft(enemy_type, anim_number[index])
+;
+ LDY EM_ENEMY_TYPE
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_ANIM_NUMBER,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #3
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @GETENEMYTOLEFT_II
+ STY EM_ENEMY_TO_DRAW
+?ENDIF27
+;
+; [360]  xpos_floor_add := 0
+;
+ LDY #<0
+ STY EM_XPOS_FLOOR_ADD
+;
+; [361]  xpos_wall_add := 0
+;
+ LDY #<0
+ STY EM_XPOS_WALL_ADD
+;
+; [362]  if enemy_type == IDX_DARK_KNIGHT or enemy_type == IDX_WERWOLF then
+;
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<3
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA35
+ JMP ?THEN28
+?FA35
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<7
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA36
+ JMP ?THEN28
+?FA36
+ .IF .NOT .DEF ?ELSE28
+ JMP ?ENDIF28
+ .ELSE
+ JMP ?ELSE28
+ .ENDIF
+?THEN28
+;
+; [365]  if ypos[index] < 192 then xpos_floor_add := 1
+;
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ STY @ERG
+ LDY #<192
+; Bedingung (a<b)
+ CPY @ERG
+ BEQ ?FA37
+ BCC ?FA37
+ JMP ?THEN29
+?FA37
+ .IF .NOT .DEF ?ELSE29
+ JMP ?ENDIF29
+ .ELSE
+ JMP ?ELSE29
+ .ENDIF
+?THEN29
+;
+; [365]  if ypos[index] < 192 then xpos_floor_add := 1
+;
+ LDY #<1
+ STY EM_XPOS_FLOOR_ADD
+?ENDIF29
+?ENDIF28
+;
+; [367]  enemy_direction[index] := DIRECTION_STAY_LOOK_LEFT
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<2
+ TYA
+ LDX @PUTARRAY
+ STA EM_ENEMY_DIRECTION,X
+;
+; [368]  is_walk := 255 // -1
+;
+ LDY #<255
+ STY EM_IS_WALK
+ JMP ?ENDIF26
+?ELSE26
+;
+; [373]  if enemy_type == IDX_ARCHER then
+;
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<2
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA38
+ JMP ?THEN30
+?FA38
+ .IF .NOT .DEF ?ELSE30
+ JMP ?ENDIF30
+ .ELSE
+ JMP ?ELSE30
+ .ENDIF
+?THEN30
+;
+; [377]  arrow_index := index + 1
+;
+ CLC
+ LDA EM_INDEX
+ ADC #<1
+ TAY
+ STY EM_ARROW_INDEX
+;
+; [378]  if arrow_in_move[arrow_index] != 0 then
+;
+ LDY EM_ARROW_INDEX
+ LDA EM_ARROW_IN_MOVE,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a!=b)
+ CPY @ERG
+ BEQ ?FA39
+ JMP ?THEN31
+?FA39
+ .IF .NOT .DEF ?ELSE31
+ JMP ?ENDIF31
+ .ELSE
+ JMP ?ELSE31
+ .ENDIF
+?THEN31
+;
+; [380]  enemy_direction[index] := enemy_direction[arrow_index]
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_ARROW_INDEX
+ LDA EM_ENEMY_DIRECTION,Y
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_ENEMY_DIRECTION,X
+;
+; [381]  if enemy_direction[index] == DIRECTION_STAY_LOOK_RIGHT then
+;
+ LDY EM_INDEX
+ LDA EM_ENEMY_DIRECTION,Y
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA40
+ JMP ?THEN32
+?FA40
+ .IF .NOT .DEF ?ELSE32
+ JMP ?ENDIF32
+ .ELSE
+ JMP ?ELSE32
+ .ENDIF
+?THEN32
+;
+; [383]  anim_index := @getEnemyToRight(enemy_type, anim_number[index])
+;
+ LDY EM_ENEMY_TYPE
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_ANIM_NUMBER,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #3
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @GETENEMYTORIGHT_II
+ STY EM_ANIM_INDEX
+ JMP ?ENDIF32
+?ELSE32
+;
+; [387]  anim_index := @getEnemyToLeft(enemy_type, anim_number[index])
+;
+ LDY EM_ENEMY_TYPE
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_ANIM_NUMBER,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #3
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @GETENEMYTOLEFT_II
+ STY EM_ANIM_INDEX
+?ENDIF32
+;
+; [390]  if anim_index != 255 then
+;
+ LDY EM_ANIM_INDEX
+ STY @ERG
+ LDY #<255
+; Bedingung (a!=b)
+ CPY @ERG
+ BEQ ?FA41
+ JMP ?THEN33
+?FA41
+ .IF .NOT .DEF ?ELSE33
+ JMP ?ENDIF33
+ .ELSE
+ JMP ?ELSE33
+ .ENDIF
+?THEN33
+;
+; [392]  enemy_to_draw := anim_index
+;
+ LDY EM_ANIM_INDEX
+ STY EM_ENEMY_TO_DRAW
+ JMP ?ENDIF33
+?ELSE33
+;
+; [397]  anim_number[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_ANIM_NUMBER,X
+;
+; [398]  if enemy_direction[index] == DIRECTION_STAY_LOOK_RIGHT then
+;
+ LDY EM_INDEX
+ LDA EM_ENEMY_DIRECTION,Y
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA42
+ JMP ?THEN34
+?FA42
+ .IF .NOT .DEF ?ELSE34
+ JMP ?ENDIF34
+ .ELSE
+ JMP ?ELSE34
+ .ENDIF
+?THEN34
+;
+; [399]  xstep[index] := 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+ JMP ?ENDIF34
+?ELSE34
+;
+; [401]  xstep[index] := 255
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<255
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+?ENDIF34
+?ENDIF33
+?ENDIF31
+?ENDIF30
+?ENDIF26
+?ENDIF22
+;
+; [408]  if enemy_type == IDX_ARCHER then
+;
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<2
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA43
+ JMP ?THEN35
+?FA43
+ .IF .NOT .DEF ?ELSE35
+ JMP ?ENDIF35
+ .ELSE
+ JMP ?ELSE35
+ .ENDIF
+?THEN35
+;
+; [411]  arrow_index := index + 1
+;
+ CLC
+ LDA EM_INDEX
+ ADC #<1
+ TAY
+ STY EM_ARROW_INDEX
+;
+; [412]  if arrow_in_move[arrow_index] == 0 then
+;
+ LDY EM_ARROW_INDEX
+ LDA EM_ARROW_IN_MOVE,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA44
+ JMP ?THEN36
+?FA44
+ .IF .NOT .DEF ?ELSE36
+ JMP ?ENDIF36
+ .ELSE
+ JMP ?ELSE36
+ .ENDIF
+?THEN36
+;
+; [414]  if ypos[index] == dude_ypos then
+;
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ STY @ERG
+ LDY EM_DUDE_YPOS
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA45
+ JMP ?THEN37
+?FA45
+ .IF .NOT .DEF ?ELSE37
+ JMP ?ENDIF37
+ .ELSE
+ JMP ?ELSE37
+ .ENDIF
+?THEN37
+;
+; [417]  difference := xpos[index] - dude_xpos
+;
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ SEC
+ TYA
+ SBC EM_DUDE_XPOS
+ TAY
+ STY EM_DIFFERENCE
+;
+; [418]  if difference < 127 then // Archer stays right, dude left
+;
+ LDY EM_DIFFERENCE
+ STY @ERG
+ LDY #<127
+; Bedingung (a<b)
+ CPY @ERG
+ BEQ ?FA46
+ BCC ?FA46
+ JMP ?THEN38
+?FA46
+ .IF .NOT .DEF ?ELSE38
+ JMP ?ENDIF38
+ .ELSE
+ JMP ?ELSE38
+ .ENDIF
+?THEN38
+;
+; [420]  if enemy_direction[index] == DIRECTION_STAY_LOOK_LEFT then
+;
+ LDY EM_INDEX
+ LDA EM_ENEMY_DIRECTION,Y
+ TAY
+ STY @ERG
+ LDY #<2
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA47
+ JMP ?THEN39
+?FA47
+ .IF .NOT .DEF ?ELSE39
+ JMP ?ENDIF39
+ .ELSE
+ JMP ?ELSE39
+ .ENDIF
+?THEN39
+;
+; [422]  init_arrow()
+;
+ JSR EM_INIT_ARROW
+;
+; [424]  xstep[arrow_index] := 255
+;
+ LDY EM_ARROW_INDEX
+ STY @PUTARRAY
+ LDY #<255
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+;
+; [426]  arrow_in_move[arrow_index] := xpos[index] - 16  // festlegen wie weit wir schiessen
+;
+ LDY EM_ARROW_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ SEC
+ TYA
+ SBC #<16
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_ARROW_IN_MOVE,X
+;
+; [427]  enemy_direction[arrow_index] := DIRECTION_STAY_LOOK_LEFT
+;
+ LDY EM_ARROW_INDEX
+ STY @PUTARRAY
+ LDY #<2
+ TYA
+ LDX @PUTARRAY
+ STA EM_ENEMY_DIRECTION,X
+?ENDIF39
+ JMP ?ENDIF38
+?ELSE38
+;
+; [432]  if enemy_direction[index] == DIRECTION_STAY_LOOK_RIGHT then
+;
+ LDY EM_INDEX
+ LDA EM_ENEMY_DIRECTION,Y
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA48
+ JMP ?THEN40
+?FA48
+ .IF .NOT .DEF ?ELSE40
+ JMP ?ENDIF40
+ .ELSE
+ JMP ?ELSE40
+ .ENDIF
+?THEN40
+;
+; [434]  init_arrow()
+;
+ JSR EM_INIT_ARROW
+;
+; [436]  xstep[arrow_index] := 1
+;
+ LDY EM_ARROW_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+;
+; [437]  arrow_in_move[arrow_index] := 136 - xpos[index]  // festlegen wie weit wir schiessen
+;
+ LDY EM_ARROW_INDEX
+ STY @PUTARRAY
+ LDA #<136
+ PHA
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ STY @OP
+ PLA
+ TAY
+ SEC
+ TYA
+ SBC @OP
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_ARROW_IN_MOVE,X
+;
+; [438]  enemy_direction[arrow_index] := DIRECTION_STAY_LOOK_RIGHT
+;
+ LDY EM_ARROW_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_ENEMY_DIRECTION,X
+?ENDIF40
+?ENDIF38
+?ENDIF37
+?ENDIF36
+?ENDIF35
+;
+; [445]  xpos[index] := xpos[index] + xstep[index]
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ TYA
+ PHA
+ LDY EM_INDEX
+ LDA EM_XSTEP,Y
+ TAY
+ STY @OP
+ PLA
+ TAY
+ CLC
+ TYA
+ ADC @OP
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_XPOS,X
+ JMP ?ENDIF20
+?ELSE20
+;
+; [452]  if waitforani[i] != 0 then
+;
+ LDY EM_I
+ LDA EM_WAITFORANI,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a!=b)
+ CPY @ERG
+ BEQ ?FA49
+ JMP ?THEN41
+?FA49
+ .IF .NOT .DEF ?ELSE41
+ JMP ?ENDIF41
+ .ELSE
+ JMP ?ELSE41
+ .ENDIF
+?THEN41
+;
+; [454]  waitforani[i] := waitforani[i] - 1
+;
+ LDY EM_I
+ STY @PUTARRAY
+ LDY EM_I
+ LDA EM_WAITFORANI,Y
+ TAY
+ SEC
+ TYA
+ SBC #<1
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_WAITFORANI,X
+ JMP ?ENDIF41
+?ELSE41
+;
+; [458]  waitforani[i] := 1 // wir wollen etwas schneller fallen
+;
+ LDY EM_I
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_WAITFORANI,X
+;
+; [460]  ystep_ := jump_ystep[jump_animation[index]]
+;
+ LDY EM_INDEX
+ LDA EM_JUMP_ANIMATION,Y
+ TAY
+ LDA EM_JUMP_YSTEP,Y
+ TAY
+ STY EM_YSTEP_
+;
+; [462]  ypos[index] := ypos[index] + ystep_
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ CLC
+ TYA
+ ADC EM_YSTEP_
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_YPOS,X
+;
+; [463]  jump_animation[index] := jump_animation[index] + 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_JUMP_ANIMATION,Y
+ TAY
+ INY
+ TYA
+ LDX @PUTARRAY
+ STA EM_JUMP_ANIMATION,X
+;
+; [466]  if enemy_direction[index] == DIRECTION_STAY_LOOK_RIGHT then
+;
+ LDY EM_INDEX
+ LDA EM_ENEMY_DIRECTION,Y
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA50
+ JMP ?THEN42
+?FA50
+ .IF .NOT .DEF ?ELSE42
+ JMP ?ENDIF42
+ .ELSE
+ JMP ?ELSE42
+ .ENDIF
+?THEN42
+;
+; [468]  enemy_to_draw := @getEnemyToRight(enemy_type, 3)
+;
+ LDY EM_ENEMY_TYPE
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ LDY #<3
+ LDX #>3
+ TYA
+ LDY #3
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @GETENEMYTORIGHT_II
+ STY EM_ENEMY_TO_DRAW
+ JMP ?ENDIF42
+?ELSE42
+;
+; [472]  enemy_to_draw := @getEnemyToLeft(enemy_type, 3)
+;
+ LDY EM_ENEMY_TYPE
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ LDY #<3
+ LDX #>3
+ TYA
+ LDY #3
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @GETENEMYTOLEFT_II
+ STY EM_ENEMY_TO_DRAW
+?ENDIF42
+?ENDIF41
+?ENDIF20
+;
+; [477]  screen := 0
+;
+ LDY #<0
+ LDX #>0
+ STY EM_SCREEN
+ STX EM_SCREEN+1
+;
+; [478]  wall := 0
+;
+ LDY #<0
+ STY EM_WALL
+;
+; [480]  if is_walk != 0 then  //  and ypos_ & $07 == 0
+;
+ LDY EM_IS_WALK
+ STY @ERG
+ LDY #<0
+; Bedingung (a!=b)
+ CPY @ERG
+ BEQ ?FA51
+ JMP ?THEN43
+?FA51
+ .IF .NOT .DEF ?ELSE43
+ JMP ?ENDIF43
+ .ELSE
+ JMP ?ELSE43
+ .ENDIF
+?THEN43
+;
+; [482]  if enemy_type == IDX_GHOST or enemy_type == IDX_BAT then
+;
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<4
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA52
+ JMP ?THEN44
+?FA52
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<10
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA53
+ JMP ?THEN44
+?FA53
+ .IF .NOT .DEF ?ELSE44
+ JMP ?ENDIF44
+ .ELSE
+ JMP ?ELSE44
+ .ENDIF
+?THEN44
+;
+; [485]  fly_count[index] := fly_count[index] - 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_FLY_COUNT,Y
+ TAY
+ SEC
+ TYA
+ SBC #<1
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_FLY_COUNT,X
+;
+; [486]  if fly_count[index] == 0 then
+;
+ LDY EM_INDEX
+ LDA EM_FLY_COUNT,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA54
+ JMP ?THEN45
+?FA54
+ .IF .NOT .DEF ?ELSE45
+ JMP ?ENDIF45
+ .ELSE
+ JMP ?ELSE45
+ .ENDIF
+?THEN45
+;
+; [488]  fly_count[index] := 8
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<8
+ TYA
+ LDX @PUTARRAY
+ STA EM_FLY_COUNT,X
+;
+; [490]  fly_index[index] := fly_index[index] + 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_FLY_INDEX,Y
+ TAY
+ INY
+ TYA
+ LDX @PUTARRAY
+ STA EM_FLY_INDEX,X
+;
+; [491]  fly_direction := fly_directions[fly_index[index]]
+;
+ LDY EM_INDEX
+ LDA EM_FLY_INDEX,Y
+ TAY
+ LDA EM_FLY_DIRECTIONS,Y
+ TAY
+ STY EM_FLY_DIRECTION
+;
+; [492]  if fly_direction == 255 then
+;
+ LDY EM_FLY_DIRECTION
+ STY @ERG
+ LDY #<255
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA55
+ JMP ?THEN46
+?FA55
+ .IF .NOT .DEF ?ELSE46
+ JMP ?ENDIF46
+ .ELSE
+ JMP ?ELSE46
+ .ENDIF
+?THEN46
+;
+; [494]  fly_index[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_FLY_INDEX,X
+;
+; [495]  fly_direction := fly_directions[fly_index[index]]
+;
+ LDY EM_INDEX
+ LDA EM_FLY_INDEX,Y
+ TAY
+ LDA EM_FLY_DIRECTIONS,Y
+ TAY
+ STY EM_FLY_DIRECTION
+?ENDIF46
+?ENDIF45
+;
+; [499]  if xstep[index] == 1 then
+;
+ LDY EM_INDEX
+ LDA EM_XSTEP,Y
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA56
+ JMP ?THEN47
+?FA56
+ .IF .NOT .DEF ?ELSE47
+ JMP ?ENDIF47
+ .ELSE
+ JMP ?ELSE47
+ .ENDIF
+?THEN47
+;
+; [503]  if xpos[index] > 136 then
+;
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ STY @ERG
+ LDY #<136
+; Bedingung (a>b)
+ CPY @ERG
+ BCS ?FA57
+ JMP ?THEN48
+?FA57
+ .IF .NOT .DEF ?ELSE48
+ JMP ?ENDIF48
+ .ELSE
+ JMP ?ELSE48
+ .ENDIF
+?THEN48
+;
+; [505]  xstep[index] := @neg(xstep[index])
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_XSTEP,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @NEG_I
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+?ENDIF48
+ JMP ?ENDIF47
+?ELSE47
+;
+; [511]  if xpos[index] < 16 then
+;
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ STY @ERG
+ LDY #<16
+; Bedingung (a<b)
+ CPY @ERG
+ BEQ ?FA58
+ BCC ?FA58
+ JMP ?THEN49
+?FA58
+ .IF .NOT .DEF ?ELSE49
+ JMP ?ENDIF49
+ .ELSE
+ JMP ?ELSE49
+ .ENDIF
+?THEN49
+;
+; [513]  xstep[index] := @neg(xstep[index])
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_XSTEP,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @NEG_I
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+?ENDIF49
+?ENDIF47
+;
+; [517]  if fly_direction != 0 then
+;
+ LDY EM_FLY_DIRECTION
+ STY @ERG
+ LDY #<0
+; Bedingung (a!=b)
+ CPY @ERG
+ BEQ ?FA59
+ JMP ?THEN50
+?FA59
+ .IF .NOT .DEF ?ELSE50
+ JMP ?ENDIF50
+ .ELSE
+ JMP ?ELSE50
+ .ENDIF
+?THEN50
+;
+; [519]  if fly_direction & $01 == 1 then
+;
+ LDA EM_FLY_DIRECTION
+ AND #<1
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA60
+ JMP ?THEN51
+?FA60
+ .IF .NOT .DEF ?ELSE51
+ JMP ?ENDIF51
+ .ELSE
+ JMP ?ELSE51
+ .ENDIF
+?THEN51
+;
+; [521]  ystep[index] := 255 // fly up
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<255
+ TYA
+ LDX @PUTARRAY
+ STA EM_YSTEP,X
+ JMP ?ENDIF51
+?ELSE51
+;
+; [524]  else if fly_direction & $02 == 2 then
+;
+ LDA EM_FLY_DIRECTION
+ AND #<2
+ TAY
+ STY @ERG
+ LDY #<2
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA61
+ JMP ?THEN52
+?FA61
+ .IF .NOT .DEF ?ELSE52
+ JMP ?ENDIF52
+ .ELSE
+ JMP ?ELSE52
+ .ENDIF
+?THEN52
+;
+; [526]  ystep[index] := 1 // fly down
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_YSTEP,X
+ JMP ?ENDIF52
+?ELSE52
+;
+; [529]  else if fly_direction & $04 == 4 then
+;
+ LDA EM_FLY_DIRECTION
+ AND #<4
+ TAY
+ STY @ERG
+ LDY #<4
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA62
+ JMP ?THEN53
+?FA62
+ .IF .NOT .DEF ?ELSE53
+ JMP ?ENDIF53
+ .ELSE
+ JMP ?ELSE53
+ .ENDIF
+?THEN53
+;
+; [531]  ystep[index] := 0 // fly horizontal
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_YSTEP,X
+?ENDIF53
+?ENDIF52
+?ENDIF51
+;
+; [535]  fly_direction := 0
+;
+ LDY #<0
+ STY EM_FLY_DIRECTION
+?ENDIF50
+;
+; [538]  ypos[index] := ypos[index] + ystep[index]
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ TYA
+ PHA
+ LDY EM_INDEX
+ LDA EM_YSTEP,Y
+ TAY
+ STY @OP
+ PLA
+ TAY
+ CLC
+ TYA
+ ADC @OP
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_YPOS,X
+;
+; [540]  if ystep[index] == 1 then
+;
+ LDY EM_INDEX
+ LDA EM_YSTEP,Y
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA63
+ JMP ?THEN54
+?FA63
+ .IF .NOT .DEF ?ELSE54
+ JMP ?ENDIF54
+ .ELSE
+ JMP ?ELSE54
+ .ENDIF
+?THEN54
+;
+; [544]  if ypos[index] > 192 then
+;
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ STY @ERG
+ LDY #<192
+; Bedingung (a>b)
+ CPY @ERG
+ BCS ?FA64
+ JMP ?THEN55
+?FA64
+ .IF .NOT .DEF ?ELSE55
+ JMP ?ENDIF55
+ .ELSE
+ JMP ?ELSE55
+ .ENDIF
+?THEN55
+;
+; [546]  ystep[index] := @neg(ystep[index])
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_YSTEP,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @NEG_I
+ TYA
+ LDX @PUTARRAY
+ STA EM_YSTEP,X
+?ENDIF55
+ JMP ?ENDIF54
+?ELSE54
+;
+; [552]  if ypos[index] < 48 then
+;
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ STY @ERG
+ LDY #<48
+; Bedingung (a<b)
+ CPY @ERG
+ BEQ ?FA65
+ BCC ?FA65
+ JMP ?THEN56
+?FA65
+ .IF .NOT .DEF ?ELSE56
+ JMP ?ENDIF56
+ .ELSE
+ JMP ?ELSE56
+ .ENDIF
+?THEN56
+;
+; [554]  ystep[index] := @neg(ystep[index])
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_YSTEP,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @NEG_I
+ TYA
+ LDX @PUTARRAY
+ STA EM_YSTEP,X
+?ENDIF56
+?ENDIF54
+;
+; [558]  wall := 255
+;
+ LDY #<255
+ STY EM_WALL
+ JMP ?ENDIF44
+?ELSE44
+;
+; [562]  if xpos[index] & $03 == 0 then
+;
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ TYA
+ AND #<3
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA66
+ JMP ?THEN57
+?FA66
+ .IF .NOT .DEF ?ELSE57
+ JMP ?ENDIF57
+ .ELSE
+ JMP ?ELSE57
+ .ENDIF
+?THEN57
+;
+; [565]  yposdiv8mul40ypos := yposdiv8mul40[ypos[index]-24] + game_screen
+;
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_YPOS,Y
+ TAY
+ LDX #0
+ SEC
+ TYA
+ SBC #<24
+ TAY
+ TXA
+ SBC #>24
+ TAX
+; (11.2)
+ LDX EM_YPOSDIV8MUL40_HIGH,Y
+ LDA EM_YPOSDIV8MUL40_LOW,Y
+ TAY
+ TYA
+ PHA
+ TXA
+ PHA
+ LDY #<@GAME_SCREEN
+ LDX #>@GAME_SCREEN
+ STY @OP
+ STX @OP+1
+ PLA
+ TAX
+ PLA
+ TAY
+ CLC
+ TYA
+ ADC @OP
+ TAY
+ TXA
+ ADC @OP+1
+ TAX
+ STY EM_YPOSDIV8MUL40YPOS
+ STX EM_YPOSDIV8MUL40YPOS+1
+;
+; [566]  screen := (xpos[index])/4 + yposdiv8mul40ypos // (ypos / 8)*40
+;
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_XPOS,Y
+ TAY
+ LDX #0
+ STY @OP
+ TXA
+ CMP #$80
+ ROR A
+ ROR @OP
+ CMP #$80
+ ROR A
+ ROR @OP
+ LDY @OP
+ TAX
+ CLC
+ TYA
+ ADC EM_YPOSDIV8MUL40YPOS
+ TAY
+ TXA
+ ADC EM_YPOSDIV8MUL40YPOS+1
+ TAX
+ STY EM_SCREEN
+ STX EM_SCREEN+1
+;
+; [568]  wall := @mem[ screen + 80 + xpos_wall_add ]
+;
+ CLC
+ LDA EM_SCREEN
+ ADC #<80
+ TAY
+ LDA EM_SCREEN+1
+ ADC #>80
+ TAX
+ CLC
+ TYA
+ ADC EM_XPOS_WALL_ADD
+ TAY
+ TXA
+ ADC #0
+ TAX
+ STY @GETARRAY
+ STX @GETARRAY+1
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ TAY
+ STY EM_WALL
+;
+; [573]  if wall == WALL_1 or wall == WALL_2 then
+;
+ LDY EM_WALL
+ STY @ERG
+ LDY #<2
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA67
+ JMP ?THEN58
+?FA67
+ LDY EM_WALL
+ STY @ERG
+ LDY #<3
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA68
+ JMP ?THEN58
+?FA68
+ .IF .NOT .DEF ?ELSE58
+ JMP ?ENDIF58
+ .ELSE
+ JMP ?ELSE58
+ .ENDIF
+?THEN58
+;
+; [576]  xstep[index] := @neg(xstep[index])
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_XSTEP,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @NEG_I
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+?ENDIF58
+?ENDIF57
+?ENDIF44
+?ENDIF43
+;
+; [590]  if wall == 0 then
+;
+ LDY EM_WALL
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA69
+ JMP ?THEN59
+?FA69
+ .IF .NOT .DEF ?ELSE59
+ JMP ?ENDIF59
+ .ELSE
+ JMP ?ELSE59
+ .ENDIF
+?THEN59
+;
+; [593]  if ypos[index] & $07 == 0 then // xpos_ & $03 == 0 and
+;
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ TYA
+ AND #<7
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA70
+ JMP ?THEN60
+?FA70
+ .IF .NOT .DEF ?ELSE60
+ JMP ?ENDIF60
+ .ELSE
+ JMP ?ELSE60
+ .ENDIF
+?THEN60
+;
+; [597]  yposdiv8mul40ypos := yposdiv8mul40[ypos[index] - 24] + game_screen
+;
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_YPOS,Y
+ TAY
+ LDX #0
+ SEC
+ TYA
+ SBC #<24
+ TAY
+ TXA
+ SBC #>24
+ TAX
+; (11.2)
+ LDX EM_YPOSDIV8MUL40_HIGH,Y
+ LDA EM_YPOSDIV8MUL40_LOW,Y
+ TAY
+ TYA
+ PHA
+ TXA
+ PHA
+ LDY #<@GAME_SCREEN
+ LDX #>@GAME_SCREEN
+ STY @OP
+ STX @OP+1
+ PLA
+ TAX
+ PLA
+ TAY
+ CLC
+ TYA
+ ADC @OP
+ TAY
+ TXA
+ ADC @OP+1
+ TAX
+ STY EM_YPOSDIV8MUL40YPOS
+ STX EM_YPOSDIV8MUL40YPOS+1
+;
+; [598]  screen := (xpos[index])/4 + yposdiv8mul40ypos // (ypos / 8)*40
+;
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_XPOS,Y
+ TAY
+ LDX #0
+ STY @OP
+ TXA
+ CMP #$80
+ ROR A
+ ROR @OP
+ CMP #$80
+ ROR A
+ ROR @OP
+ LDY @OP
+ TAX
+ CLC
+ TYA
+ ADC EM_YPOSDIV8MUL40YPOS
+ TAY
+ TXA
+ ADC EM_YPOSDIV8MUL40YPOS+1
+ TAX
+ STY EM_SCREEN
+ STX EM_SCREEN+1
+;
+; [600]  if xstep[index] == 255 then
+;
+ LDY EM_INDEX
+ LDA EM_XSTEP,Y
+ TAY
+ STY @ERG
+ LDY #<255
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA71
+ JMP ?THEN61
+?FA71
+ .IF .NOT .DEF ?ELSE61
+ JMP ?ENDIF61
+ .ELSE
+ JMP ?ELSE61
+ .ENDIF
+?THEN61
+;
+; [602]  screen_pos := screen + 120
+;
+ CLC
+ LDA EM_SCREEN
+ ADC #<120
+ TAY
+ LDA EM_SCREEN+1
+ ADC #>120
+ TAX
+ STY EM_SCREEN_POS
+ STX EM_SCREEN_POS+1
+;
+; [603]  floor := @mem[screen_pos]
+;
+ LDY EM_SCREEN_POS
+ LDX EM_SCREEN_POS+1
+ STY @GETARRAY
+ STX @GETARRAY+1
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ TAY
+ STY EM_FLOOR
+ JMP ?ENDIF61
+?ELSE61
+;
+; [611]  screen_pos := screen + 121
+;
+ CLC
+ LDA EM_SCREEN
+ ADC #<121
+ TAY
+ LDA EM_SCREEN+1
+ ADC #>121
+ TAX
+ STY EM_SCREEN_POS
+ STX EM_SCREEN_POS+1
+;
+; [612]  floor := @mem[screen_pos]
+;
+ LDY EM_SCREEN_POS
+ LDX EM_SCREEN_POS+1
+ STY @GETARRAY
+ STX @GETARRAY+1
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ TAY
+ STY EM_FLOOR
+?ENDIF61
+;
+; [632]  if enemy_type == IDX_SKELETON or enemy_type == IDX_ARCHER or enemy_type == IDX_VAMPIRE or enemy_type == IDX_WIZARD or enemy_type == IDX_CAT then
+;
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA72
+ JMP ?THEN62
+?FA72
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<2
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA73
+ JMP ?THEN62
+?FA73
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<5
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA74
+ JMP ?THEN62
+?FA74
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<6
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA75
+ JMP ?THEN62
+?FA75
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<8
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA76
+ JMP ?THEN62
+?FA76
+ .IF .NOT .DEF ?ELSE62
+ JMP ?ENDIF62
+ .ELSE
+ JMP ?ELSE62
+ .ENDIF
+?THEN62
+;
+; [634]  if @isFloorToWalk(floor) == 0 then
+;
+ LDY EM_FLOOR
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @ISFLOORTOWALK_I
+ STY @ERG
+ STX @ERG+1
+ LDY #<0
+ LDX #>0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA77
+ CPX @ERG+1
+ BNE ?FA77
+ JMP ?THEN63
+?FA77
+ .IF .NOT .DEF ?ELSE63
+ JMP ?ENDIF63
+ .ELSE
+ JMP ?ELSE63
+ .ENDIF
+?THEN63
+;
+; [636]  xstep[index] := @neg(xstep[index])
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_XSTEP,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @NEG_I
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+?ENDIF63
+ JMP ?ENDIF62
+?ELSE62
+;
+; [640]  else if enemy_type == IDX_DARK_KNIGHT or enemy_type == IDX_WERWOLF then
+;
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<3
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA78
+ JMP ?THEN64
+?FA78
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<7
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA79
+ JMP ?THEN64
+?FA79
+ .IF .NOT .DEF ?ELSE64
+ JMP ?ENDIF64
+ .ELSE
+ JMP ?ELSE64
+ .ENDIF
+?THEN64
+;
+; [642]  if is_jump[index] == 0 then
+;
+ LDY EM_INDEX
+ LDA EM_IS_JUMP,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA80
+ JMP ?THEN65
+?FA80
+ .IF .NOT .DEF ?ELSE65
+ JMP ?ENDIF65
+ .ELSE
+ JMP ?ELSE65
+ .ENDIF
+?THEN65
+;
+; [646]  if @isFloorToWalk(floor) == 0 then
+;
+ LDY EM_FLOOR
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @ISFLOORTOWALK_I
+ STY @ERG
+ STX @ERG+1
+ LDY #<0
+ LDX #>0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA81
+ CPX @ERG+1
+ BNE ?FA81
+ JMP ?THEN66
+?FA81
+ .IF .NOT .DEF ?ELSE66
+ JMP ?ENDIF66
+ .ELSE
+ JMP ?ELSE66
+ .ENDIF
+?THEN66
+;
+; [650]  if ypos[index] >= 192 or floor == BODEN_MESSER_1HI or floor == BODEN_MESSER_2HI then
+;
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ STY @ERG
+ LDY #<192
+; Bedingung (a>=b)
+ CPY @ERG
+ BEQ ?TR82
+ BCS ?FA82
+?TR82
+ JMP ?THEN67
+?FA82
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<141
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA83
+ JMP ?THEN67
+?FA83
+ LDY EM_FLOOR
+ STY @ERG
+ LDY #<142
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA84
+ JMP ?THEN67
+?FA84
+ .IF .NOT .DEF ?ELSE67
+ JMP ?ENDIF67
+ .ELSE
+ JMP ?ELSE67
+ .ENDIF
+?THEN67
+;
+; [653]  xstep[index] := @neg(xstep[index])
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDX #0
+ LDA EM_XSTEP,Y
+ TAY
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @NEG_I
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+ JMP ?ENDIF67
+?ELSE67
+;
+; [657]  xstep[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+;
+; [658]  is_jump[index] := 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_IS_JUMP,X
+;
+; [659]  jump_animation[index] := 10
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<10
+ TYA
+ LDX @PUTARRAY
+ STA EM_JUMP_ANIMATION,X
+?ENDIF67
+?ENDIF66
+;
+; [664]  if is_jump[index] == 0 then
+;
+ LDY EM_INDEX
+ LDA EM_IS_JUMP,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA85
+ JMP ?THEN68
+?FA85
+ .IF .NOT .DEF ?ELSE68
+ JMP ?ENDIF68
+ .ELSE
+ JMP ?ELSE68
+ .ENDIF
+?THEN68
+;
+; [666]  if enemy_type == IDX_DARK_KNIGHT then
+;
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<3
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA86
+ JMP ?THEN69
+?FA86
+ .IF .NOT .DEF ?ELSE69
+ JMP ?ENDIF69
+ .ELSE
+ JMP ?ELSE69
+ .ENDIF
+?THEN69
+;
+; [668]  if xpos[index] & 3 == 1 and RANDOM < 32 then // RANDOM < 32 TODO
+;
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ TYA
+ AND #<3
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA87
+ LDY EM_RANDOM
+ STY @ERG
+ LDY #<32
+; Bedingung (a<b)
+ CPY @ERG
+ BEQ ?FA87
+ BCC ?FA87
+ JMP ?THEN70
+?FA87
+ .IF .NOT .DEF ?ELSE70
+ JMP ?ENDIF70
+ .ELSE
+ JMP ?ELSE70
+ .ENDIF
+?THEN70
+;
+; [670]  topfloor := @mem[screen + 1]
+;
+ CLC
+ LDA EM_SCREEN
+ ADC #<1
+ TAY
+ LDA EM_SCREEN+1
+ ADC #>1
+ TAX
+ STY @GETARRAY
+ STX @GETARRAY+1
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ TAY
+ STY EM_TOPFLOOR
+;
+; [671]  if @isFloorToJump(topfloor) == 1 then
+;
+ LDY EM_TOPFLOOR
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @ISFLOORTOJUMP_I
+ STY @ERG
+ STX @ERG+1
+ LDY #<1
+ LDX #>1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA89
+ CPX @ERG+1
+ BNE ?FA89
+ JMP ?THEN71
+?FA89
+ .IF .NOT .DEF ?ELSE71
+ JMP ?ENDIF71
+ .ELSE
+ JMP ?ELSE71
+ .ENDIF
+?THEN71
+;
+; [674]  xstep[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+;
+; [675]  is_jump[index] := 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_IS_JUMP,X
+;
+; [676]  jump_animation[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_JUMP_ANIMATION,X
+?ENDIF71
+?ENDIF70
+ JMP ?ENDIF69
+?ELSE69
+;
+; [680]  else if enemy_type == IDX_WERWOLF then
+;
+ LDY EM_ENEMY_TYPE
+ STY @ERG
+ LDY #<7
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA90
+ JMP ?THEN72
+?FA90
+ .IF .NOT .DEF ?ELSE72
+ JMP ?ENDIF72
+ .ELSE
+ JMP ?ELSE72
+ .ENDIF
+?THEN72
+;
+; [682]  if xpos[index] & 3 == 1 then
+;
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ TYA
+ AND #<3
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA91
+ JMP ?THEN73
+?FA91
+ .IF .NOT .DEF ?ELSE73
+ JMP ?ENDIF73
+ .ELSE
+ JMP ?ELSE73
+ .ENDIF
+?THEN73
+;
+; [684]  topfloor := @mem[screen + 1]
+;
+ CLC
+ LDA EM_SCREEN
+ ADC #<1
+ TAY
+ LDA EM_SCREEN+1
+ ADC #>1
+ TAX
+ STY @GETARRAY
+ STX @GETARRAY+1
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ TAY
+ STY EM_TOPFLOOR
+;
+; [685]  if @isFloorToJump(topfloor) == 1 then
+;
+ LDY EM_TOPFLOOR
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @ISFLOORTOJUMP_I
+ STY @ERG
+ STX @ERG+1
+ LDY #<1
+ LDX #>1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA92
+ CPX @ERG+1
+ BNE ?FA92
+ JMP ?THEN74
+?FA92
+ .IF .NOT .DEF ?ELSE74
+ JMP ?ENDIF74
+ .ELSE
+ JMP ?ELSE74
+ .ENDIF
+?THEN74
+;
+; [687]  if ypos[index] > dude_ypos then
+;
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ STY @ERG
+ LDY EM_DUDE_YPOS
+; Bedingung (a>b)
+ CPY @ERG
+ BCS ?FA93
+ JMP ?THEN75
+?FA93
+ .IF .NOT .DEF ?ELSE75
+ JMP ?ENDIF75
+ .ELSE
+ JMP ?ELSE75
+ .ENDIF
+?THEN75
+;
+; [690]  if RANDOM < 230 then
+;
+ LDY EM_RANDOM
+ STY @ERG
+ LDY #<230
+; Bedingung (a<b)
+ CPY @ERG
+ BEQ ?FA94
+ BCC ?FA94
+ JMP ?THEN76
+?FA94
+ .IF .NOT .DEF ?ELSE76
+ JMP ?ENDIF76
+ .ELSE
+ JMP ?ELSE76
+ .ENDIF
+?THEN76
+;
+; [693]  xstep[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+;
+; [694]  is_jump[index] := 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_IS_JUMP,X
+;
+; [695]  jump_animation[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_JUMP_ANIMATION,X
+?ENDIF76
+ JMP ?ENDIF75
+?ELSE75
+;
+; [700]  if RANDOM < 16 then
+;
+ LDY EM_RANDOM
+ STY @ERG
+ LDY #<16
+; Bedingung (a<b)
+ CPY @ERG
+ BEQ ?FA95
+ BCC ?FA95
+ JMP ?THEN77
+?FA95
+ .IF .NOT .DEF ?ELSE77
+ JMP ?ENDIF77
+ .ELSE
+ JMP ?ELSE77
+ .ENDIF
+?THEN77
+;
+; [703]  xstep[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+;
+; [704]  is_jump[index] := 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_IS_JUMP,X
+;
+; [705]  jump_animation[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_JUMP_ANIMATION,X
+?ENDIF77
+?ENDIF75
+?ENDIF74
+?ENDIF73
+?ENDIF72
+?ENDIF69
+?ENDIF68
+ JMP ?ENDIF65
+?ELSE65
+;
+; [716]  if jump_animation[index] > 10 then
+;
+ LDY EM_INDEX
+ LDA EM_JUMP_ANIMATION,Y
+ TAY
+ STY @ERG
+ LDY #<10
+; Bedingung (a>b)
+ CPY @ERG
+ BCS ?FA96
+ JMP ?THEN78
+?FA96
+ .IF .NOT .DEF ?ELSE78
+ JMP ?ENDIF78
+ .ELSE
+ JMP ?ELSE78
+ .ENDIF
+?THEN78
+;
+; [718]  if @isFloorToWalk(floor) == 1 then
+;
+ LDY EM_FLOOR
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @ISFLOORTOWALK_I
+ STY @ERG
+ STX @ERG+1
+ LDY #<1
+ LDX #>1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA97
+ CPX @ERG+1
+ BNE ?FA97
+ JMP ?THEN79
+?FA97
+ .IF .NOT .DEF ?ELSE79
+ JMP ?ENDIF79
+ .ELSE
+ JMP ?ELSE79
+ .ENDIF
+?THEN79
+;
+; [721]  if enemy_direction[index] == DIRECTION_STAY_LOOK_RIGHT then
+;
+ LDY EM_INDEX
+ LDA EM_ENEMY_DIRECTION,Y
+ TAY
+ STY @ERG
+ LDY #<1
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA98
+ JMP ?THEN80
+?FA98
+ .IF .NOT .DEF ?ELSE80
+ JMP ?ENDIF80
+ .ELSE
+ JMP ?ELSE80
+ .ENDIF
+?THEN80
+;
+; [722]  xstep[index] := 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<1
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+ JMP ?ENDIF80
+?ELSE80
+;
+; [724]  xstep[index] := 255 // -1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<255
+ TYA
+ LDX @PUTARRAY
+ STA EM_XSTEP,X
+?ENDIF80
+;
+; [726]  is_jump[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_IS_JUMP,X
+;
+; [727]  jump_animation[index] := 0
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY #<0
+ TYA
+ LDX @PUTARRAY
+ STA EM_JUMP_ANIMATION,X
+?ENDIF79
+?ENDIF78
+?ENDIF65
+?ENDIF64
+?ENDIF62
+?ENDIF60
+?ENDIF59
+;
+; [742]  if is_jump[index] == 0 then
+;
+ LDY EM_INDEX
+ LDA EM_IS_JUMP,Y
+ TAY
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA99
+ JMP ?THEN81
+?FA99
+ .IF .NOT .DEF ?ELSE81
+ JMP ?ENDIF81
+ .ELSE
+ JMP ?ELSE81
+ .ENDIF
+?THEN81
+;
+; [744]  anim_number[index] := anim_number[index] + 1
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_ANIM_NUMBER,Y
+ TAY
+ INY
+ TYA
+ LDX @PUTARRAY
+ STA EM_ANIM_NUMBER,X
+?ENDIF81
+;
+; [760]  i2 := index + 2
+;
+ CLC
+ LDA EM_INDEX
+ ADC #<2
+ TAY
+ STY EM_I2
+;
+; [761]  sprite_shape[i2] := enemy_to_draw
+;
+ LDY EM_I2
+ STY @PUTARRAY
+ LDY EM_ENEMY_TO_DRAW
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_SHAPE,X
+;
+; [762]  sprite_color[i2] := enemy_color[index]
+;
+ LDY EM_I2
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_ENEMY_COLOR,Y
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_COLOR,X
+;
+; [763]  sprite_x[i2] := xpos[index] + xoffset
+;
+ LDY EM_I2
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_XPOS,Y
+ TAY
+ CLC
+ TYA
+ ADC #<48
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_X,X
+;
+; [764]  sprite_y[i2] := ypos[index]
+;
+ LDY EM_I2
+ STY @PUTARRAY
+ LDY EM_INDEX
+ LDA EM_YPOS,Y
+ TAY
+ TYA
+ LDX @PUTARRAY
+ STA EM_SPRITE_Y,X
+;
+; [767]  last_enemy_to_draw[index] := enemy_to_draw
+;
+ LDY EM_INDEX
+ STY @PUTARRAY
+ LDY EM_ENEMY_TO_DRAW
+ TYA
+ LDX @PUTARRAY
+ STA EM_LAST_ENEMY_TO_DRAW,X
+?RETURN8
+ SEC
+ LDA @HEAP_PTR
+ SBC #3
+ STA @HEAP_PTR
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA EM_INDEX
+ RTS
+;
+; [770]  procedure @move_enemies()
+;
+@MOVE_ENEMIES
+; @MOVE_ENEMIES
+;
+; [772]  if index == 0 then return 0
+;
+ LDY EM_INDEX
+ STY @ERG
+ LDY #<0
+; Bedingung (a==b)
+ CPY @ERG
+ BNE ?FA100
+ JMP ?THEN82
+?FA100
+ .IF .NOT .DEF ?ELSE82
+ JMP ?ENDIF82
+ .ELSE
+ JMP ?ELSE82
+ .ENDIF
+?THEN82
+;
+; [772]  
+;
+ LDY #<0
+ LDX #0
+ JMP ?RETURN9
+?ENDIF82
+;
+; [774]  for i:=0 to index - 1 do
+;
+ LDY #<0
+ STY EM_I
+ SEC
+ LDA EM_INDEX
+ SBC #<1
+ TAY
+ STY ?FOR83
+?FORLOOP83
+ LDY ?FOR83
+ CPY EM_I
+ BCS ?GO83
+ JMP ?EXIT83
+?GO83
+;
+; [776]  move_enemy(i)
+;
+ LDY EM_I
+ LDX #0
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR EM_MOVE_ENEMY_I
+ INC EM_I
+ JMP ?FORLOOP83
+?EXIT83
+?RETURN9
+ RTS
+;
+; [780]  function @getEnemies()
+;
+@GETENEMIES
+; @GETENEMIES
+;
+; [782]  
+;
+ LDY EM_INDEX
+ LDX #0
+ JMP ?RETURN10
+?RETURN10
+ RTS
+EM_VERTICAL_LIST .BYTE 0
+EM_ENEMY_TYPE .BYTE 0
+EM_LAST_ENEMY_TO_DRAW
+ *=*+14
+EM_DIRECTION .BYTE 0
+EM_INDEX .BYTE 0
+EM_ARROW_IN_MOVE
+ *=*+16
+EM_FLY_COUNT
+ *=*+16
+EM_FLY_INDEX
+ *=*+16
+EM_FLY_DIRECTION .BYTE 0
+EM_FLY_DIRECTIONS
+ .BYTE 4,1,2,4,1,2,255
+?FOR1 .BYTE 0
+EM_I .BYTE 0
+?FOR2 .BYTE 0
+EM_EDITOR_ENEMY_TYPE .BYTE 0
+EM_XPOS_ .BYTE 0
+EM_YPOS_ .BYTE 0
+EM_YSTEP_ .BYTE 0
+EM_TYPE_VALUE .BYTE 0
+EM_COLOR_VALUE .BYTE 0
+EM_I2 .BYTE 0
+EM_ENEMY_TO_DRAW .BYTE 0
+EM_YPOSDIV8MUL40YPOS .WORD 0
+EM_FLOOR .BYTE 0
+EM_WALL .BYTE 0
+EM_XPOS_FLOOR_ADD .BYTE 0
+EM_XPOS_WALL_ADD .BYTE 0
+EM_TOPFLOOR .BYTE 0
+EM_DIFFERENCE .BYTE 0
+EM_ARROW_INDEX .BYTE 0
+EM_IS_WALK .BYTE 0
+EM_SCREEN_POS .WORD 0
+EM_ANIM_INDEX .BYTE 0
+?FOR83 .BYTE 0

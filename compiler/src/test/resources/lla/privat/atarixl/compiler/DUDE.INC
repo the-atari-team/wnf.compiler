@@ -1,0 +1,3178 @@
+; Compiled with WiNiFe Compiler
+; cdw by 'The Atari Team' 1990-2022
+; LLA: make it work again
+ .LOCAL
+; Header variables
+MK_GAME_MODE = @GAME_MODE
+MK_SHOW_SCREEN = @SHOW_SCREEN
+MK_PLAYFIELD_SCREEN = 0
+MK_MESSAGE_SCREEN = 1
+MK_INTRO_SCREEN = 2
+MK_OUTRO_SCREEN = 3
+MK_SPEED_50 = 2
+MK_SPEED_66 = 3
+MK_SPEED_75 = 4
+MK_SPEED_80 = 5
+MK_SPEED_85 = 7
+MK_SPEED_90 = 10
+MK_SPEED_95 = 21
+MK_SPEED_98 = 50
+MK_MODE_INTRO = 1
+MK_MODE_PLAY = 2
+MK_MODE_GAME_OVER = 3
+MK_MODE_ABBRUCH = 4
+MK_MODE_LOST_LIVE = 5
+MK_MODE_LEVEL_DONE = 6
+MK_MODE_OUT_OF_TIME = 7
+MK_MODE_NO_MORE_LIVES = 8
+MK_DIRECTION_STAY_LOOK_RIGHT = 1
+MK_DIRECTION_STAY_LOOK_LEFT = 2
+MK_DIRECTION_WALK = 4
+MK_DIRECTION_WALK_RIGHT = 5
+MK_DIRECTION_WALK_LEFT = 6
+MK_DIRECTION_JUMP = 8
+MK_DIRECTION_JUMP_RIGHT = 9
+MK_DIRECTION_JUMP_LEFT = 10
+MK_DIRECTION_DEAD = 16
+MK_DIRECTION_DEAD_RIGHT = 17
+MK_DIRECTION_DEAD_LEFT = 18
+MK_DIRECTION_BLOW_AWAY = 128
+MK_MAX_SPRITES = 16
+MK_MAX_ENEMIES = 14
+MK_WALL_1 = 2
+MK_WALL_2 = 3
+MK_BACKGROUND_DASH_1 = 5
+MK_BACKGROUND_DASH_2 = 6
+MK_BACKGROUND_DASH_3 = 7
+MK_BACKGROUND_DASH_4 = 8
+MK_FLOOR_YELLOW_1 = 137
+MK_FLOOR_YELLOW_2 = 138
+MK_FLOOR_1 = 11
+MK_FLOOR_2 = 12
+MK_DOOR_CLOSED_1 = 147
+MK_DOOR_CLOSED_2 = 148
+MK_DOOR_CLOSED_3 = 149
+MK_DOOR_CLOSED_4 = 150
+MK_DOOR_CLOSED_5 = 151
+MK_DOOR_CLOSED_6 = 152
+MK_DOOR_OPENED_1 = 153
+MK_DOOR_OPENED_2 = 154
+MK_DOOR_OPENED_3 = 155
+MK_DOOR_OPENED_4 = 156
+MK_DOOR_OPENED_5 = 157
+MK_DOOR_OPENED_6 = 158
+MK_KEY_1 = 159
+MK_KEY_2 = 160
+MK_BODEN_MESSER_1 = 13
+MK_BODEN_MESSER_2 = 14
+MK_BODEN_MESSER_1HI = 141
+MK_BODEN_MESSER_2HI = 142
+MK_ELEVATOR_1 = 86
+MK_ELEVATOR_2 = 87
+MK_ELEVATOR_3 = 88
+MK_ELEVATOR_4 = 89
+MK_ELEVATOR_5 = 90
+MK_ELEVATOR_6 = 91
+MK_SANDCLOCK_1 = 220
+MK_SANDCLOCK_2 = 221
+MK_SANDCLOCK_3 = 222
+MK_SANDCLOCK_4 = 223
+MK_STOPWATCH_1 = 224
+MK_STOPWATCH_2 = 225
+MK_STOPWATCH_3 = 226
+MK_STOPWATCH_4 = 227
+MK_SHIELD_1 = 228
+MK_SHIELD_2 = 229
+MK_SHIELD_3 = 230
+MK_SHIELD_4 = 231
+MK_GEMS_1 = 232
+MK_GEMS_2 = 233
+MK_GEMS_3 = 234
+MK_GEMS_4 = 235
+MK_GAME_SCREEN = @GAME_SCREEN
+MK_SCORE_TEXT = @SCORE_TEXT
+MK_XOFFSET = 48
+MK_THE_DUDE = 127
+MK_KEY = 126
+MK_DOOR = 125
+MK_SANDCLOCK = 124
+MK_SHIELD = 123
+MK_GEMS = 122
+MK_STOPWATCH = 121
+MK_E_SKELETON = 119
+MK_E_ARCHER = 118
+MK_E_DARK_KNIGHT = 117
+MK_E_GHOST = 116
+MK_E_VAMPIRE = 115
+MK_E_WIZARD = 114
+MK_E_WERWOLF = 113
+MK_E_CAT = 112
+MK_IDX_SKELETON = 1
+MK_IDX_ARCHER = 2
+MK_IDX_DARK_KNIGHT = 3
+MK_IDX_GHOST = 4
+MK_IDX_VAMPIRE = 5
+MK_IDX_WIZARD = 6
+MK_IDX_WERWOLF = 7
+MK_IDX_CAT = 8
+MK_IDX_ARROW = 9
+MK_IDX_BAT = 10
+MK_COLOR_SKELETON = $0A
+MK_COLOR_ARCHER = $FC
+MK_COLOR_DARK_KNIGHT = $9A
+MK_COLOR_GHOST = $0F
+MK_COLOR_VAMPIRE = $78
+MK_COLOR_WIZARD = $48
+MK_COLOR_WERWOLF = $38
+MK_COLOR_CAT = $B8
+MK_COLOR_ARROW = $18
+MK_COLOR_BAT = $78
+MK_COLOR_DUDE_P1 = $2F
+MK_COLOR_DUDE_P2 = $18
+MK_COLOR_YELLOW = $EF
+MK_COLOR_WHITE = $0F
+MK_KEY_OPTION = 3
+MK_KEY_SELECT = 2
+MK_KEY_START = 1
+MK_KEY_ESCAPE = 27
+MK_KEY_SPACE = 32
+MK_KEY_LEFT = 30
+MK_KEY_RIGHT = 31
+MK_SCORE_ENTER_FLOOR = $10
+MK_SCORE_REST_SECONDS = $10
+MK_SCORE_GEMS = $500
+MK_PACMAN_CANAL = 0
+MK_GHOST_CANAL = 1
+MK_AUGEN_CANAL = 2
+MK_TIC_TOC_CANAL = 3
+MK_HITCLR = $D01E
+MK_P0PL = $D00C
+@DUDE_P1_GO_LEFT_0_LENGTH = 17
+@DUDE_P1_GO_LEFT_0_ELEMENTS = 16
+@DUDE_P2_GO_LEFT_0_LENGTH = 17
+@DUDE_P2_GO_LEFT_0_ELEMENTS = 16
+@DUDE_P1_GO_LEFT_1_LENGTH = 17
+@DUDE_P1_GO_LEFT_1_ELEMENTS = 16
+@DUDE_P2_GO_LEFT_1_LENGTH = 17
+@DUDE_P2_GO_LEFT_1_ELEMENTS = 16
+@DUDE_P1_GO_LEFT_2_LENGTH = 17
+@DUDE_P1_GO_LEFT_2_ELEMENTS = 16
+@DUDE_P2_GO_LEFT_2_LENGTH = 17
+@DUDE_P2_GO_LEFT_2_ELEMENTS = 16
+@DUDE_GO_LEFT_LENGTH = 12
+@DUDE_GO_LEFT_ELEMENTS = 41
+@DUDE_P1_JUMP_LEFT_0_LENGTH = 17
+@DUDE_P1_JUMP_LEFT_0_ELEMENTS = 16
+@DUDE_P2_JUMP_LEFT_0_LENGTH = 17
+@DUDE_P2_JUMP_LEFT_0_ELEMENTS = 16
+@DUDE_JUMP_LEFT_LENGTH = 3
+@DUDE_JUMP_LEFT_ELEMENTS = 3
+@DUDE_P1_JUMP_RIGHT_0_LENGTH = 17
+@DUDE_P1_JUMP_RIGHT_0_ELEMENTS = 16
+@DUDE_P2_JUMP_RIGHT_0_LENGTH = 17
+@DUDE_P2_JUMP_RIGHT_0_ELEMENTS = 16
+@DUDE_JUMP_RIGHT_LENGTH = 12
+@DUDE_JUMP_RIGHT_ELEMENTS = 3
+@DUDE_P1_GO_RIGHT_0_LENGTH = 17
+@DUDE_P1_GO_RIGHT_0_ELEMENTS = 16
+@DUDE_P2_GO_RIGHT_0_LENGTH = 17
+@DUDE_P2_GO_RIGHT_0_ELEMENTS = 16
+@DUDE_P1_GO_RIGHT_1_LENGTH = 17
+@DUDE_P1_GO_RIGHT_1_ELEMENTS = 16
+@DUDE_P2_GO_RIGHT_1_LENGTH = 17
+@DUDE_P2_GO_RIGHT_1_ELEMENTS = 16
+@DUDE_P1_GO_RIGHT_2_LENGTH = 17
+@DUDE_P1_GO_RIGHT_2_ELEMENTS = 16
+@DUDE_P2_GO_RIGHT_2_LENGTH = 17
+@DUDE_P2_GO_RIGHT_2_ELEMENTS = 16
+@DUDE_GO_RIGHT_LENGTH = 12
+@DUDE_GO_RIGHT_ELEMENTS = 41
+@DUDE_P1_DEAD_LEFT_LENGTH = 17
+@DUDE_P1_DEAD_LEFT_ELEMENTS = 16
+@DUDE_DEAD_LEFT_LENGTH = 1
+@DUDE_DEAD_LEFT_ELEMENTS = 2
+@DUDE_P1_DEAD_RIGHT_LENGTH = 17
+@DUDE_P1_DEAD_RIGHT_ELEMENTS = 16
+@DUDE_DEAD_RIGHT_LENGTH = 1
+@DUDE_DEAD_RIGHT_ELEMENTS = 2
+@FORM0_LENGTH = 1
+@FORM0_ELEMENTS = 16
+@FORM1_LENGTH = 1
+@FORM1_ELEMENTS = 16
+@FORM2_LENGTH = 1
+@FORM2_ELEMENTS = 16
+@FORM3_LENGTH = 1
+@FORM3_ELEMENTS = 16
+@FORM4_LENGTH = 1
+@FORM4_ELEMENTS = 16
+@FORM5_LENGTH = 1
+@FORM5_ELEMENTS = 16
+@FORM6_LENGTH = 1
+@FORM6_ELEMENTS = 16
+@FORM7_LENGTH = 1
+@FORM7_ELEMENTS = 16
+@FORMEMPTY_LENGTH = 1
+@FORMEMPTY_ELEMENTS = 16
+MK_BLOWAWAY_LENGTH = 1
+MK_BLOWAWAY_ELEMENTS = 12
+@BLOW_LENGTH = 1
+@BLOW_ELEMENTS = 22
+MK_LIVES = @LIVES
+MK_LEVEL = @LEVEL
+MK_SHIELD_PROTECTION = @SHIELD_PROTECTION
+MK_DUDE_XPOS = @DUDE_XPOS
+MK_DUDE_YPOS = @DUDE_YPOS
+MK_DUDE_START_XPOS = @DUDE_START_XPOS
+MK_DUDE_START_YPOS = @DUDE_START_YPOS
+MK_COUNTOFENTEREDFLOOR = @COUNTOFENTEREDFLOOR
+MK_SPRITE_X = @SPRITE_X
+MK_SPRITE_X_LENGTH = 16
+MK_SPRITE_Y = @SPRITE_Y
+MK_SPRITE_Y_LENGTH = 16
+MK_SPRITE_SHAPE = @SPRITE_SHAPE
+MK_SPRITE_SHAPE_LENGTH = 16
+MK_SPRITE_COLOR = @SPRITE_COLOR
+MK_SPRITE_COLOR_LENGTH = 16
+MK_KEY_BACKGROUND = @KEY_BACKGROUND
+MK_KEY_SCREEN = @KEY_SCREEN
+MK_KEY_IMAGE = @KEY_IMAGE
+MK_KEY_OCCURED = @KEY_OCCURED
+MK_KEY_YPOS_FOR_COLOR = @KEY_YPOS_FOR_COLOR
+MK_SANDCLOCK_BACKGROUND = @SANDCLOCK_BACKGROUND
+MK_SANDCLOCK_SCREEN = @SANDCLOCK_SCREEN
+MK_SANDCLOCK_IMAGE = @SANDCLOCK_IMAGE
+MK_SANDCLOCK_OCCURED = @SANDCLOCK_OCCURED
+MK_SANDCLOCK_YPOS_FOR_COLOR = @SANDCLOCK_YPOS_FOR_COLOR
+MK_STOPWATCH_BACKGROUND = @STOPWATCH_BACKGROUND
+MK_STOPWATCH_SCREEN = @STOPWATCH_SCREEN
+MK_STOPWATCH_IMAGE = @STOPWATCH_IMAGE
+MK_STOPWATCH_OCCURED = @STOPWATCH_OCCURED
+MK_STOPWATCH_YPOS_FOR_COLOR = @STOPWATCH_YPOS_FOR_COLOR
+MK_SHIELD_BACKGROUND = @SHIELD_BACKGROUND
+MK_SHIELD_SCREEN = @SHIELD_SCREEN
+MK_SHIELD_IMAGE = @SHIELD_IMAGE
+MK_SHIELD_OCCURED = @SHIELD_OCCURED
+MK_SHIELD_YPOS_FOR_COLOR = @SHIELD_YPOS_FOR_COLOR
+MK_GEMS_BACKGROUND = @GEMS_BACKGROUND
+MK_GEMS_SCREEN = @GEMS_SCREEN
+MK_GEMS_IMAGE = @GEMS_IMAGE
+MK_GEMS_OCCURED = @GEMS_OCCURED
+MK_GEMS_YPOS_FOR_COLOR = @GEMS_YPOS_FOR_COLOR
+MK_DOOR_OPEN_IMAGE = @DOOR_OPEN_IMAGE
+MK_WAITFORANI = @ENEMY_WAITFORANI
+MK_WAITFORANI_LENGTH = 14
+MK_DEAD_COUNTDOWN = @DEAD_COUNTDOWN
+;
+; [597]  procedure dude_after_dead()
+;
+MK_DUDE_AFTER_DEAD
+; MK_DUDE_AFTER_DEAD
+;
+; [599]  dude_number := 0
+;
+ LDY #<0
+ STY MK_DUDE_NUMBER
+;
+; [600]  dude_xpos := dude_start_xpos // will set in @load_background in playfield.wnf
+;
+ LDY MK_DUDE_START_XPOS
+ STY MK_DUDE_XPOS
+;
+; [601]  dude_ypos := dude_start_ypos
+;
+ LDY MK_DUDE_START_YPOS
+ STY MK_DUDE_YPOS
+;
+; [603]  dude_alive := 1
+;
+ LDY #<1
+ STY MK_DUDE_ALIVE
+;
+; [604]  dead_countdown := 0
+;
+ LDY #<0
+ STY MK_DEAD_COUNTDOWN
+?RETURN1
+ RTS
+MK_COLBK_FLASH = @COLBK_FLASH
+;
+; [611]  procedure @dude_died()
+;
+@DUDE_DIED
+; @DUDE_DIED
+;
+; [613]  if dude_alive == 1 and immortal_countdown == 0 then
+;
+ LDY #<1
+ CPY MK_DUDE_ALIVE ; (14)
+ BNE ?FA1
+ LDY MK_IMMORTAL_COUNTDOWN ; (14b) a==b
+ CPY #<0
+ BEQ ?THEN1
+?FA1
+ .IF .NOT .DEF ?ELSE1
+ JMP ?ENDIF1
+ .ELSE
+ JMP ?ELSE1
+ .ENDIF
+?THEN1
+;
+; [615]  if shield_protection == 1 then
+;
+ LDY MK_SHIELD_PROTECTION ; (14b) a==b
+ CPY #<1
+ BEQ ?THEN2
+?FA3
+ .IF .NOT .DEF ?ELSE2
+ JMP ?ENDIF2
+ .ELSE
+ JMP ?ELSE2
+ .ENDIF
+?THEN2
+;
+; [617]  shield_protection := 0
+;
+ LDY #<0
+ STY MK_SHIELD_PROTECTION
+;
+; [618]  colbk_flash := 15 // FLASH
+;
+ LDY #<15
+ STY MK_COLBK_FLASH
+;
+; [620]  immortal_countdown := 160
+;
+ LDY #<160
+ STY MK_IMMORTAL_COUNTDOWN
+ JMP ?ENDIF2
+?ELSE2
+;
+; [624]  dude_alive := 0
+;
+ LDY #<0
+ STY MK_DUDE_ALIVE
+;
+; [625]  dead_countdown := 64
+;
+ LDY #<64
+ STY MK_DEAD_COUNTDOWN
+;
+; [627]  lives := lives - 1
+;
+ DEC MK_LIVES ; (24)
+?ENDIF2
+;
+; [629]  @show_lives()
+;
+ JMP @SHOW_LIVES ; (39)
+?ENDIF1
+?RETURN2
+ RTS
+;
+; [633]  procedure @clear_dude()
+;
+@CLEAR_DUDE
+; @CLEAR_DUDE
+;
+; [635]  sprite_x[0] := 0
+;
+ LDA #<0 ; (10)
+ LDX #<0 ; (38a)
+ STA MK_SPRITE_X,X
+;
+; [636]  sprite_x[1] := 0
+;
+ LDA #<0 ; (10)
+ LDX #<1 ; (38a)
+ STA MK_SPRITE_X,X
+?RETURN3
+ RTS
+;
+; [641]  procedure @init_dude()
+;
+@INIT_DUDE
+; @INIT_DUDE
+;
+; [643]  dude_states := 0
+;
+ LDY #<0
+ STY MK_DUDE_STATES
+;
+; [644]  waitstates := 2
+;
+ LDY #<2
+ STY MK_WAITSTATES
+;
+; [649]  opendoor := 0
+;
+ LDY #<0
+ STY MK_OPENDOOR
+;
+; [650]  countOfEnteredFloor := 0
+;
+ LDY #<0
+ STY MK_COUNTOFENTEREDFLOOR
+;
+; [652]  last_direction := DIRECTION_STAY_LOOK_RIGHT
+;
+ LDY #<1
+ STY MK_LAST_DIRECTION
+;
+; [653]  is_jump := 1
+;
+ LDY #<1
+ STY MK_IS_JUMP
+;
+; [654]  jump_animation := 10
+;
+ LDY #<10
+ STY MK_JUMP_ANIMATION
+;
+; [655]  is_jump_up := 0
+;
+ LDY #<0
+ STY MK_IS_JUMP_UP
+;
+; [656]  dude_after_dead()
+;
+ JSR MK_DUDE_AFTER_DEAD
+;
+; [657]  countOfEnemies := @getEnemies()
+;
+ JSR @GETENEMIES
+ STY MK_COUNTOFENEMIES
+?RETURN4
+ RTS
+;
+; [701]  procedure @drawDude(direction)
+;
+@DRAWDUDE
+@DRAWDUDE_I
+ LDX MK_DIRECTION
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA MK_DIRECTION
+ TXA
+ STA (@HEAP_PTR),Y
+ CLC
+ LDA @HEAP_PTR
+ ADC #3
+ STA @HEAP_PTR
+;
+; [703]  color_dude1 := COLOR_DUDE_P1
+;
+ LDY #<47
+ STY MK_COLOR_DUDE1
+;
+; [704]  color_dude2 := COLOR_DUDE_P2
+;
+ LDY #<24
+ STY MK_COLOR_DUDE2
+;
+; [705]  yadd := 0
+;
+ LDY #<0
+ STY MK_YADD
+;
+; [707]  if direction == DIRECTION_STAY_LOOK_RIGHT then
+;
+ LDY MK_DIRECTION ; (14b) a==b
+ CPY #<1
+ BEQ ?THEN3
+?FA4
+ .IF .NOT .DEF ?ELSE3
+ JMP ?ENDIF3
+ .ELSE
+ JMP ?ELSE3
+ .ENDIF
+?THEN3
+;
+; [709]  dude_draw_p1 := @dude_go_right[0]
+;
+ LDY #<0
+ LDA @DUDE_GO_RIGHT,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [710]  dude_draw_p2 := @dude_go_right[1]
+;
+ LDY #<1
+ LDA @DUDE_GO_RIGHT,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+ JMP ?ENDIF3
+?ELSE3
+;
+; [713]  else if direction == DIRECTION_STAY_LOOK_LEFT then
+;
+ LDY MK_DIRECTION ; (14b) a==b
+ CPY #<2
+ BEQ ?THEN4
+?FA5
+ .IF .NOT .DEF ?ELSE4
+ JMP ?ENDIF4
+ .ELSE
+ JMP ?ELSE4
+ .ENDIF
+?THEN4
+;
+; [715]  dude_draw_p1 := @dude_go_left[0]
+;
+ LDY #<0
+ LDA @DUDE_GO_LEFT,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [716]  dude_draw_p2 := @dude_go_left[1]
+;
+ LDY #<1
+ LDA @DUDE_GO_LEFT,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+ JMP ?ENDIF4
+?ELSE4
+;
+; [719]  else if direction == DIRECTION_JUMP_RIGHT then
+;
+ LDY MK_DIRECTION ; (14b) a==b
+ CPY #<9
+ BEQ ?THEN5
+?FA6
+ .IF .NOT .DEF ?ELSE5
+ JMP ?ENDIF5
+ .ELSE
+ JMP ?ELSE5
+ .ENDIF
+?THEN5
+;
+; [721]  dude_draw_p1 := @dude_jump_right[0]
+;
+ LDY #<0
+ LDA @DUDE_JUMP_RIGHT,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [722]  dude_draw_p2 := @dude_jump_right[1]
+;
+ LDY #<1
+ LDA @DUDE_JUMP_RIGHT,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+ JMP ?ENDIF5
+?ELSE5
+;
+; [725]  else if direction == DIRECTION_JUMP_LEFT then
+;
+ LDY MK_DIRECTION ; (14b) a==b
+ CPY #<10
+ BEQ ?THEN6
+?FA7
+ .IF .NOT .DEF ?ELSE6
+ JMP ?ENDIF6
+ .ELSE
+ JMP ?ELSE6
+ .ENDIF
+?THEN6
+;
+; [727]  dude_draw_p1 := @dude_jump_left[0]
+;
+ LDY #<0
+ LDA @DUDE_JUMP_LEFT,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [728]  dude_draw_p2 := @dude_jump_left[1]
+;
+ LDY #<1
+ LDA @DUDE_JUMP_LEFT,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+ JMP ?ENDIF6
+?ELSE6
+;
+; [731]  else if direction == DIRECTION_WALK_RIGHT then
+;
+ LDY MK_DIRECTION ; (14b) a==b
+ CPY #<5
+ BEQ ?THEN7
+?FA8
+ .IF .NOT .DEF ?ELSE7
+ JMP ?ENDIF7
+ .ELSE
+ JMP ?ELSE7
+ .ENDIF
+?THEN7
+;
+; [734]  dude_draw_p1 := @dude_go_right[dude_number]
+;
+ LDY MK_DUDE_NUMBER
+ LDA @DUDE_GO_RIGHT,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [735]  dude_draw_p2 := @dude_go_right[dude_number+1]
+;
+ LDY MK_DUDE_NUMBER
+ INY ; (20)
+ LDA @DUDE_GO_RIGHT,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+;
+; [736]  if dude_draw_p1 == 255 then
+;
+ LDY MK_DUDE_DRAW_P1 ; (14b) a==b
+ CPY #<255
+ BEQ ?THEN8
+?FA9
+ .IF .NOT .DEF ?ELSE8
+ JMP ?ENDIF8
+ .ELSE
+ JMP ?ELSE8
+ .ENDIF
+?THEN8
+;
+; [738]  dude_number := 0
+;
+ LDY #<0
+ STY MK_DUDE_NUMBER
+;
+; [739]  dude_draw_p1 := @dude_go_right[dude_number]
+;
+ LDY MK_DUDE_NUMBER
+ LDA @DUDE_GO_RIGHT,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [740]  dude_draw_p2 := @dude_go_right[dude_number+1]
+;
+ LDY MK_DUDE_NUMBER
+ INY ; (20)
+ LDA @DUDE_GO_RIGHT,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+?ENDIF8
+;
+; [742]  if dude_draw_p1 == 22 or dude_draw_p1 == 26 then
+;
+ LDY MK_DUDE_DRAW_P1 ; (14b) a==b
+ CPY #<22
+ BEQ ?THEN9
+?FA10
+ LDY MK_DUDE_DRAW_P1 ; (14b) a==b
+ CPY #<26
+ BEQ ?THEN9
+?FA11
+ .IF .NOT .DEF ?ELSE9
+ JMP ?ENDIF9
+ .ELSE
+ JMP ?ELSE9
+ .ENDIF
+?THEN9
+;
+; [744]  yadd := 255
+;
+ LDY #<255
+ STY MK_YADD
+?ENDIF9
+;
+; [746]  dude_number := dude_number + 2
+;
+ CLC
+ LDA MK_DUDE_NUMBER
+ ADC #<2
+ STA MK_DUDE_NUMBER ; (11)
+ JMP ?ENDIF7
+?ELSE7
+;
+; [749]  else if direction == DIRECTION_WALK_LEFT then
+;
+ LDY MK_DIRECTION ; (14b) a==b
+ CPY #<6
+ BEQ ?THEN10
+?FA12
+ .IF .NOT .DEF ?ELSE10
+ JMP ?ENDIF10
+ .ELSE
+ JMP ?ELSE10
+ .ENDIF
+?THEN10
+;
+; [752]  dude_draw_p1 := @dude_go_left[dude_number]
+;
+ LDY MK_DUDE_NUMBER
+ LDA @DUDE_GO_LEFT,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [753]  dude_draw_p2 := @dude_go_left[dude_number+1]
+;
+ LDY MK_DUDE_NUMBER
+ INY ; (20)
+ LDA @DUDE_GO_LEFT,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+;
+; [754]  if dude_draw_p1 == 255 then
+;
+ LDY MK_DUDE_DRAW_P1 ; (14b) a==b
+ CPY #<255
+ BEQ ?THEN11
+?FA13
+ .IF .NOT .DEF ?ELSE11
+ JMP ?ENDIF11
+ .ELSE
+ JMP ?ELSE11
+ .ENDIF
+?THEN11
+;
+; [756]  dude_number := 0
+;
+ LDY #<0
+ STY MK_DUDE_NUMBER
+;
+; [757]  dude_draw_p1 := @dude_go_left[dude_number]
+;
+ LDY MK_DUDE_NUMBER
+ LDA @DUDE_GO_LEFT,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [758]  dude_draw_p2 := @dude_go_left[dude_number+1]
+;
+ LDY MK_DUDE_NUMBER
+ INY ; (20)
+ LDA @DUDE_GO_LEFT,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+?ENDIF11
+;
+; [760]  if dude_draw_p1 == 12 or dude_draw_p1 == 16 then
+;
+ LDY MK_DUDE_DRAW_P1 ; (14b) a==b
+ CPY #<12
+ BEQ ?THEN12
+?FA14
+ LDY MK_DUDE_DRAW_P1 ; (14b) a==b
+ CPY #<16
+ BEQ ?THEN12
+?FA15
+ .IF .NOT .DEF ?ELSE12
+ JMP ?ENDIF12
+ .ELSE
+ JMP ?ELSE12
+ .ENDIF
+?THEN12
+;
+; [762]  yadd := 255
+;
+ LDY #<255
+ STY MK_YADD
+?ENDIF12
+;
+; [764]  dude_number := dude_number + 2
+;
+ CLC
+ LDA MK_DUDE_NUMBER
+ ADC #<2
+ STA MK_DUDE_NUMBER ; (11)
+ JMP ?ENDIF10
+?ELSE10
+;
+; [767]  else if direction == DIRECTION_BLOW_AWAY then
+;
+ LDY MK_DIRECTION ; (14b) a==b
+ CPY #<128
+ BEQ ?THEN13
+?FA16
+ .IF .NOT .DEF ?ELSE13
+ JMP ?ENDIF13
+ .ELSE
+ JMP ?ELSE13
+ .ENDIF
+?THEN13
+;
+; [770]  dude_draw_p1 := blowAway[dude_number]
+;
+ LDY MK_DUDE_NUMBER
+ LDA MK_BLOWAWAY,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [771]  dude_draw_p2 := blowAway[dude_number+1]
+;
+ LDY MK_DUDE_NUMBER
+ INY ; (20)
+ LDA MK_BLOWAWAY,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+;
+; [772]  if dude_draw_p2 == 255 then
+;
+ LDY MK_DUDE_DRAW_P2 ; (14b) a==b
+ CPY #<255
+ BEQ ?THEN14
+?FA17
+ .IF .NOT .DEF ?ELSE14
+ JMP ?ENDIF14
+ .ELSE
+ JMP ?ELSE14
+ .ENDIF
+?THEN14
+;
+; [774]  dude_number := 9
+;
+ LDY #<9
+ STY MK_DUDE_NUMBER
+;
+; [775]  dude_draw_p1 := blowAway[dude_number]
+;
+ LDY MK_DUDE_NUMBER
+ LDA MK_BLOWAWAY,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [776]  dude_draw_p2 := blowAway[dude_number]
+;
+ LDY MK_DUDE_NUMBER
+ LDA MK_BLOWAWAY,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+?ENDIF14
+;
+; [778]  dude_number := dude_number + 1
+;
+ INC MK_DUDE_NUMBER ; (17)
+ JMP ?ENDIF13
+?ELSE13
+;
+; [780]  else if direction == DIRECTION_DEAD_LEFT then
+;
+ LDY MK_DIRECTION ; (14b) a==b
+ CPY #<18
+ BEQ ?THEN15
+?FA18
+ .IF .NOT .DEF ?ELSE15
+ JMP ?ENDIF15
+ .ELSE
+ JMP ?ELSE15
+ .ENDIF
+?THEN15
+;
+; [782]  dude_draw_p1 := @dude_dead_left[0]
+;
+ LDY #<0
+ LDA @DUDE_DEAD_LEFT,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [783]  dude_draw_p2 := blowAway[0]
+;
+ LDY #<0
+ LDA MK_BLOWAWAY,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+;
+; [785]  if dead_countdown & %00001000 != 0 then
+;
+ LDA MK_DEAD_COUNTDOWN
+ AND #<8
+ CMP #0 ; (33)
+ BNE ?THEN16 ; (26)
+?FA19
+ .IF .NOT .DEF ?ELSE16
+ JMP ?ENDIF16
+ .ELSE
+ JMP ?ELSE16
+ .ENDIF
+?THEN16
+;
+; [787]  color_dude1 := 0
+;
+ LDY #<0
+ STY MK_COLOR_DUDE1
+?ENDIF16
+ JMP ?ENDIF15
+?ELSE15
+;
+; [790]  else if direction == DIRECTION_DEAD_RIGHT then
+;
+ LDY MK_DIRECTION ; (14b) a==b
+ CPY #<17
+ BEQ ?THEN17
+?FA20
+ .IF .NOT .DEF ?ELSE17
+ JMP ?ENDIF17
+ .ELSE
+ JMP ?ELSE17
+ .ENDIF
+?THEN17
+;
+; [792]  dude_draw_p1 := @dude_dead_right[0]
+;
+ LDY #<0
+ LDA @DUDE_DEAD_RIGHT,Y
+ STA MK_DUDE_DRAW_P1 ; (11)
+;
+; [793]  dude_draw_p2 := blowAway[0]
+;
+ LDY #<0
+ LDA MK_BLOWAWAY,Y
+ STA MK_DUDE_DRAW_P2 ; (11)
+;
+; [795]  if dead_countdown & %00001000 != 0 then
+;
+ LDA MK_DEAD_COUNTDOWN
+ AND #<8
+ CMP #0 ; (33)
+ BNE ?THEN18 ; (26)
+?FA21
+ .IF .NOT .DEF ?ELSE18
+ JMP ?ENDIF18
+ .ELSE
+ JMP ?ELSE18
+ .ENDIF
+?THEN18
+;
+; [797]  color_dude1 := 0
+;
+ LDY #<0
+ STY MK_COLOR_DUDE1
+?ENDIF18
+?ENDIF17
+?ENDIF15
+?ENDIF13
+?ENDIF10
+?ENDIF7
+?ENDIF6
+?ENDIF5
+?ENDIF4
+?ENDIF3
+;
+; [800]  if immortal_countdown != 0 then
+;
+ LDY MK_IMMORTAL_COUNTDOWN ; (14c) a!=b
+ CPY #<0
+ BNE ?THEN19
+?FA22
+ .IF .NOT .DEF ?ELSE19
+ JMP ?ENDIF19
+ .ELSE
+ JMP ?ELSE19
+ .ENDIF
+?THEN19
+;
+; [802]  immortal_countdown := immortal_countdown - 1
+;
+ DEC MK_IMMORTAL_COUNTDOWN ; (24)
+;
+; [803]  if immortal_countdown & %00000100 != 0 then
+;
+ LDA MK_IMMORTAL_COUNTDOWN
+ AND #<4
+ CMP #0 ; (33)
+ BNE ?THEN20 ; (26)
+?FA23
+ .IF .NOT .DEF ?ELSE20
+ JMP ?ENDIF20
+ .ELSE
+ JMP ?ELSE20
+ .ENDIF
+?THEN20
+;
+; [805]  color_dude1 := color_dude1 & %11110010
+;
+ LDA MK_COLOR_DUDE1
+ AND #<242
+ STA MK_COLOR_DUDE1 ; (11)
+;
+; [806]  color_dude2 := color_dude2 & %11110010
+;
+ LDA MK_COLOR_DUDE2
+ AND #<242
+ STA MK_COLOR_DUDE2 ; (11)
+?ENDIF20
+?ENDIF19
+;
+; [810]  x := xoffset + dude_xpos
+;
+ CLC
+ LDA #<48
+ ADC MK_DUDE_XPOS
+ STA MK_X ; (11)
+;
+; [811]  y := dude_ypos
+;
+ LDY MK_DUDE_YPOS
+ STY MK_Y
+;
+; [813]  sprite_shape[0] := dude_draw_p1
+;
+ LDA MK_DUDE_DRAW_P1 ; (10)
+ LDX #<0 ; (38a)
+ STA MK_SPRITE_SHAPE,X
+;
+; [814]  sprite_color[0] := color_dude1 // COLOR_DUDE_P1
+;
+ LDA MK_COLOR_DUDE1 ; (10)
+ LDX #<0 ; (38a)
+ STA MK_SPRITE_COLOR,X
+;
+; [815]  sprite_x[0] := x
+;
+ LDA MK_X ; (10)
+ LDX #<0 ; (38a)
+ STA MK_SPRITE_X,X
+;
+; [816]  sprite_y[0] := y + yadd
+;
+ CLC
+ LDA MK_Y
+ ADC MK_YADD
+ LDX #<0 ; (38c)
+ STA MK_SPRITE_Y,X
+;
+; [818]  sprite_shape[1] := dude_draw_p2
+;
+ LDA MK_DUDE_DRAW_P2 ; (10)
+ LDX #<1 ; (38a)
+ STA MK_SPRITE_SHAPE,X
+;
+; [819]  sprite_color[1] := color_dude2
+;
+ LDA MK_COLOR_DUDE2 ; (10)
+ LDX #<1 ; (38a)
+ STA MK_SPRITE_COLOR,X
+;
+; [820]  sprite_x[1] := x
+;
+ LDA MK_X ; (10)
+ LDX #<1 ; (38a)
+ STA MK_SPRITE_X,X
+;
+; [821]  sprite_y[1] := y + yadd
+;
+ CLC
+ LDA MK_Y
+ ADC MK_YADD
+ LDX #<1 ; (38c)
+ STA MK_SPRITE_Y,X
+?RETURN5
+ SEC
+ LDA @HEAP_PTR
+ SBC #3
+ STA @HEAP_PTR
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA MK_DIRECTION
+ RTS
+;
+; [836]  procedure @dude_blow_away()
+;
+@DUDE_BLOW_AWAY
+; @DUDE_BLOW_AWAY
+;
+; [838]  dude_number := 0
+;
+ LDY #<0
+ STY MK_DUDE_NUMBER
+;
+; [840]  for i:=0 to 11 do
+;
+ LDY #<0
+ STY MK_I
+ LDY #<11
+ STY ?FOR21
+?FORLOOP21
+ LDY ?FOR21
+ CPY MK_I
+ BCS ?GO21
+ JMP ?EXIT21
+?GO21
+;
+; [842]  @drawDude(DIRECTION_BLOW_AWAY)
+;
+ LDA #<128 ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>128 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @DRAWDUDE_I
+;
+; [844]  @wait_and_show_all_sprites()
+;
+ JSR @WAIT_AND_SHOW_ALL_SPRITES
+;
+; [845]  @wait_and_show_all_sprites()
+;
+ JSR @WAIT_AND_SHOW_ALL_SPRITES
+ INC MK_I
+ JMP ?FORLOOP21
+?EXIT21
+?RETURN6
+ RTS
+MK_YPOSDIV8MUL40 = @YPOSDIV8MUL40
+MK_YPOSDIV8MUL40_LOW = @YPOSDIV8MUL40_LOW
+MK_YPOSDIV8MUL40_HIGH = @YPOSDIV8MUL40_HIGH
+MK_YPOSDIV8MUL40_LENGTH = -1
+MK_SCREEN = @SCREEN
+MK_JUMP_YSTEP = @JUMP_TABLE
+MK_JUMP_YSTEP_LENGTH = 1
+MK_COUNTOFENTERABLEFLOORS = @COUNTOFENTERABLEFLOORS
+MK_DOOR_SCREEN = @DOOR_SCREEN
+;
+; [876]  procedure checkEnteredFloor()
+;
+MK_CHECKENTEREDFLOOR
+; MK_CHECKENTEREDFLOOR
+;
+; [878]  if countOfEnteredFloor == countOfEnterableFloors then
+;
+ LDY MK_COUNTOFENTEREDFLOOR ; (14b) a==b
+ CPY MK_COUNTOFENTERABLEFLOORS
+ BEQ ?THEN22
+?FA24
+ .IF .NOT .DEF ?ELSE22
+ JMP ?ENDIF22
+ .ELSE
+ JMP ?ELSE22
+ .ENDIF
+?THEN22
+;
+; [881]  colbk_flash := 15 // FLASH
+;
+ LDY #<15
+ STY MK_COLBK_FLASH
+;
+; [882]  countOfEnteredFloor := 255 // we will only a single flash
+;
+ LDY #<255
+ STY MK_COUNTOFENTEREDFLOOR
+;
+; [883]  @drawblock1x2(adr:key_image, key_screen)
+;
+ LDA #<MK_KEY_IMAGE ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>MK_KEY_IMAGE ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ LDA MK_KEY_SCREEN ; (6)
+ LDY #3
+ STA (@HEAP_PTR),Y
+ LDA MK_KEY_SCREEN+1 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JMP @DRAWBLOCK1X2_II ; (39)
+?ENDIF22
+?RETURN7
+ RTS
+;
+; [888]  procedure switchFloorToYellow(screen)
+;
+MK_SWITCHFLOORTOYELLOW
+MK_SWITCHFLOORTOYELLOW_I
+ LDX MK_SCREEN
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA MK_SCREEN
+ TXA
+ STA (@HEAP_PTR),Y
+ INY
+ LDX MK_SCREEN+1
+ LDA (@HEAP_PTR),Y
+ STA MK_SCREEN+1
+ TXA
+ STA (@HEAP_PTR),Y
+ CLC
+ LDA @HEAP_PTR
+ ADC #3
+ STA @HEAP_PTR
+;
+; [890]  @mem[screen] := [FLOOR_YELLOW_1, FLOOR_YELLOW_2]
+;
+ LDY MK_SCREEN
+ LDX MK_SCREEN+1
+ STY @PUTARRAY
+ STX @PUTARRAY+1
+ LDA #<137 ; (10)
+ LDY #0
+ STA (@PUTARRAY),Y
+ LDA #<138 ; (10)
+ LDY #1
+ STA (@PUTARRAY),Y
+;
+; [892]  countOfEnteredFloor := countOfEnteredFloor + 1
+;
+ INC MK_COUNTOFENTEREDFLOOR ; (17)
+;
+; [893]  checkEnteredFloor()
+;
+ JSR MK_CHECKENTEREDFLOOR
+;
+; [894]  @add_current_score(score_enter_floor)
+;
+ LDA #<16 ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>16 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @ADD_CURRENT_SCORE_I
+?RETURN8
+ SEC
+ LDA @HEAP_PTR
+ SBC #3
+ STA @HEAP_PTR
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA MK_SCREEN
+ INY
+ LDA (@HEAP_PTR),Y
+ STA MK_SCREEN+1
+ RTS
+;
+; [897]  procedure enteredFloor(screen)
+;
+MK_ENTEREDFLOOR
+MK_ENTEREDFLOOR_I
+ LDX MK_SCREEN
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA MK_SCREEN
+ TXA
+ STA (@HEAP_PTR),Y
+ INY
+ LDX MK_SCREEN+1
+ LDA (@HEAP_PTR),Y
+ STA MK_SCREEN+1
+ TXA
+ STA (@HEAP_PTR),Y
+ CLC
+ LDA @HEAP_PTR
+ ADC #3
+ STA @HEAP_PTR
+;
+; [899]  if floor == FLOOR_1 or floor == FLOOR_2 then
+;
+ LDY MK_FLOOR ; (14b) a==b
+ CPY #<11
+ BEQ ?THEN23
+?FA25
+ LDY MK_FLOOR ; (14b) a==b
+ CPY #<12
+ BEQ ?THEN23
+?FA26
+ .IF .NOT .DEF ?ELSE23
+ JMP ?ENDIF23
+ .ELSE
+ JMP ?ELSE23
+ .ENDIF
+?THEN23
+;
+; [901]  switchFloorToYellow(screen & $fffe)
+;
+ LDA MK_SCREEN
+ AND #<65534
+ TAY
+ LDA MK_SCREEN+1
+ AND #>65534
+ TAX
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR MK_SWITCHFLOORTOYELLOW_I
+?ENDIF23
+?RETURN9
+ SEC
+ LDA @HEAP_PTR
+ SBC #3
+ STA @HEAP_PTR
+ LDY #1
+ LDA (@HEAP_PTR),Y
+ STA MK_SCREEN
+ INY
+ LDA (@HEAP_PTR),Y
+ STA MK_SCREEN+1
+ RTS
+MK_CH = 764
+;
+; [910]  procedure checkUnderDude()
+;
+MK_CHECKUNDERDUDE
+; MK_CHECKUNDERDUDE
+;
+; [912]  on_elevator := 0
+;
+ LDY #<0
+ STY MK_ON_ELEVATOR
+;
+; [913]  if dude_ypos & 7 == 0 then
+;
+ LDA MK_DUDE_YPOS
+ AND #<7
+ CMP #0 ; (32)
+ BEQ ?THEN24 ; (25)
+?FA27
+ .IF .NOT .DEF ?ELSE24
+ JMP ?ENDIF24
+ .ELSE
+ JMP ?ELSE24
+ .ENDIF
+?THEN24
+;
+; [915]  floor := @mem[screen_dude_upper_left + 121]
+;
+ CLC
+ LDA MK_SCREEN_DUDE_UPPER_LEFT
+ ADC #<121
+ STA @GETARRAY ; (5)
+ LDA MK_SCREEN_DUDE_UPPER_LEFT+1
+ ADC #>121
+ STA @GETARRAY+1 ; (4)
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ STA MK_FLOOR ; (11)
+;
+; [916]  if @isFloorToWalk(floor) == 1 then
+;
+ LDA MK_FLOOR ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #0 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @ISFLOORTOWALK_I
+ CPY #<1 ;  (34)
+ BNE ?FA28
+ CPX #>1 ; (34)
+ BEQ ?THEN25 ; (25)
+?FA28
+ .IF .NOT .DEF ?ELSE25
+ JMP ?ENDIF25
+ .ELSE
+ JMP ?ELSE25
+ .ENDIF
+?THEN25
+;
+; [918]  enteredFloor(screen_dude_upper_left+121)
+;
+ CLC
+ LDA MK_SCREEN_DUDE_UPPER_LEFT
+ ADC #<121
+ TAY
+ LDA MK_SCREEN_DUDE_UPPER_LEFT+1
+ ADC #>121
+ TAX
+ TYA
+ LDY #1
+ STA (@HEAP_PTR),Y
+ TXA
+ INY
+ STA (@HEAP_PTR),Y
+ JSR MK_ENTEREDFLOOR_I
+ JMP ?ENDIF25
+?ELSE25
+;
+; [920]  else if floor >= ELEVATOR_1 and floor <= ELEVATOR_6 then
+;
+ LDY #<86
+ CPY MK_FLOOR ; (14)
+ BEQ ?TR29
+ BCS ?FA29
+?TR29
+ LDY #<91 ; (14f) a<=b
+ CPY MK_FLOOR
+ BCS ?THEN26
+?FA29
+ .IF .NOT .DEF ?ELSE26
+ JMP ?ENDIF26
+ .ELSE
+ JMP ?ELSE26
+ .ENDIF
+?THEN26
+;
+; [922]  on_elevator := 1
+;
+ LDY #<1
+ STY MK_ON_ELEVATOR
+ JMP ?ENDIF26
+?ELSE26
+;
+; [925]  else if floor == BODEN_MESSER_1HI or floor == BODEN_MESSER_2HI then
+;
+ LDY MK_FLOOR ; (14b) a==b
+ CPY #<141
+ BEQ ?THEN27
+?FA31
+ LDY MK_FLOOR ; (14b) a==b
+ CPY #<142
+ BEQ ?THEN27
+?FA32
+ .IF .NOT .DEF ?ELSE27
+ JMP ?ENDIF27
+ .ELSE
+ JMP ?ELSE27
+ .ENDIF
+?THEN27
+;
+; [927]  @dude_died()
+;
+ JSR @DUDE_DIED
+ JMP ?ENDIF27
+?ELSE27
+;
+; [932]  is_jump := 1
+;
+ LDY #<1
+ STY MK_IS_JUMP
+;
+; [933]  jump_animation := 10
+;
+ LDY #<10
+ STY MK_JUMP_ANIMATION
+;
+; [934]  ystep := 4
+;
+ LDY #<4
+ STY MK_YSTEP
+?ENDIF27
+?ENDIF26
+?ENDIF25
+ JMP ?ENDIF24
+?ELSE24
+;
+; [939]  floor := @mem[screen_dude_upper_left + 121]
+;
+ CLC
+ LDA MK_SCREEN_DUDE_UPPER_LEFT
+ ADC #<121
+ STA @GETARRAY ; (5)
+ LDA MK_SCREEN_DUDE_UPPER_LEFT+1
+ ADC #>121
+ STA @GETARRAY+1 ; (4)
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ STA MK_FLOOR ; (11)
+;
+; [940]  if floor >= ELEVATOR_1 and floor <= ELEVATOR_6 then
+;
+ LDY #<86
+ CPY MK_FLOOR ; (14)
+ BEQ ?TR33
+ BCS ?FA33
+?TR33
+ LDY #<91 ; (14f) a<=b
+ CPY MK_FLOOR
+ BCS ?THEN28
+?FA33
+ .IF .NOT .DEF ?ELSE28
+ JMP ?ENDIF28
+ .ELSE
+ JMP ?ELSE28
+ .ENDIF
+?THEN28
+;
+; [942]  on_elevator := 1
+;
+ LDY #<1
+ STY MK_ON_ELEVATOR
+?ENDIF28
+?ENDIF24
+?RETURN10
+ RTS
+MK_SECONDS = @SECONDS
+MK_KEYCODE = @KEYCODE
+MK_GEM_REMOVED = @GEM_REMOVED
+MK_GEM_REMOVED_LENGTH = 1
+;
+; [972]  procedure @move_Dude()
+;
+@MOVE_DUDE
+; @MOVE_DUDE
+;
+; [975]  if dude_states == waitstates then
+;
+ LDY MK_DUDE_STATES ; (14b) a==b
+ CPY MK_WAITSTATES
+ BEQ ?THEN29
+?FA35
+ .IF .NOT .DEF ?ELSE29
+ JMP ?ENDIF29
+ .ELSE
+ JMP ?ELSE29
+ .ENDIF
+?THEN29
+;
+; [977]  dude_states := 0
+;
+ LDY #<0
+ STY MK_DUDE_STATES
+ JMP ?ENDIF29
+?ELSE29
+;
+; [981]  dude_states := dude_states + 1
+;
+ INC MK_DUDE_STATES ; (17)
+;
+; [990]  on_elevator := 0
+;
+ LDY #<0
+ STY MK_ON_ELEVATOR
+;
+; [992]  screen_dude_upper_left := (dude_xpos)/4 + yposdiv8mul40[dude_ypos-24] + game_screen // (ypos / 8)*40
+;
+ LDY MK_DUDE_XPOS
+ STY @OP
+ LDA #0 ; (6.2)
+ CMP #$80
+ ROR A
+ ROR @OP
+ CMP #$80
+ ROR A
+ ROR @OP
+ TAX
+ LDA @OP ; (6.1)
+ PHA
+ TXA
+ PHA
+ SEC
+ LDA MK_DUDE_YPOS
+ SBC #<24
+ TAY
+ LDA #0
+ SBC #>24
+ TAX
+ LDX MK_YPOSDIV8MUL40_HIGH,Y
+ LDA MK_YPOSDIV8MUL40_LOW,Y
+ STA @OP ; (11)
+ STX @OP+1
+ PLA
+ TAX
+ PLA
+ CLC
+ ADC @OP
+ TAY
+ TXA
+ ADC @OP+1
+ TAX
+ TYA
+ PHA
+ TXA
+ PHA
+ LDY #<@GAME_SCREEN
+ LDX #>@GAME_SCREEN
+ STY @OP
+ STX @OP+1
+ PLA
+ TAX
+ PLA
+ CLC
+ ADC @OP
+ STA MK_SCREEN_DUDE_UPPER_LEFT ; (5)
+ TXA
+ ADC @OP+1
+ STA MK_SCREEN_DUDE_UPPER_LEFT+1 ; (4)
+;
+; [999]  direction := last_direction
+;
+ LDY MK_LAST_DIRECTION
+ STY MK_DIRECTION
+;
+; [1000]  if dude_alive == 1 then
+;
+ LDY MK_DUDE_ALIVE ; (14b) a==b
+ CPY #<1
+ BEQ ?THEN30
+?FA36
+ .IF .NOT .DEF ?ELSE30
+ JMP ?ENDIF30
+ .ELSE
+ JMP ?ELSE30
+ .ENDIF
+?THEN30
+;
+; [1002]  if @stickleft(0) == 1 or keycode == 134 then
+;
+ LDA #<0 ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>0 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @STICKLEFT_I
+ CPY #<1 ;  (34)
+ BNE ?FA37
+ CPX #>1 ; (34)
+ BEQ ?THEN31 ; (25)
+?FA37
+ LDY MK_KEYCODE ; (14b) a==b
+ CPY #<134
+ BEQ ?THEN31
+?FA38
+ .IF .NOT .DEF ?ELSE31
+ JMP ?ENDIF31
+ .ELSE
+ JMP ?ELSE31
+ .ENDIF
+?THEN31
+;
+; [1004]  direction := DIRECTION_STAY_LOOK_LEFT
+;
+ LDY #<2
+ STY MK_DIRECTION
+;
+; [1005]  is_walk := DIRECTION_WALK
+;
+ LDY #<4
+ STY MK_IS_WALK
+;
+; [1006]  xstep := 255 // -1
+;
+ LDY #<255
+ STY MK_XSTEP
+ JMP ?ENDIF31
+?ELSE31
+;
+; [1008]  else if @stickright(0) == 1 or keycode == 135 then
+;
+ LDA #<0 ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>0 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @STICKRIGHT_I
+ CPY #<1 ;  (34)
+ BNE ?FA39
+ CPX #>1 ; (34)
+ BEQ ?THEN32 ; (25)
+?FA39
+ LDY MK_KEYCODE ; (14b) a==b
+ CPY #<135
+ BEQ ?THEN32
+?FA40
+ .IF .NOT .DEF ?ELSE32
+ JMP ?ENDIF32
+ .ELSE
+ JMP ?ELSE32
+ .ENDIF
+?THEN32
+;
+; [1010]  direction := DIRECTION_STAY_LOOK_RIGHT
+;
+ LDY #<1
+ STY MK_DIRECTION
+;
+; [1011]  is_walk := DIRECTION_WALK
+;
+ LDY #<4
+ STY MK_IS_WALK
+;
+; [1012]  xstep := 1
+;
+ LDY #<1
+ STY MK_XSTEP
+ JMP ?ENDIF32
+?ELSE32
+;
+; [1016]  is_walk := 0
+;
+ LDY #<0
+ STY MK_IS_WALK
+;
+; [1017]  if is_jump == 0 then
+;
+ LDY MK_IS_JUMP ; (14b) a==b
+ CPY #<0
+ BEQ ?THEN33
+?FA41
+ .IF .NOT .DEF ?ELSE33
+ JMP ?ENDIF33
+ .ELSE
+ JMP ?ELSE33
+ .ENDIF
+?THEN33
+;
+; [1019]  xstep := 0
+;
+ LDY #<0
+ STY MK_XSTEP
+?ENDIF33
+?ENDIF32
+?ENDIF31
+ JMP ?ENDIF30
+?ELSE30
+;
+; [1025]  is_walk := 0
+;
+ LDY #<0
+ STY MK_IS_WALK
+;
+; [1026]  if is_jump == 0 then
+;
+ LDY MK_IS_JUMP ; (14b) a==b
+ CPY #<0
+ BEQ ?THEN34
+?FA42
+ .IF .NOT .DEF ?ELSE34
+ JMP ?ENDIF34
+ .ELSE
+ JMP ?ELSE34
+ .ENDIF
+?THEN34
+;
+; [1028]  xstep := 0
+;
+ LDY #<0
+ STY MK_XSTEP
+?ENDIF34
+?ENDIF30
+;
+; [1033]  if is_jump == 0 then
+;
+ LDY MK_IS_JUMP ; (14b) a==b
+ CPY #<0
+ BEQ ?THEN35
+?FA43
+ .IF .NOT .DEF ?ELSE35
+ JMP ?ENDIF35
+ .ELSE
+ JMP ?ELSE35
+ .ENDIF
+?THEN35
+;
+; [1036]  if @strig(0) == 0 and dude_alive == 1 then
+;
+ LDA #<0 ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>0 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @STRIG_I
+ CPY #<0 ;  (34)
+ BNE ?FA44
+ CPX #>0 ; (34)
+ BNE ?FA44
+ LDY MK_DUDE_ALIVE ; (14b) a==b
+ CPY #<1
+ BEQ ?THEN36
+?FA44
+ .IF .NOT .DEF ?ELSE36
+ JMP ?ENDIF36
+ .ELSE
+ JMP ?ELSE36
+ .ENDIF
+?THEN36
+;
+; [1039]  is_jump := 1
+;
+ LDY #<1
+ STY MK_IS_JUMP
+;
+; [1040]  is_jump_up := 1 // need to look over the dude
+;
+ LDY #<1
+ STY MK_IS_JUMP_UP
+;
+; [1041]  jump_animation := 0
+;
+ LDY #<0
+ STY MK_JUMP_ANIMATION
+ JMP ?ENDIF36
+?ELSE36
+;
+; [1045]  direction := direction ! is_walk
+;
+ LDA MK_DIRECTION
+ ORA MK_IS_WALK
+ STA MK_DIRECTION ; (11)
+?ENDIF36
+ JMP ?ENDIF35
+?ELSE35
+;
+; [1051]  direction := direction ! DIRECTION_JUMP
+;
+ LDA MK_DIRECTION
+ ORA #<8
+ STA MK_DIRECTION ; (11)
+;
+; [1052]  ystep := jump_ystep[jump_animation]
+;
+ LDY MK_JUMP_ANIMATION
+ LDA MK_JUMP_YSTEP,Y
+ STA MK_YSTEP ; (11)
+;
+; [1053]  if ystep == 0 then
+;
+ LDY MK_YSTEP ; (14b) a==b
+ CPY #<0
+ BEQ ?THEN37
+?FA46
+ .IF .NOT .DEF ?ELSE37
+ JMP ?ENDIF37
+ .ELSE
+ JMP ?ELSE37
+ .ENDIF
+?THEN37
+;
+; [1056]  is_jump_up := 0
+;
+ LDY #<0
+ STY MK_IS_JUMP_UP
+?ENDIF37
+;
+; [1058]  if ystep == 127 then
+;
+ LDY MK_YSTEP ; (14b) a==b
+ CPY #<127
+ BEQ ?THEN38
+?FA47
+ .IF .NOT .DEF ?ELSE38
+ JMP ?ENDIF38
+ .ELSE
+ JMP ?ELSE38
+ .ENDIF
+?THEN38
+;
+; [1060]  is_jump := 0
+;
+ LDY #<0
+ STY MK_IS_JUMP
+;
+; [1061]  ystep := 0
+;
+ LDY #<0
+ STY MK_YSTEP
+ JMP ?ENDIF38
+?ELSE38
+;
+; [1065]  jump_animation := jump_animation + 1
+;
+ INC MK_JUMP_ANIMATION ; (17)
+;
+; [1066]  if is_jump_up == 0 then
+;
+ LDY MK_IS_JUMP_UP ; (14b) a==b
+ CPY #<0
+ BEQ ?THEN39
+?FA48
+ .IF .NOT .DEF ?ELSE39
+ JMP ?ENDIF39
+ .ELSE
+ JMP ?ELSE39
+ .ENDIF
+?THEN39
+;
+; [1069]  if dude_ypos & 7 == 0 then
+;
+ LDA MK_DUDE_YPOS
+ AND #<7
+ CMP #0 ; (32)
+ BEQ ?THEN40 ; (25)
+?FA49
+ .IF .NOT .DEF ?ELSE40
+ JMP ?ENDIF40
+ .ELSE
+ JMP ?ELSE40
+ .ENDIF
+?THEN40
+;
+; [1071]  screen_pos := screen_dude_upper_left+121
+;
+ CLC
+ LDA MK_SCREEN_DUDE_UPPER_LEFT
+ ADC #<121
+ STA MK_SCREEN_POS ; (5)
+ LDA MK_SCREEN_DUDE_UPPER_LEFT+1
+ ADC #>121
+ STA MK_SCREEN_POS+1 ; (4)
+;
+; [1072]  floor := @mem[screen_pos]
+;
+ LDY MK_SCREEN_POS
+ LDX MK_SCREEN_POS+1
+ STY @GETARRAY
+ STX @GETARRAY+1
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ STA MK_FLOOR ; (11)
+;
+; [1083]  if dude_ypos >= 56 then
+;
+ LDY MK_DUDE_YPOS ; (14e) a>=b
+ CPY #<56
+ BCS ?THEN41
+?FA50
+ .IF .NOT .DEF ?ELSE41
+ JMP ?ENDIF41
+ .ELSE
+ JMP ?ELSE41
+ .ENDIF
+?THEN41
+;
+; [1086]  if @isFloorToWalk(floor) == 1 then
+;
+ LDA MK_FLOOR ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #0 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @ISFLOORTOWALK_I
+ CPY #<1 ;  (34)
+ BNE ?FA51
+ CPX #>1 ; (34)
+ BEQ ?THEN42 ; (25)
+?FA51
+ .IF .NOT .DEF ?ELSE42
+ JMP ?ENDIF42
+ .ELSE
+ JMP ?ELSE42
+ .ENDIF
+?THEN42
+;
+; [1090]  wall := @mem[screen_dude_upper_left + 81]
+;
+ CLC
+ LDA MK_SCREEN_DUDE_UPPER_LEFT
+ ADC #<81
+ STA @GETARRAY ; (5)
+ LDA MK_SCREEN_DUDE_UPPER_LEFT+1
+ ADC #>81
+ STA @GETARRAY+1 ; (4)
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ STA MK_WALL ; (11)
+;
+; [1091]  if wall != WALL_1 and wall != WALL_2 then
+;
+ LDY #<2
+ CPY MK_WALL ; (14)
+ BEQ ?FA52
+ LDY MK_WALL ; (14c) a!=b
+ CPY #<3
+ BNE ?THEN43
+?FA52
+ .IF .NOT .DEF ?ELSE43
+ JMP ?ENDIF43
+ .ELSE
+ JMP ?ELSE43
+ .ENDIF
+?THEN43
+;
+; [1094]  enteredFloor(screen_pos)
+;
+ LDA MK_SCREEN_POS ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA MK_SCREEN_POS+1 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR MK_ENTEREDFLOOR_I
+;
+; [1096]  ystep := 0
+;
+ LDY #<0
+ STY MK_YSTEP
+;
+; [1097]  is_jump := 0
+;
+ LDY #<0
+ STY MK_IS_JUMP
+?ENDIF43
+ JMP ?ENDIF42
+?ELSE42
+;
+; [1100]  else if floor == BODEN_MESSER_1HI or floor == BODEN_MESSER_2HI then
+;
+ LDY MK_FLOOR ; (14b) a==b
+ CPY #<141
+ BEQ ?THEN44
+?FA54
+ LDY MK_FLOOR ; (14b) a==b
+ CPY #<142
+ BEQ ?THEN44
+?FA55
+ .IF .NOT .DEF ?ELSE44
+ JMP ?ENDIF44
+ .ELSE
+ JMP ?ELSE44
+ .ENDIF
+?THEN44
+;
+; [1102]  @dude_died()
+;
+ JSR @DUDE_DIED
+;
+; [1103]  ystep := 0
+;
+ LDY #<0
+ STY MK_YSTEP
+;
+; [1104]  xstep := 0
+;
+ LDY #<0
+ STY MK_XSTEP
+ JMP ?ENDIF44
+?ELSE44
+;
+; [1106]  else if floor >= ELEVATOR_1 and floor <= ELEVATOR_6 then
+;
+ LDY #<86
+ CPY MK_FLOOR ; (14)
+ BEQ ?TR56
+ BCS ?FA56
+?TR56
+ LDY #<91 ; (14f) a<=b
+ CPY MK_FLOOR
+ BCS ?THEN45
+?FA56
+ .IF .NOT .DEF ?ELSE45
+ JMP ?ENDIF45
+ .ELSE
+ JMP ?ELSE45
+ .ENDIF
+?THEN45
+;
+; [1109]  ystep := 0
+;
+ LDY #<0
+ STY MK_YSTEP
+;
+; [1110]  is_jump := 0
+;
+ LDY #<0
+ STY MK_IS_JUMP
+;
+; [1111]  on_elevator := 1
+;
+ LDY #<1
+ STY MK_ON_ELEVATOR
+?ENDIF45
+?ENDIF44
+?ENDIF42
+?ENDIF41
+?ENDIF40
+?ENDIF39
+?ENDIF38
+?ENDIF35
+;
+; [1119]  if xstep != 0 then
+;
+ LDY MK_XSTEP ; (14c) a!=b
+ CPY #<0
+ BNE ?THEN46
+?FA58
+ .IF .NOT .DEF ?ELSE46
+ JMP ?ENDIF46
+ .ELSE
+ JMP ?ELSE46
+ .ENDIF
+?THEN46
+;
+; [1121]  if dude_ypos > 16 then
+;
+ LDY #<16 ; (14g) a>b
+ CPY MK_DUDE_YPOS
+ BCC ?THEN47
+?FA59
+ .IF .NOT .DEF ?ELSE47
+ JMP ?ENDIF47
+ .ELSE
+ JMP ?ELSE47
+ .ENDIF
+?THEN47
+;
+; [1123]  if xstep == 1 then
+;
+ LDY MK_XSTEP ; (14b) a==b
+ CPY #<1
+ BEQ ?THEN48
+?FA60
+ .IF .NOT .DEF ?ELSE48
+ JMP ?ENDIF48
+ .ELSE
+ JMP ?ELSE48
+ .ENDIF
+?THEN48
+;
+; [1126]  wall := @mem[screen_dude_upper_left+82]
+;
+ CLC
+ LDA MK_SCREEN_DUDE_UPPER_LEFT
+ ADC #<82
+ STA @GETARRAY ; (5)
+ LDA MK_SCREEN_DUDE_UPPER_LEFT+1
+ ADC #>82
+ STA @GETARRAY+1 ; (4)
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ STA MK_WALL ; (11)
+;
+; [1127]  if wall == WALL_1 or wall == WALL_2 then
+;
+ LDY MK_WALL ; (14b) a==b
+ CPY #<2
+ BEQ ?THEN49
+?FA61
+ LDY MK_WALL ; (14b) a==b
+ CPY #<3
+ BEQ ?THEN49
+?FA62
+ .IF .NOT .DEF ?ELSE49
+ JMP ?ENDIF49
+ .ELSE
+ JMP ?ELSE49
+ .ENDIF
+?THEN49
+;
+; [1129]  xstep := 0
+;
+ LDY #<0
+ STY MK_XSTEP
+?ENDIF49
+ JMP ?ENDIF48
+?ELSE48
+;
+; [1135]  wall := @mem[screen_dude_upper_left+80]
+;
+ CLC
+ LDA MK_SCREEN_DUDE_UPPER_LEFT
+ ADC #<80
+ STA @GETARRAY ; (5)
+ LDA MK_SCREEN_DUDE_UPPER_LEFT+1
+ ADC #>80
+ STA @GETARRAY+1 ; (4)
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ STA MK_WALL ; (11)
+;
+; [1136]  if wall == WALL_1 or wall == WALL_2 then
+;
+ LDY MK_WALL ; (14b) a==b
+ CPY #<2
+ BEQ ?THEN50
+?FA63
+ LDY MK_WALL ; (14b) a==b
+ CPY #<3
+ BEQ ?THEN50
+?FA64
+ .IF .NOT .DEF ?ELSE50
+ JMP ?ENDIF50
+ .ELSE
+ JMP ?ELSE50
+ .ENDIF
+?THEN50
+;
+; [1138]  xstep := 0
+;
+ LDY #<0
+ STY MK_XSTEP
+?ENDIF50
+?ENDIF48
+?ENDIF47
+?ENDIF46
+;
+; [1144]  if is_jump == 0 and on_elevator == 0 then
+;
+ LDY #<0
+ CPY MK_IS_JUMP ; (14)
+ BNE ?FA65
+ LDY MK_ON_ELEVATOR ; (14b) a==b
+ CPY #<0
+ BEQ ?THEN51
+?FA65
+ .IF .NOT .DEF ?ELSE51
+ JMP ?ENDIF51
+ .ELSE
+ JMP ?ELSE51
+ .ENDIF
+?THEN51
+;
+; [1146]  checkUnderDude()
+;
+ JSR MK_CHECKUNDERDUDE
+?ENDIF51
+;
+; [1149]  if ystep != 0 then dude_ypos := dude_ypos + ystep
+;
+ LDY MK_YSTEP ; (14c) a!=b
+ CPY #<0
+ BNE ?THEN52
+?FA67
+ .IF .NOT .DEF ?ELSE52
+ JMP ?ENDIF52
+ .ELSE
+ JMP ?ELSE52
+ .ENDIF
+?THEN52
+;
+; [1149]  if ystep != 0 then dude_ypos := dude_ypos + ystep
+;
+ CLC
+ LDA MK_DUDE_YPOS
+ ADC MK_YSTEP
+ STA MK_DUDE_YPOS ; (11)
+?ENDIF52
+;
+; [1150]  if xstep != 0 then dude_xpos := dude_xpos + xstep
+;
+ LDY MK_XSTEP ; (14c) a!=b
+ CPY #<0
+ BNE ?THEN53
+?FA68
+ .IF .NOT .DEF ?ELSE53
+ JMP ?ENDIF53
+ .ELSE
+ JMP ?ELSE53
+ .ENDIF
+?THEN53
+;
+; [1150]  if xstep != 0 then dude_xpos := dude_xpos + xstep
+;
+ CLC
+ LDA MK_DUDE_XPOS
+ ADC MK_XSTEP
+ STA MK_DUDE_XPOS ; (11)
+?ENDIF53
+;
+; [1152]  if dude_ypos > 200 then
+;
+ LDY #<200 ; (14g) a>b
+ CPY MK_DUDE_YPOS
+ BCC ?THEN54
+?FA69
+ .IF .NOT .DEF ?ELSE54
+ JMP ?ENDIF54
+ .ELSE
+ JMP ?ELSE54
+ .ENDIF
+?THEN54
+;
+; [1154]  ystep := 0
+;
+ LDY #<0
+ STY MK_YSTEP
+;
+; [1155]  xstep := 0
+;
+ LDY #<0
+ STY MK_XSTEP
+;
+; [1156]  @dude_died()
+;
+ JSR @DUDE_DIED
+?ENDIF54
+;
+; [1161]  if dude_alive == 1 then
+;
+ LDY MK_DUDE_ALIVE ; (14b) a==b
+ CPY #<1
+ BEQ ?THEN55
+?FA70
+ .IF .NOT .DEF ?ELSE55
+ JMP ?ENDIF55
+ .ELSE
+ JMP ?ELSE55
+ .ENDIF
+?THEN55
+;
+; [1174]  underdude := @mem[screen_dude_upper_left+81]
+;
+ CLC
+ LDA MK_SCREEN_DUDE_UPPER_LEFT
+ ADC #<81
+ STA @GETARRAY ; (5)
+ LDA MK_SCREEN_DUDE_UPPER_LEFT+1
+ ADC #>81
+ STA @GETARRAY+1 ; (4)
+ LDY #0
+ LDA (@GETARRAY),Y
+ LDX #0
+ STA MK_UNDERDUDE ; (11)
+;
+; [1176]  if underdude >= 19 then
+;
+ LDY MK_UNDERDUDE ; (14e) a>=b
+ CPY #<19
+ BCS ?THEN56
+?FA71
+ .IF .NOT .DEF ?ELSE56
+ JMP ?ENDIF56
+ .ELSE
+ JMP ?ELSE56
+ .ENDIF
+?THEN56
+;
+; [1178]  if underdude >= SANDCLOCK_1 and underdude <= SANDCLOCK_4 then
+;
+ LDY #<220
+ CPY MK_UNDERDUDE ; (14)
+ BEQ ?TR72
+ BCS ?FA72
+?TR72
+ LDY #<223 ; (14f) a<=b
+ CPY MK_UNDERDUDE
+ BCS ?THEN57
+?FA72
+ .IF .NOT .DEF ?ELSE57
+ JMP ?ENDIF57
+ .ELSE
+ JMP ?ELSE57
+ .ENDIF
+?THEN57
+;
+; [1181]  colbk_flash := 15
+;
+ LDY #<15
+ STY MK_COLBK_FLASH
+;
+; [1182]  @drawblock2x2(adr:sandclock_background, sandclock_screen)
+;
+ LDA #<MK_SANDCLOCK_BACKGROUND ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>MK_SANDCLOCK_BACKGROUND ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ LDA MK_SANDCLOCK_SCREEN ; (6)
+ LDY #3
+ STA (@HEAP_PTR),Y
+ LDA MK_SANDCLOCK_SCREEN+1 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @DRAWBLOCK2X2_II
+;
+; [1183]  gem_removed[2] := 1
+;
+ LDA #<1 ; (10)
+ LDX #<2 ; (38a)
+ STA MK_GEM_REMOVED,X
+;
+; [1185]  @seconds_white()
+;
+ JSR @SECONDS_WHITE
+;
+; [1186]  seconds := 60
+;
+ LDY #<60
+ STY MK_SECONDS
+?ENDIF57
+;
+; [1189]  if underdude >= STOPWATCH_1 and underdude <= STOPWATCH_4 then
+;
+ LDY #<224
+ CPY MK_UNDERDUDE ; (14)
+ BEQ ?TR74
+ BCS ?FA74
+?TR74
+ LDY #<227 ; (14f) a<=b
+ CPY MK_UNDERDUDE
+ BCS ?THEN58
+?FA74
+ .IF .NOT .DEF ?ELSE58
+ JMP ?ENDIF58
+ .ELSE
+ JMP ?ELSE58
+ .ENDIF
+?THEN58
+;
+; [1192]  colbk_flash := 15
+;
+ LDY #<15
+ STY MK_COLBK_FLASH
+;
+; [1193]  @drawblock2x2(adr:stopwatch_background, stopwatch_screen)
+;
+ LDA #<MK_STOPWATCH_BACKGROUND ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>MK_STOPWATCH_BACKGROUND ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ LDA MK_STOPWATCH_SCREEN ; (6)
+ LDY #3
+ STA (@HEAP_PTR),Y
+ LDA MK_STOPWATCH_SCREEN+1 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @DRAWBLOCK2X2_II
+;
+; [1194]  gem_removed[3] := 1
+;
+ LDA #<1 ; (10)
+ LDX #<3 ; (38a)
+ STA MK_GEM_REMOVED,X
+;
+; [1195]  for i:=0 to @getEnemies()+2 do
+;
+ LDY #<0
+ STY MK_I
+ JSR @GETENEMIES
+ CLC
+ TYA
+ ADC #<2
+ TAY
+ TXA
+ ADC #>2
+ TAX
+ STY ?FOR59
+?FORLOOP59
+ LDY ?FOR59
+ CPY MK_I
+ BCS ?GO59
+ JMP ?EXIT59
+?GO59
+;
+; [1197]  waitforani[i] := 255
+;
+ LDA #<255 ; (10)
+ LDX MK_I ; (38a)
+ STA MK_WAITFORANI,X
+ INC MK_I
+ JMP ?FORLOOP59
+?EXIT59
+?ENDIF58
+;
+; [1201]  if underdude >= SHIELD_1 and underdude <= SHIELD_4 then
+;
+ LDY #<228
+ CPY MK_UNDERDUDE ; (14)
+ BEQ ?TR76
+ BCS ?FA76
+?TR76
+ LDY #<231 ; (14f) a<=b
+ CPY MK_UNDERDUDE
+ BCS ?THEN60
+?FA76
+ .IF .NOT .DEF ?ELSE60
+ JMP ?ENDIF60
+ .ELSE
+ JMP ?ELSE60
+ .ENDIF
+?THEN60
+;
+; [1204]  colbk_flash := 15
+;
+ LDY #<15
+ STY MK_COLBK_FLASH
+;
+; [1205]  @drawblock2x2(adr:shield_background, shield_screen)
+;
+ LDA #<MK_SHIELD_BACKGROUND ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>MK_SHIELD_BACKGROUND ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ LDA MK_SHIELD_SCREEN ; (6)
+ LDY #3
+ STA (@HEAP_PTR),Y
+ LDA MK_SHIELD_SCREEN+1 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @DRAWBLOCK2X2_II
+;
+; [1206]  gem_removed[1] := 1
+;
+ LDA #<1 ; (10)
+ LDX #<1 ; (38a)
+ STA MK_GEM_REMOVED,X
+;
+; [1208]  @show_shield_Lives()
+;
+ JSR @SHOW_SHIELD_LIVES
+;
+; [1209]  shield_protection := 1
+;
+ LDY #<1
+ STY MK_SHIELD_PROTECTION
+?ENDIF60
+;
+; [1212]  if underdude >= GEMS_1 and underdude <= GEMS_4 then
+;
+ LDY #<232
+ CPY MK_UNDERDUDE ; (14)
+ BEQ ?TR78
+ BCS ?FA78
+?TR78
+ LDY #<235 ; (14f) a<=b
+ CPY MK_UNDERDUDE
+ BCS ?THEN61
+?FA78
+ .IF .NOT .DEF ?ELSE61
+ JMP ?ENDIF61
+ .ELSE
+ JMP ?ELSE61
+ .ENDIF
+?THEN61
+;
+; [1215]  colbk_flash := 15
+;
+ LDY #<15
+ STY MK_COLBK_FLASH
+;
+; [1216]  @drawblock2x2(adr:gems_background, gems_screen)
+;
+ LDA #<MK_GEMS_BACKGROUND ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>MK_GEMS_BACKGROUND ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ LDA MK_GEMS_SCREEN ; (6)
+ LDY #3
+ STA (@HEAP_PTR),Y
+ LDA MK_GEMS_SCREEN+1 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @DRAWBLOCK2X2_II
+;
+; [1217]  gem_removed[0] := 1
+;
+ LDA #<1 ; (10)
+ LDX #<0 ; (38a)
+ STA MK_GEM_REMOVED,X
+;
+; [1219]  @add_current_score(score_gems)
+;
+ LDA #<1280 ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>1280 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @ADD_CURRENT_SCORE_I
+?ENDIF61
+;
+; [1222]  if opendoor == 1 then
+;
+ LDY MK_OPENDOOR ; (14b) a==b
+ CPY #<1
+ BEQ ?THEN62
+?FA80
+ .IF .NOT .DEF ?ELSE62
+ JMP ?ENDIF62
+ .ELSE
+ JMP ?ELSE62
+ .ENDIF
+?THEN62
+;
+; [1224]  if underdude >= DOOR_OPENED_1 and underdude <= DOOR_OPENED_6 then
+;
+ LDY #<153
+ CPY MK_UNDERDUDE ; (14)
+ BEQ ?TR81
+ BCS ?FA81
+?TR81
+ LDY #<158 ; (14f) a<=b
+ CPY MK_UNDERDUDE
+ BCS ?THEN63
+?FA81
+ .IF .NOT .DEF ?ELSE63
+ JMP ?ENDIF63
+ .ELSE
+ JMP ?ELSE63
+ .ENDIF
+?THEN63
+;
+; [1226]  game_mode := MODE_LEVEL_DONE
+;
+ LDY #<6
+ STY MK_GAME_MODE
+?ENDIF63
+ JMP ?ENDIF62
+?ELSE62
+;
+; [1231]  if underdude == KEY_1 or underdude == KEY_2 then
+;
+ LDY MK_UNDERDUDE ; (14b) a==b
+ CPY #<159
+ BEQ ?THEN64
+?FA83
+ LDY MK_UNDERDUDE ; (14b) a==b
+ CPY #<160
+ BEQ ?THEN64
+?FA84
+ .IF .NOT .DEF ?ELSE64
+ JMP ?ENDIF64
+ .ELSE
+ JMP ?ELSE64
+ .ENDIF
+?THEN64
+;
+; [1234]  colbk_flash := 15
+;
+ LDY #<15
+ STY MK_COLBK_FLASH
+;
+; [1235]  @drawblock1x2(adr:key_background, key_screen)
+;
+ LDA #<MK_KEY_BACKGROUND ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>MK_KEY_BACKGROUND ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ LDA MK_KEY_SCREEN ; (6)
+ LDY #3
+ STA (@HEAP_PTR),Y
+ LDA MK_KEY_SCREEN+1 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @DRAWBLOCK1X2_II
+;
+; [1238]  screen := door_screen
+;
+ LDY MK_DOOR_SCREEN
+ LDX MK_DOOR_SCREEN+1
+ STY MK_SCREEN
+ STX MK_SCREEN+1
+;
+; [1239]  @drawblock3x2(adr:door_open_image, screen)
+;
+ LDA #<MK_DOOR_OPEN_IMAGE ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #>MK_DOOR_OPEN_IMAGE ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ LDA MK_SCREEN ; (6)
+ LDY #3
+ STA (@HEAP_PTR),Y
+ LDA MK_SCREEN+1 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @DRAWBLOCK3X2_II
+;
+; [1240]  opendoor := 1
+;
+ LDY #<1
+ STY MK_OPENDOOR
+?ENDIF64
+?ENDIF62
+?ENDIF56
+?ENDIF55
+;
+; [1256]  if p0pl != 0 then
+;
+ LDY MK_P0PL ; (14c) a!=b
+ CPY #<0
+ BNE ?THEN65
+?FA85
+ .IF .NOT .DEF ?ELSE65
+ JMP ?ENDIF65
+ .ELSE
+ JMP ?ELSE65
+ .ENDIF
+?THEN65
+;
+; [1261]  hitclr := 1
+;
+ LDY #<1
+ STY MK_HITCLR
+;
+; [1263]  if countOfEnemies > 0 then
+;
+ LDY #<0 ; (14g) a>b
+ CPY MK_COUNTOFENEMIES
+ BCC ?THEN66
+?FA86
+ .IF .NOT .DEF ?ELSE66
+ JMP ?ENDIF66
+ .ELSE
+ JMP ?ELSE66
+ .ENDIF
+?THEN66
+;
+; [1265]  for i:=1 to countOfEnemies+2 do
+;
+ LDY #<1
+ STY MK_I
+ CLC
+ LDA MK_COUNTOFENEMIES
+ ADC #<2
+ STA ?FOR67 ; (11)
+?FORLOOP67
+ LDY ?FOR67
+ CPY MK_I
+ BCS ?GO67
+ JMP ?EXIT67
+?GO67
+;
+; [1267]  collision_dude_ypos := sprite_y[0] / 8
+;
+ LDY #<0
+ LDA MK_SPRITE_Y,Y
+ LSR A
+ LSR A
+ LSR A
+ STA MK_COLLISION_DUDE_YPOS ; (11)
+;
+; [1269]  if sprite_shape[i] >= 40 then   // ab 40 beginnen die Enemies
+;
+ LDY MK_I
+ LDA MK_SPRITE_SHAPE,Y ; (49b) a[i]>=b
+ CMP #<40
+ BCS ?THEN68
+?FA87
+ .IF .NOT .DEF ?ELSE68
+ JMP ?ENDIF68
+ .ELSE
+ JMP ?ELSE68
+ .ENDIF
+?THEN68
+;
+; [1271]  collision_sprite_ypos := sprite_y[i] / 8
+;
+ LDY MK_I
+ LDA MK_SPRITE_Y,Y
+ LSR A
+ LSR A
+ LSR A
+ STA MK_COLLISION_SPRITE_YPOS ; (11)
+;
+; [1272]  if collision_dude_ypos == collision_sprite_ypos then
+;
+ LDY MK_COLLISION_DUDE_YPOS ; (14b) a==b
+ CPY MK_COLLISION_SPRITE_YPOS
+ BEQ ?THEN69
+?FA88
+ .IF .NOT .DEF ?ELSE69
+ JMP ?ENDIF69
+ .ELSE
+ JMP ?ELSE69
+ .ENDIF
+?THEN69
+;
+; [1275]  collision_dude_xpos := sprite_x[0] / 8
+;
+ LDY #<0
+ LDA MK_SPRITE_X,Y
+ LSR A
+ LSR A
+ LSR A
+ STA MK_COLLISION_DUDE_XPOS ; (11)
+;
+; [1276]  collision_sprite_xpos := sprite_x[i] / 8
+;
+ LDY MK_I
+ LDA MK_SPRITE_X,Y
+ LSR A
+ LSR A
+ LSR A
+ STA MK_COLLISION_SPRITE_XPOS ; (11)
+;
+; [1277]  if collision_dude_xpos == collision_sprite_xpos then
+;
+ LDY MK_COLLISION_DUDE_XPOS ; (14b) a==b
+ CPY MK_COLLISION_SPRITE_XPOS
+ BEQ ?THEN70
+?FA89
+ .IF .NOT .DEF ?ELSE70
+ JMP ?ENDIF70
+ .ELSE
+ JMP ?ELSE70
+ .ENDIF
+?THEN70
+;
+; [1280]  @dude_died()
+;
+ JSR @DUDE_DIED
+ JMP ?EXIT67
+;
+; [1282]  
+;
+?ENDIF70
+?ENDIF69
+?ENDIF68
+ INC MK_I
+ JMP ?FORLOOP67
+?EXIT67
+?ENDIF66
+?ENDIF65
+;
+; [1289]  if dude_alive == 0 then
+;
+ LDY MK_DUDE_ALIVE ; (14b) a==b
+ CPY #<0
+ BEQ ?THEN71
+?FA90
+ .IF .NOT .DEF ?ELSE71
+ JMP ?ENDIF71
+ .ELSE
+ JMP ?ELSE71
+ .ENDIF
+?THEN71
+;
+; [1291]  direction := (direction & %00000011) ! DIRECTION_DEAD
+;
+ LDA MK_DIRECTION
+ AND #<3
+ ORA #<16
+ STA MK_DIRECTION ; (11)
+;
+; [1292]  dead_countdown := dead_countdown - 1
+;
+ DEC MK_DEAD_COUNTDOWN ; (24)
+;
+; [1294]  if dead_countdown == 1 then
+;
+ LDY MK_DEAD_COUNTDOWN ; (14b) a==b
+ CPY #<1
+ BEQ ?THEN72
+?FA91
+ .IF .NOT .DEF ?ELSE72
+ JMP ?ENDIF72
+ .ELSE
+ JMP ?ELSE72
+ .ENDIF
+?THEN72
+;
+; [1296]  dude_after_dead()
+;
+ JSR MK_DUDE_AFTER_DEAD
+;
+; [1297]  immortal_countdown := 160 // ~5s
+;
+ LDY #<160
+ STY MK_IMMORTAL_COUNTDOWN
+?ENDIF72
+?ENDIF71
+;
+; [1301]  @drawDude(direction)
+;
+ LDA MK_DIRECTION ; (6)
+ LDY #1
+ STA (@HEAP_PTR),Y
+ LDA #0 ; (13)
+ INY
+ STA (@HEAP_PTR),Y
+ JSR @DRAWDUDE_I
+;
+; [1304]  last_direction := direction & %00000011
+;
+ LDA MK_DIRECTION
+ AND #<3
+ STA MK_LAST_DIRECTION ; (11)
+?ENDIF29
+;
+; [1317]  if on_elevator == 1 then
+;
+ LDY MK_ON_ELEVATOR ; (14b) a==b
+ CPY #<1
+ BEQ ?THEN73
+?FA92
+ .IF .NOT .DEF ?ELSE73
+ JMP ?ENDIF73
+ .ELSE
+ JMP ?ELSE73
+ .ENDIF
+?THEN73
+;
+; [1319]  elevator_mode := @getElevatorMode()
+;
+ JSR @GETELEVATORMODE
+ STY MK_ELEVATOR_MODE
+;
+; [1320]  if elevator_mode == 1 then
+;
+ LDY MK_ELEVATOR_MODE ; (14b) a==b
+ CPY #<1
+ BEQ ?THEN74
+?FA93
+ .IF .NOT .DEF ?ELSE74
+ JMP ?ENDIF74
+ .ELSE
+ JMP ?ELSE74
+ .ENDIF
+?THEN74
+;
+; [1322]  dude_xpos := dude_xpos + @getElevatorDirectionTicks()
+;
+ LDA MK_DUDE_XPOS
+ PHA
+ LDA #0
+ PHA
+ JSR @GETELEVATORDIRECTIONTICKS
+ STY @OP
+ STX @OP+1
+ PLA
+ TAX
+ PLA
+ CLC
+ ADC @OP
+ TAY
+ TXA
+ ADC @OP+1
+ TAX
+ STY MK_DUDE_XPOS
+ JMP ?ENDIF74
+?ELSE74
+;
+; [1324]  else if elevator_mode == 2 then
+;
+ LDY MK_ELEVATOR_MODE ; (14b) a==b
+ CPY #<2
+ BEQ ?THEN75
+?FA94
+ .IF .NOT .DEF ?ELSE75
+ JMP ?ENDIF75
+ .ELSE
+ JMP ?ELSE75
+ .ENDIF
+?THEN75
+;
+; [1328]  if @getElevatorDirection() == 2 then
+;
+ JSR @GETELEVATORDIRECTION
+ CPY #<2 ;  (34)
+ BNE ?FA95
+ CPX #>2 ; (34)
+ BEQ ?THEN76 ; (25)
+?FA95
+ .IF .NOT .DEF ?ELSE76
+ JMP ?ENDIF76
+ .ELSE
+ JMP ?ELSE76
+ .ENDIF
+?THEN76
+;
+; [1330]  dude_ypos := @getCurrentElevator() + 34 // 2 + 32
+;
+ JSR @GETCURRENTELEVATOR
+ CLC
+ TYA
+ ADC #<34
+ TAY
+ TXA
+ ADC #>34
+ TAX
+ STY MK_DUDE_YPOS
+ JMP ?ENDIF76
+?ELSE76
+;
+; [1334]  dude_ypos := @getCurrentElevator() + 30 // - 2 + 32
+;
+ JSR @GETCURRENTELEVATOR
+ CLC
+ TYA
+ ADC #<30
+ TAY
+ TXA
+ ADC #>30
+ TAX
+ STY MK_DUDE_YPOS
+?ENDIF76
+?ENDIF75
+?ENDIF74
+ JMP ?ENDIF73
+?ELSE73
+;
+; [1356]  dude_ypos_and_7 := dude_ypos & 7
+;
+ LDA MK_DUDE_YPOS
+ AND #<7
+ STA MK_DUDE_YPOS_AND_7 ; (11)
+;
+; [1357]  if is_jump == 0 and dude_ypos_and_7 == 4 then
+;
+ LDY #<0
+ CPY MK_IS_JUMP ; (14)
+ BNE ?FA96
+ LDY MK_DUDE_YPOS_AND_7 ; (14b) a==b
+ CPY #<4
+ BEQ ?THEN77
+?FA96
+ .IF .NOT .DEF ?ELSE77
+ JMP ?ENDIF77
+ .ELSE
+ JMP ?ELSE77
+ .ENDIF
+?THEN77
+;
+; [1359]  dude_ypos := dude_ypos + 2
+;
+ CLC
+ LDA MK_DUDE_YPOS
+ ADC #<2
+ STA MK_DUDE_YPOS ; (11)
+?ENDIF77
+;
+; [1361]  if dude_ypos_and_7 == 6 or dude_ypos_and_7 == 2 then
+;
+ LDY MK_DUDE_YPOS_AND_7 ; (14b) a==b
+ CPY #<6
+ BEQ ?THEN78
+?FA98
+ LDY MK_DUDE_YPOS_AND_7 ; (14b) a==b
+ CPY #<2
+ BEQ ?THEN78
+?FA99
+ .IF .NOT .DEF ?ELSE78
+ JMP ?ENDIF78
+ .ELSE
+ JMP ?ELSE78
+ .ENDIF
+?THEN78
+;
+; [1363]  dude_ypos := dude_ypos + 2
+;
+ CLC
+ LDA MK_DUDE_YPOS
+ ADC #<2
+ STA MK_DUDE_YPOS ; (11)
+?ENDIF78
+?ENDIF73
+?RETURN11
+ RTS
+@DUDE_P1_GO_LEFT_0
+ .BYTE $78,$8C,$54,$0,$0,$0,$D8,$0
+ .BYTE $4,$3C,$34,$30,$38,$38,$0,$38
+@DUDE_P2_GO_LEFT_0
+ .BYTE $0,$0,$22,$2A,$28,$78,$20,$38
+ .BYTE $0,$0,$0,$0,$4,$0,$10,$0
+@DUDE_P1_GO_LEFT_1
+ .BYTE $3C,$46,$2A,$0,$2,$44,$28,$0
+ .BYTE $4,$3A,$38,$38,$B0,$8A,$C2,$46
+@DUDE_P2_GO_LEFT_1
+ .BYTE $1,$1,$11,$14,$14,$38,$14,$38
+ .BYTE $0,$80,$82,$2,$0,$64,$2C,$0
+@DUDE_P1_GO_LEFT_2
+ .BYTE $3C,$46,$2A,$0,$2,$44,$28,$0
+ .BYTE $4,$4,$C,$0,$6D,$29,$1,$E3
+@DUDE_P2_GO_LEFT_2
+ .BYTE $1,$1,$11,$14,$14,$38,$14,$38
+ .BYTE $0,$30,$30,$0,$2,$46,$62,$0
+@DUDE_GO_LEFT
+ .BYTE 10,11,10,11,10,11,10,11
+ .BYTE 10,11,12,13,12,13,12,13
+ .BYTE 12,13,12,13,14,15,14,15
+ .BYTE 14,15,14,15,14,15,16,17
+ .BYTE 16,17,16,17,16,17,16,17
+ .BYTE 255
+@DUDE_P1_JUMP_LEFT_0
+ .BYTE $3C,$46,$2A,$0,$2,$44,$28,$0
+ .BYTE $0,$3C,$30,$B8,$9D,$C9,$43,$0
+@DUDE_P2_JUMP_LEFT_0
+ .BYTE $1,$1,$11,$14,$14,$38,$14,$38
+ .BYTE $81,$81,$0,$0,$62,$26,$0,$0
+@DUDE_JUMP_LEFT
+ .BYTE 18,19,255
+@DUDE_P1_JUMP_RIGHT_0
+ .BYTE $3C,$62,$54,$0,$40,$22,$14,$0
+ .BYTE $0,$3C,$C,$1D,$B9,$93,$C2,$0
+@DUDE_P2_JUMP_RIGHT_0
+ .BYTE $80,$80,$88,$28,$28,$1C,$28,$1C
+ .BYTE $81,$81,$0,$0,$46,$64,$0,$0
+@DUDE_JUMP_RIGHT
+ .BYTE 28,29,255
+@DUDE_P1_GO_RIGHT_0
+ .BYTE $1E,$31,$2A,$0,$0,$0,$1B,$0
+ .BYTE $20,$3C,$2C,$C,$1C,$1C,$0,$1C
+@DUDE_P2_GO_RIGHT_0
+ .BYTE $0,$0,$44,$54,$14,$1E,$4,$1C
+ .BYTE $0,$0,$0,$0,$20,$0,$8,$0
+@DUDE_P1_GO_RIGHT_1
+ .BYTE $3C,$62,$54,$0,$40,$22,$14,$0
+ .BYTE $20,$5C,$1C,$1C,$D,$51,$43,$62
+@DUDE_P2_GO_RIGHT_1
+ .BYTE $80,$80,$88,$28,$28,$1C,$28,$1C
+ .BYTE $0,$1,$41,$40,$0,$26,$34,$0
+@DUDE_P1_GO_RIGHT_2
+ .BYTE $3C,$62,$54,$0,$40,$22,$14,$0
+ .BYTE $20,$20,$30,$0,$B6,$94,$80,$C7
+@DUDE_P2_GO_RIGHT_2
+ .BYTE $80,$80,$88,$28,$28,$1C,$28,$1C
+ .BYTE $0,$C,$C,$0,$40,$62,$46,$0
+@DUDE_GO_RIGHT
+ .BYTE 20,21,20,21,20,21,20,21
+ .BYTE 20,21,22,23,22,23,22,23
+ .BYTE 22,23,22,23,24,25,24,25
+ .BYTE 24,25,24,25,24,25,26,27
+ .BYTE 26,27,26,27,26,27,26,27
+ .BYTE 255
+@DUDE_P1_DEAD_LEFT
+ .BYTE $0,$0,$0,$0,$7C,$82,$79,$2D
+ .BYTE $2D,$2C,$5C,$70,$0,$CD,$A1,$76
+@DUDE_DEAD_LEFT
+ .BYTE 30,255
+@DUDE_P1_DEAD_RIGHT
+ .BYTE $0,$0,$0,$0,$3E,$41,$9E,$B4
+ .BYTE $B4,$34,$3A,$E,$0,$B3,$85,$6E
+@DUDE_DEAD_RIGHT
+ .BYTE 31,255
+@FORM0
+ .BYTE $00,$00,$00,$00,$00,$00,$00,$00
+ .BYTE $18,$18,$00,$00,$00,$00,$00,$00
+@FORM1
+ .BYTE $00,$00,$00,$00,$00,$00,$00,$18
+ .BYTE $3C,$3C,$18,$00,$00,$00,$00,$00
+@FORM2
+ .BYTE $00,$00,$00,$00,$00,$18,$3C,$7E
+ .BYTE $7E,$7E,$7E,$3C,$18,$00,$00,$00
+@FORM3
+ .BYTE $00,$00,$00,$3C,$7E,$7E,$FF,$FF
+ .BYTE $FF,$FF,$FF,$FF,$7E,$7E,$3C,$00
+@FORM4
+ .BYTE $00,$00,$00,$3C,$7E,$7E,$FF,$FF
+ .BYTE $E7,$E7,$FF,$FF,$7E,$7E,$3C,$00
+@FORM5
+ .BYTE $00,$00,$00,$3C,$7E,$7E,$FF,$E7
+ .BYTE $C3,$C3,$E7,$FF,$7E,$7E,$3C,$00
+@FORM6
+ .BYTE $00,$00,$00,$3C,$7E,$66,$C3,$81
+ .BYTE $81,$81,$81,$C3,$66,$7E,$3C,$00
+@FORM7
+ .BYTE $00,$00,$00,$3C,$42,$42,$81,$81
+ .BYTE $81,$81,$81,$81,$42,$42,$3C,$00
+@FORMEMPTY
+ .BYTE $00,$00,$00,$00,$00,$00,$00,$00
+ .BYTE $00,$00,$00,$00,$00,$00,$00,$00
+MK_BLOWAWAY
+ .BYTE 8,0,1,2,3,4,5,6
+ .BYTE 7,8,8,255
+@BLOW
+ .BYTE 8,0,0,1,1,2,2,3
+ .BYTE 3,8,255,8,3,3,2,2
+ .BYTE 1,1,0,0,8,255
+MK_DUDE_STATES .BYTE 0
+MK_WAITSTATES .BYTE 0
+MK_NUMBER .BYTE 0
+MK_DUDE_DRAW_P1 .BYTE 0
+MK_DUDE_DRAW_P2 .BYTE 0
+MK_DUDE_NUMBER .BYTE 0
+MK_OPENDOOR .BYTE 0
+MK_LAST_DIRECTION .BYTE 0
+MK_XPOS_ .BYTE 0
+MK_YPOS_ .BYTE 0
+MK_IS_JUMP .BYTE 0
+MK_IS_JUMP_UP .BYTE 0
+MK_JUMP_ANIMATION .BYTE 0
+MK_DUDE_ALIVE .BYTE 0
+@DEAD_COUNTDOWN .BYTE 0
+MK_IMMORTAL_COUNTDOWN .BYTE 0
+MK_COUNTOFENEMIES .BYTE 0
+MK_DIRECTION .BYTE 0
+MK_JUMP_DIRECTION .BYTE 0
+MK_IS_WALK .BYTE 0
+MK_X .BYTE 0
+MK_Y .BYTE 0
+MK_YPF .BYTE 0
+MK_LINE .BYTE 0
+MK_YPOSQUAD .BYTE 0
+MK_LINES .BYTE 0
+MK_LINES_UNDER .BYTE 0
+MK_COLOR_DUDE1 .BYTE 0
+MK_COLOR_DUDE2 .BYTE 0
+MK_YADD .BYTE 0
+MK_I .BYTE 0
+?FOR21 .BYTE 0
+MK_GAME_SCREEN_P_YPOS .WORD 0
+MK_UNDERDUDE .BYTE 0
+MK_XSTEP .BYTE 0
+MK_YSTEP .BYTE 0
+MK_UP_BACKGROUND .BYTE 0
+MK_FLOOR .BYTE 0
+MK_WALL .BYTE 0
+MK_ON_ELEVATOR .BYTE 0
+MK_SCREEN_DUDE_UPPER_LEFT .WORD 0
+MK_ELEVATOR_MODE .BYTE 0
+MK_ELEVATOR_DIRECTION .BYTE 0
+MK_DUDE_YPOS_AND_7 .BYTE 0
+MK_SCREEN_POS .WORD 0
+MK_COLLISION_DUDE_XPOS .BYTE 0
+MK_COLLISION_DUDE_YPOS .BYTE 0
+MK_COLLISION_SPRITE_XPOS .BYTE 0
+MK_COLLISION_SPRITE_YPOS .BYTE 0
+?FOR59 .BYTE 0
+?FOR67 .BYTE 0
