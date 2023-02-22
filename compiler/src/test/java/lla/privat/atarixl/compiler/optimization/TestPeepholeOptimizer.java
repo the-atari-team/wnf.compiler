@@ -285,6 +285,25 @@ public class TestPeepholeOptimizer {
   }
 
   @Test
+  public void testWDec2() {
+    List<String> list = new ArrayList<>();
+    list.add(" SEC");
+    list.add(" TYA");
+    list.add(" SBC #<1");
+    list.add(" TAY");
+    list.add(" TXA");
+    list.add(" SBC #>1");
+    list.add(" TAX");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(6, source.getCode().size());
+  }
+
+  @Test
   public void testDec() {
     List<String> list = new ArrayList<>();
     list.add(" SEC");
@@ -1400,54 +1419,103 @@ public class TestPeepholeOptimizer {
  
 //Array Assignment with increment x[i] := x[i] + 1
 
-@Test
-public void testAssignmentByteArrayWithIncrement() {
- List<String> list = new ArrayList<>();
- list.add(" LDY INDEX");
- list.add(" STY @PUTARRAY");
- list.add(" LDY INDEX");
- list.add(" LDA X,Y");
- list.add(" CLC");
- list.add(" ADC #1");  
- list.add(" LDX @PUTARRAY");
- list.add(" STA X,X");
- list.add(" ...");
- source.resetCode(list);
+ @Test
+ public void testAssignmentByteArrayWithIncrement() {
+   List<String> list = new ArrayList<>();
+   list.add(" LDY INDEX");
+   list.add(" STY @PUTARRAY");
+   list.add(" LDY INDEX");
+   list.add(" LDA X,Y");
+   list.add(" CLC");
+   list.add(" ADC #1");
+   list.add(" LDX @PUTARRAY");
+   list.add(" STA X,X");
+   list.add(" ...");
+   source.resetCode(list);
 
- peepholeOptimizerSUT.setLevel(2).optimize().build();
- Assert.assertEquals(2, peepholeOptimizerSUT.getUsedOptimisations());
+   peepholeOptimizerSUT.setLevel(2).optimize().build();
+   Assert.assertEquals(2, peepholeOptimizerSUT.getUsedOptimisations());
 
 // Assert.assertEquals(3, source.getCode().size());
- 
- int n = -1;
- List<String> code = source.getCode();
- Assert.assertEquals(" LDX INDEX", code.get(++n));
- Assert.assertEquals(" INC X,X ; (50)", code.get(++n));
-}
+
+   int n = -1;
+   List<String> code = source.getCode();
+   Assert.assertEquals(" LDX INDEX", code.get(++n));
+   Assert.assertEquals(" INC X,X ; (50)", code.get(++n));
+ }
 
 //Array Assignment with decrement x[i] := x[i] - 1
 
-@Test
-public void testAssignmentByteArrayWithDecrement() {
-  List<String> list = new ArrayList<>();
-  list.add(" LDY INDEX");
-  list.add(" LDA X,Y");
-  list.add(" SEC");
-  list.add(" SBC #1");
-  list.add(" LDX INDEX");
-  list.add(" STA X,X");
-  list.add(" ...");
-  source.resetCode(list);
+ @Test
+ public void testAssignmentByteArrayWithDecrement() {
+   List<String> list = new ArrayList<>();
+   list.add(" LDY INDEX");
+   list.add(" LDA X,Y");
+   list.add(" SEC");
+   list.add(" SBC #<1");
+   list.add(" LDX INDEX");
+   list.add(" STA X,X");
+   list.add(" ...");
+   source.resetCode(list);
 
-  peepholeOptimizerSUT.setLevel(2).optimize().build();
-  Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+   peepholeOptimizerSUT.setLevel(2).optimize().build();
+   Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
 //Assert.assertEquals(3, source.getCode().size());
 
-  int n = -1;
-  List<String> code = source.getCode();
-  Assert.assertEquals(" LDX INDEX", code.get(++n));
-  Assert.assertEquals(" DEC X,X ; (51)", code.get(++n));
-}
+   int n = -1;
+   List<String> code = source.getCode();
+   Assert.assertEquals(" LDX INDEX", code.get(++n));
+   Assert.assertEquals(" DEC X,X ; (51)", code.get(++n));
+ }
+
+ @Test
+ public void testAssignmentMem() {
+   // Source source = new Source("@mem[710]:=$41").setVerboseLevel(2);
+
+   List<String> list = new ArrayList<>();
+
+   list.add("; (5)");
+   list.add(" LDY #<710");
+   list.add(" LDX #>710");
+   list.add(" STY @PUTARRAY");
+   list.add(" STX @PUTARRAY+1");
+
+   list.add("; (5)");
+   list.add(" LDY #<65");
+   list.add(" TYA");
+   list.add(" LDY #0");
+   // ldy @putarray_byteindex
+   list.add(" STA (@PUTARRAY),Y");
+   list.add(" ...");
+   source.resetCode(list);
+
+   peepholeOptimizerSUT.setLevel(2).optimize().build();
+   Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//Assert.assertEquals(3, source.getCode().size());
+
+   int n = -1;
+   List<String> code = source.getCode();
+
+   // ldx #>710
+   // sta $0+1
+   // lda #<65
+   // ldy #<710
+   // sta ($00),y
+   // 15 cycles 10 bytes ; setzt voraus, das $00 IMMER 0 ist
+
+   Assert.assertEquals(" LDY #<710", source.getCode().get(++n));
+   Assert.assertEquals(" LDX #>710", source.getCode().get(++n));
+   Assert.assertEquals(" STY @PUTARRAY", source.getCode().get(++n));
+   Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n));
+
+   Assert.assertEquals(" LDA #<65 ; (10)", source.getCode().get(++n));
+   Assert.assertEquals(" LDY #0", source.getCode().get(++n));
+   // ldy @putarray_byteindex
+   Assert.assertEquals(" STA (@PUTARRAY),Y", source.getCode().get(++n));
+   // 20 cycles 14 bytes
+ }
 
 }
+

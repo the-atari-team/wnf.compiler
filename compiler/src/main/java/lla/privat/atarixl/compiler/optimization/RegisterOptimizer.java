@@ -18,8 +18,8 @@ public class RegisterOptimizer {
 //  private int line;
 
   private String accu = "";
-  private String yRegister = "";
-  private String xRegister = "";
+  private ArrayList<String> yRegisterList = new ArrayList<>();
+  private ArrayList<String> xRegisterList = new ArrayList<>();
 
   private int countOfOptimizations;
   
@@ -61,8 +61,8 @@ public class RegisterOptimizer {
       if (isSprungMarke(codeLine)) {
         // Sämtliche Register löschen.
         this.accu = "";
-        this.yRegister = "";
-        this.xRegister = "";
+        this.yRegisterList.clear();
+        this.xRegisterList.clear();
       }
       else if (codeLine.startsWith(" LDA ")) {
         String accu = getVariable(codeLine.replace(" LDA ", ""));
@@ -77,57 +77,64 @@ public class RegisterOptimizer {
       else if (codeLine.startsWith(" STA ")) {
         String accu = getVariable(codeLine.replace(" STA ", ""));
         if (!accu.contains(",")) {
-          if (this.xRegister.equals(accu)) {
-            xRegister = "";
+          if (this.xRegisterList.contains(accu)) {
+            xRegisterList.clear();
           }
-          if (this.yRegister.equals(accu)) {
-            yRegister = "";
+          if (this.yRegisterList.contains(accu)) {
+            yRegisterList.clear();
           }
           this.accu = accu;
         }
       }
       else if (codeLine.startsWith(" LDY ")) {
         String yRegister = getVariable(codeLine.replace(" LDY ", ""));
-        if (this.yRegister.equals(yRegister) && this.yRegister.length() > 0) {
+        if (yRegisterList.contains(yRegister)) {
           // optimize possible
           codeList.set(line, "; " + codeLine + " ; (100)");
 
           incrementStatus();
         }
-        this.yRegister = yRegister;
+        else {
+          this.yRegisterList.clear();
+          this.yRegisterList.add(yRegister);
+        }
       }
       else if (codeLine.startsWith(" STY ")) {
         String yRegister = getVariable(codeLine.replace(" STY ", ""));
-        if (!yRegister.contains(",")) {
-          if (this.xRegister.equals(yRegister)) {
-            xRegister = "";
+        if (!yRegister.contains(",") && yRegister.length() > 0) {
+          if (this.xRegisterList.contains(yRegister)) {
+            xRegisterList.clear();
           }
           if (this.accu.equals(yRegister)) {
             this.accu = "";
           }
-          this.yRegister = yRegister;
+          // this.yRegisterList.clear();
+          this.yRegisterList.add(yRegister);
         }
       }
       else if (codeLine.startsWith(" LDX ")) {
         String xRegister = getVariable(codeLine.replace(" LDX ", ""));
-        if (this.xRegister.equals(xRegister) && this.xRegister.length() > 0) {
+        if (this.xRegisterList.contains(xRegister)) {
           // optimize possible
           codeList.set(line, "; " + codeLine + " ; (100)");
 
           incrementStatus();
         }
-        this.xRegister = xRegister;
+        else {
+          this.xRegisterList.clear();
+          this.xRegisterList.add(xRegister);
+        }
       }
       else if (codeLine.startsWith(" STX ")) {
         String xRegister = getVariable(codeLine.replace(" STX ", ""));
         if (!xRegister.contains(",")) {
-          if (this.yRegister.equals(xRegister)) {
-            this.yRegister = "";
+          if (this.yRegisterList.contains(xRegister)) {
+            this.yRegisterList.clear();
           }
           if (this.accu.equals(xRegister)) {
             this.accu = "";
           }
-          this.xRegister = xRegister;
+          this.xRegisterList.add(xRegister);
         }
       }
       // @formatter:off
@@ -138,10 +145,6 @@ public class RegisterOptimizer {
           codeLine.startsWith(" AND ") ||
           codeLine.startsWith(" EOR ") ||
           codeLine.startsWith(" ORA ") ||
-          codeLine.startsWith(" ASL") || // TODO! Only ASL A, LSR A, ROR A, ROL A will destroy accu
-          codeLine.startsWith(" LSR") ||
-          codeLine.startsWith(" ROL") ||
-          codeLine.startsWith(" ROR") ||
           codeLine.startsWith(" TXA") ||
           codeLine.startsWith(" TYA") ||
           codeLine.startsWith(" PLA")) {
@@ -151,6 +154,96 @@ public class RegisterOptimizer {
         this.accu = "";
       }
 
+//      codeLine.startsWith(" LSR") ||
+//      codeLine.startsWith(" ROL") ||
+//      codeLine.startsWith(" ROR")
+
+      // @formatter:off
+      else if (codeLine.startsWith(" ASL")) { // TODO! Only ASL A, LSR A, ROR A, ROL A will destroy accu
+      // @formatter:on
+      // accu wurde manipulliert, also einfach löschen
+        String memory = getVariable(codeLine.replace(" ASL ", ""));
+        if (memory.contains(",")) {
+          yRegisterList.clear();
+          xRegisterList.clear();
+          accu = "";
+        }
+        else {
+          if (this.yRegisterList.contains(memory)) {
+            this.yRegisterList.clear();
+          }
+          if (this.xRegisterList.contains(memory)) {
+            this.xRegisterList.clear();
+          }
+          if (this.accu.equals(memory) || memory.equals("A")) {
+            this.accu = "";
+          }
+        }
+      }
+      else if (codeLine.startsWith(" LSR")) { // TODO! Only ASL A, LSR A, ROR A, ROL A will destroy accu
+      // @formatter:on
+      // accu wurde manipulliert, also einfach löschen
+        String memory = getVariable(codeLine.replace(" LSR ", ""));
+        if (memory.contains(",")) {
+          yRegisterList.clear();
+          xRegisterList.clear();
+          accu = "";
+        }
+        else {
+          if (this.yRegisterList.contains(memory)) {
+            this.yRegisterList.clear();
+          }
+          if (this.xRegisterList.contains(memory)) {
+            this.xRegisterList.clear();
+          }
+          if (this.accu.equals(memory) || memory.equals("A")) {
+            this.accu = "";
+          }
+        }
+      }
+      else if (codeLine.startsWith(" ROR")) { // TODO! Only ASL A, LSR A, ROR A, ROL A will destroy accu
+      // @formatter:on
+      // accu wurde manipulliert, also einfach löschen
+        String memory = getVariable(codeLine.replace(" ROR ", ""));
+        if (memory.contains(",")) {
+          yRegisterList.clear();
+          xRegisterList.clear();
+          accu = "";
+        }
+        else {
+          if (this.yRegisterList.contains(memory)) {
+            this.yRegisterList.clear();
+          }
+          if (this.xRegisterList.contains(memory)) {
+            this.xRegisterList.clear();
+          }
+          if (this.accu.equals(memory) || memory.equals("A")) {
+            this.accu = "";
+          }
+        }
+      }
+      else if (codeLine.startsWith(" ROL")) { // TODO! Only ASL A, LSR A, ROR A, ROL A will destroy accu
+      // @formatter:on
+      // accu wurde manipulliert, also einfach löschen
+        String memory = getVariable(codeLine.replace(" ROL ", ""));
+        if (memory.contains(",")) {
+          yRegisterList.clear();
+          xRegisterList.clear();
+          accu = "";
+        }
+        else {
+          if (this.yRegisterList.contains(memory)) {
+            this.yRegisterList.clear();
+          }
+          if (this.xRegisterList.contains(memory)) {
+            this.xRegisterList.clear();
+          }
+          if (this.accu.equals(memory) || memory.equals("A")) {
+            this.accu = "";
+          }
+        }
+      }
+
       // @formatter:off
       else if (
           codeLine.startsWith(" INY") ||
@@ -158,7 +251,7 @@ public class RegisterOptimizer {
           codeLine.startsWith(" TAY")) {
         // yRegister wurde manipuliert, also einfach löschen
         // @formatter:on
-        this.yRegister = "";
+        this.yRegisterList.clear();
       }
       // @formatter:off
       else if (
@@ -168,8 +261,39 @@ public class RegisterOptimizer {
           codeLine.startsWith(" TSX")) {
         // xRegister wurde manipuliert, also einfach löschen
         // @formatter:on
-        this.xRegister = "";
+        this.xRegisterList.clear();
       }
+      else if (codeLine.startsWith(" INC ")) {
+        String memory = getVariable(codeLine.replace(" INC ", ""));
+        if (memory.contains(",")) {
+          memory = memory.substring(0, memory.indexOf(','));
+        }
+        if (this.xRegisterList.contains(memory)) {
+          xRegisterList.clear();
+        }
+        if (this.yRegisterList.contains(memory)) {
+          yRegisterList.clear();
+        }
+        if (this.accu.equals(memory)) {
+          this.accu = "";
+        }
+      }
+      else if (codeLine.startsWith(" DEC ")) {
+        String memory = getVariable(codeLine.replace(" DEC ", ""));
+        if (memory.contains(",")) {
+          memory = memory.substring(0, memory.indexOf(','));
+        }
+        if (this.xRegisterList.contains(memory)) {
+          xRegisterList.clear();
+        }
+        if (this.yRegisterList.contains(memory)) {
+          yRegisterList.clear();
+        }
+        if (this.accu.equals(memory)) {
+          this.accu = "";
+        }
+      }
+      
     }
   }
 
@@ -228,9 +352,9 @@ public class RegisterOptimizer {
     if (variable.startsWith("(")) {
       return "";
     }
-    if (variable.startsWith("@")) {
-      return "";
-    }
+//    if (variable.startsWith("@")) {
+//      return "";
+//    }
     return variable;
   }
 }

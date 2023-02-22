@@ -1191,6 +1191,9 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
     for (int i = 0; i < codeList.size() - 7; i++) {
       word_index_sub(i, PeepholeType.WORD_INDEX_SUB);
     }
+    for (int i = 0; i < codeList.size() - 6; i++) {
+      word_index_sub2(i, PeepholeType.WORD_INDEX_SUB);
+    }
   }
 
   private void word_index_sub(int index, PeepholeType type) {
@@ -1224,7 +1227,38 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
       }
     }
   }
+  
+  private void word_index_sub2(int index, PeepholeType type) {
+    // @formatter:off
+    if (codeList.get(index).startsWith(" SEC") &&
+        codeList.get(index + 1).startsWith(" TYA") &&
+        codeList.get(index + 2).startsWith(" SBC #<1") &&
+        codeList.get(index + 3).startsWith(" TAY") &&
+        codeList.get(index + 4).startsWith(" TXA") &&
+        codeList.get(index + 5).startsWith(" SBC #") &&
+        codeList.get(index + 6).startsWith(" TAX")
+        ) {
+      // @formatter:on
 
+      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+      String value = codeList.get(index + 2).replace(" SBC #<", "");
+      if (value.equals("1")) {
+        
+        codeList.set(index + 0, ";opt SEC");
+        codeList.set(index + 1, " CPY #0");
+        codeList.set(index + 2, " BNE ?WORD_INDEX_SUB" + count);
+        codeList.set(index + 3, " DEX");
+        codeList.set(index + 4, "?WORD_INDEX_SUB" + count);
+        codeList.set(index + 5, " DEY ; (22b)");
+        codeList.set(index + 6, ";opt TAX");
+
+        incrementStatus(type);
+      }
+    }
+  }
+
+  
   private void byte_index_add() {
     for (int i = 0; i < codeList.size() - 5; i++) {
       byte_index_add(i, PeepholeType.BYTE_INDEX_ADD);
@@ -2343,7 +2377,10 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
     if (codeList.get(index    ).startsWith(" LDY") &&
         codeList.get(index + 1).startsWith(" LDA") &&       
         codeList.get(index + 2).startsWith(" SEC") &&
-        codeList.get(index + 3).equals(    " SBC #1") &&
+        (
+            codeList.get(index + 3).equals(    " SBC #1") ||
+            codeList.get(index + 3).equals(    " SBC #<1")
+        ) &&
         codeList.get(index + 4).startsWith(" LDX") &&
         codeList.get(index + 5).startsWith(" STA")
      ) {
