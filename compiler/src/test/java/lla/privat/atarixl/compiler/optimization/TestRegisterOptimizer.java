@@ -439,4 +439,33 @@ public class TestRegisterOptimizer {
     Assert.assertEquals(0, registerOptimizerSUT.getUsedOptimisations());
   }
 
+  @Test
+  public void testLoadXYindirect() {
+    List<String> list = new ArrayList<>();
+
+    list.add(";");
+    list.add("; [131]  x1 := pointshow[x1]");
+    list.add(";");
+    list.add(" LDY X1");
+    list.add(" LDX POINTSHOW_HIGH,Y ; (45)");
+    list.add(" LDA POINTSHOW_LOW,Y");
+    list.add(" STA X1 ; (11)");
+    list.add(" STX X1+1");
+    list.add(";");
+    list.add("; [132]  y1 := pointshow[y1]");
+    list.add(";");
+    list.add(" LDY Y1");
+    list.add(" LDX POINTSHOW_HIGH,Y ; (45)"); // Das darf nicht optimiert werden, da Y-Register anders sein kann!
+    list.add(" LDA POINTSHOW_LOW,Y");
+    list.add(" STA Y1 ; (11)");
+    list.add(" STX Y1+1");
+    list.add(" ...");
+ 
+    source.resetCode(list);
+  
+    registerOptimizerSUT.optimize();
+  
+    Assert.assertEquals(0, registerOptimizerSUT.getUsedOptimisations());
+  }
+
 }

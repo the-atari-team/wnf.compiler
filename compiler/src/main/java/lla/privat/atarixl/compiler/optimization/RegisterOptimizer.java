@@ -66,7 +66,7 @@ public class RegisterOptimizer {
       }
       else if (codeLine.startsWith(" LDA ")) {
         String accu = getVariable(codeLine.replace(" LDA ", ""));
-        if (this.accu.equals(accu) && this.accu.length() > 0) {
+        if (!accu.contains(",") && this.accu.equals(accu) && this.accu.length() > 0) {
           // optimize possible
           codeList.set(line, "; " + codeLine + " ; (100)");
 
@@ -88,7 +88,7 @@ public class RegisterOptimizer {
       }
       else if (codeLine.startsWith(" LDY ")) {
         String yRegister = getVariable(codeLine.replace(" LDY ", ""));
-        if (yRegisterList.contains(yRegister)) {
+        if (!yRegister.contains(",") && yRegisterList.contains(yRegister)) {
           // optimize possible
           codeList.set(line, "; " + codeLine + " ; (100)");
 
@@ -114,7 +114,7 @@ public class RegisterOptimizer {
       }
       else if (codeLine.startsWith(" LDX ")) {
         String xRegister = getVariable(codeLine.replace(" LDX ", ""));
-        if (this.xRegisterList.contains(xRegister)) {
+        if (!xRegister.contains(",") && this.xRegisterList.contains(xRegister)) {
           // optimize possible
           codeList.set(line, "; " + codeLine + " ; (100)");
 
