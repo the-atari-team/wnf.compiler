@@ -377,10 +377,10 @@ public class TestAssignment {
 
   @Test
   public void testAssignmentToByteWithFunctionCall() {
-    Source source = new Source("n := @strcmp(adr:men, 'John Doe')").setVerboseLevel(2);
+    Source source = new Source("n := @strcmp(adr:men, \"John Doe\")").setVerboseLevel(2);
     source.addVariable("N", Type.BYTE);
     source.addVariable("MEN", Type.WORD);
-//    source.addVariable("'John Doe'", Type.STRING_ANONYM);
+//    source.addVariable("\"John Doe\"", Type.STRING_ANONYM);
     source.addVariable("@STRCMP", Type.FUNCTION);
 
     Symbol symbol = source.nextElement();
@@ -869,7 +869,7 @@ public class TestAssignment {
 
   @Test
   public void testAssignmentXisString() {
-    Source source = new Source("x:='Hallo'").setVerboseLevel(2);
+    Source source = new Source("x:=\"Hallo\"").setVerboseLevel(2);
     source.addVariable("X", Type.WORD);
 
     Symbol symbol = source.nextElement();

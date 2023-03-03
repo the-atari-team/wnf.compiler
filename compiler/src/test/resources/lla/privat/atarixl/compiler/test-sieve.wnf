@@ -27,17 +27,17 @@ word I=208, K=210
 procedure showPrimeValues()
 begin
   // The first prime value we show in a hard way
-  @printf('\nPrime: 2 ')
+  @printf("\nPrime: 2 ")
 
   for i:=0 to 200 do
   begin
     if flags[i] == 'T' then
     begin
       PRIME := I + I + 3
-      @printf('%d ', prime)
+      @printf("%d ", prime)
     end
   end
-  @printf('\n')
+  @printf("\n")
 end
 
 
@@ -75,7 +75,7 @@ word hash
 // Hauptprogramm
 begin
   j := 0
-  @printf('Wait a moment...')
+  @printf("Wait a moment...")
   @starttime()
 
   while j < 10 do
@@ -86,32 +86,32 @@ begin
 
   time := @stoptime()
 
-  @printf('count: %d\n', count)
+  @printf("count: %d\n", count)
 
   showPrimeValues()
 
-  @printf('\n\n')
+  @printf("\n\n")
   @SHOWGIVENTIME(time)
 
-  assert(time > 773, 'Wir werden schneller')
-  assert(time < 1015, 'Wir werden langsamer')
+  assert(time > 773, "Wir werden schneller")
+  assert(time < 1015, "Wir werden langsamer")
 
 
   // Wir wollen prüfen, ob Primes richtig ist und bilden einfach eine Hashsumme über die 7 Zeilen des Outputs
   hash := @createHashOfLines($bc40 + 3*40, 8, 1)
 
-  @printf('Hashwert:%D\n', hash)
-  assert(hash == 6278, 'Hash not correct')
+  @printf("Hashwert:%D\n", hash)
+  assert(hash == 6278, "Hash not correct")
 
   @exit(@getAsserts())
 end
 
-include 'SCREEN_OUTPUT.INC'
-include 'PRINTF.INC'
-include 'MATH.INC'
-include 'TIME.INC'
-include 'BASIC.INC'
-include 'ARRAY.INC'
-include 'TESTCRC.INC' // Diese Datei wird vom Compiler erstellt
-include 'GETCHAR.INC'
+include "SCREEN_OUTPUT.INC"
+include "PRINTF.INC"
+include "MATH.INC"
+include "TIME.INC"
+include "BASIC.INC"
+include "ARRAY.INC"
+include "TESTCRC.INC" // Diese Datei wird vom Compiler erstellt
+include "GETCHAR.INC"
 // RUNTIME.INC wird automatisch angehaengt

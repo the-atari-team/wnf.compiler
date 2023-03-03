@@ -191,12 +191,12 @@ Berechnungsroutine läuft, damit kann man auf mehr als 256 Werte
 schnell zugreifen.
 Intern wird das als FAT_BYTE_ARRAY gehandhabt.
 
-`byte array einString[1]=[ 'Hallo Welt' ]`::
+`byte array einString[1]=[ "Hallo Welt" ]`::
 Ist eine Möglichkeit einen String im Speicher abzulegen.
 Strings werden immer mit $FF terminiert.
 Warum ausgerechnet $FF? Is so, fertig.
 
-`string einString = ['Hallo Welt']`::
+`string einString = ["Hallo Welt"]`::
 Ist eine weitere Möglichkeit einen String im Speicher abzulegen.
 Spart nur Tipparbeit, das Resultat ist ähnlich ein Byte Array.
 Da es ein byte array ist funktioniert einString[0] auch hier.
@@ -242,14 +242,14 @@ Also hier die Konstanten `bigw_length` und `bigw_elements`.
 Liste von Strings::
 ----
 // Die einzelnen String
-string eins=['eins']
-string zwei=['zwo']
+string eins=["eins"]
+string zwei=["zwo"]
 
 // list[] enthält jetzt die Strings
 word array list[1] = [eins, zwei]
 ----
 Zwei Strings, die in einer Liste abgelegt sind.
-Über list[0] kommt man an den ersten String ('eins') heran.
+Über list[0] kommt man an den ersten String ("eins") heran.
 So sind Listen von Strings möglich.
 Ein Feature, das es in Atari-Basic nicht gibt.
 Hier kann auf den Adressenprefix "adr:" verzichtet werden.
@@ -257,7 +257,7 @@ adr:eins, adr:zwei geht trotzdem und wird überlesen,
 ist nur mehr Tipparbeit.
 
 [source]
-word array list[1] = ['eins', 'zwei']
+word array list[1] = ["eins", "zwei"]
 
 Das direkte Angeben von Strings in Word-Listen funktioniert auch.
 
@@ -467,7 +467,7 @@ Wie die Parameter in Assembler ausgefragt werden ist in link:TESTFUNC.INC[] besc
 
 oder
 
-`x := @open(1,4,0,'D:TESTFILE')` Da wir Strings in Expressions haben, ist das hier erlaubt.
+`x := @open(1,4,0,"D:TESTFILE")` Da wir Strings in Expressions haben, ist das hier erlaubt.
 
 `@(funcname)(parameter)`::
 Function Pointer Call.
@@ -488,7 +488,7 @@ Word, damit ist die Berechnung von _großen_ Zahlen einfacher.
 Wir prüfen zuerst, ob es sich um einen String handelt und geben dann
 die Adresse des Strings zurück.
 Damit kann man überall wo Expressions erlaubt sind auch Strings einsetzen. Nur Rechnen mit
-Strings ist nicht möglich. 'aa'+'bb' ist falsch. 'a'+'b' ist 97+98 (195) weil Strings der
+Strings ist nicht möglich. "aa"+"bb" ist falsch. 'a'+'b' ist 97+98 (195) weil Strings der
 Länge 1 als Zahl aus den ASCII-Zeichen interpretiert werden. Deshalb gibt es keine 1 Byte langen Strings.
 
 Intern wird der mathematische Ausdruck in eine UPN Notation umgesetzt.
@@ -538,7 +538,7 @@ Wie die Expressions in BNF aktuell aussieht:
  variable-name ::= [a-zA-Z@][a-zA-Z0-9_@]*
  function-call ::= variable-name
  get_parameter ::= (nil | expression (',' expression)* )
- String ::= '\'' .* '\''
+ String ::= '\"' .* '\"'
  short-string ::= '\'' one-char '\''
  one-char ::= ?
  number ::= ( '%' binary | '#' quad | '$' hexadecimal | [0-9.]+ )
@@ -547,7 +547,9 @@ Wie die Expressions in BNF aktuell aussieht:
  hexadecimal ::= [0-9A-F.]+
 
 
-* HINWEIS: Ein String besteht aus mindestens 2 Zeichen, sonst wird es als ASCII Zahl interpretiert.
+* HINWEIS: Ein String fängt IMMER mit " an und endet mit ",
+ein String mit single quotes ist nur noch als ein Zeichen erlaubt.
+'A' wird zu 65, während "A" ein String ist mit einem Zeichen und eine Ende-Marke bekommt.
 
 === CONDITION
 

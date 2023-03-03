@@ -181,7 +181,7 @@ public class Expression extends Code {
 
     // Strings with length or 1 ('a') has intern length of 3 can act like a 'a Value
     // 97
-    if (symbol.getId() == SymbolEnum.string && symbol.get().length() > 3) {
+    if (symbol.getId() == SymbolEnum.string && symbol.get().charAt(0) == '"') {
       p_code.add(PCode.STRING.getValue());
       source.addVariable(symbol.get(), Type.STRING_ANONYM);
       p_code.add(source.getVariablePosition(symbol.get()));
@@ -299,8 +299,14 @@ public class Expression extends Code {
         nextSymbol = substract(symbol);
       }
     }
-    else if (id == SymbolEnum.string && symbol.get().length() == 3) {
-      nextSymbol = numberFromString(symbol);
+    else if (id == SymbolEnum.string) {
+      if (symbol.get().charAt(0) == '\'') {
+        nextSymbol = numberFromString(symbol);
+      }
+      else {
+        source.error(symbol, "Can't convert String");
+        nextSymbol = null;
+      }
     }
     else if (id == SymbolEnum.symbol && symbol.get().equals("@(")) {
       nextSymbol = identifier(symbol);
@@ -387,11 +393,22 @@ public class Expression extends Code {
 
   public Symbol numberFromString(Symbol symbol) {
     p_code.add(PCode.ZAHL.getValue());
-    int value = Integer.valueOf(symbol.get().charAt(1));
+    int value = -1;
+    String str = symbol.get().substring(1, symbol.get().length()-1);
+    if (str.charAt(0) == 10) { // \n
+      value = 155;
+    }
+    else if (str.equals("\\n")) {
+      value = 155;
+    }
+    else if (str.length() == 1) {
+      value = Integer.valueOf(str.charAt(0));
+    }
+    
+    if (value == -1) {
+      source.error(Symbol.noSymbol(), "Error: Can't convert value:" + str + " to number.");
+    }
     p_code.add(value);
-//    if (value > 255) {
-//      ergebnis = Type.WORD;
-//    }
 
     return source.nextElement();
   }
@@ -438,12 +455,13 @@ public class Expression extends Code {
       case "ABS":
         absoluteValue();
         break;
-      case "B2W":
+      case "B2W": // TODO: maybe word?
         toWord();
         break;
       case "HI":
         hibyte();
         break;
+        // TODO: support neg for negativ
       default:
         source.error(symbol, "Expect only ADR or B2W before ':' was: " + name);
       }

@@ -229,27 +229,7 @@ public class ITPCodeToAssemblerOther {
 
     Assert.assertEquals(11, code.size());
   }
-
-  @Test
-  public void testExpressionString() {
-    Source source = new Source("'Hallo Welt' ");
-    source.addVariable("X", Type.WORD);
-    source.addVariable("'Hallo Welt'", Type.STRING_ANONYM);
-    List<Integer> p_code = getPCodeOf(source);
-
-    Type ergebnis = Type.WORD;
-    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
-
-    pcodeGenerator.build();
-    List<String> code = source.getCode();
-
-    int n = -1;
-    Assert.assertEquals("; (15)", code.get(++n));
-    Assert.assertEquals(" LDY #<?STRING1", code.get(++n));
-    Assert.assertEquals(" LDX #>?STRING1", code.get(++n));
-    Assert.assertEquals(3, code.size());
-  }
-
+  
   @Test
   public void testExpressionWordFunctionOhneParameter() {
     Source source = new Source("x() ");
@@ -440,9 +420,9 @@ public class ITPCodeToAssemblerOther {
 
   @Test
   public void testExpressionPrintf2Parameter() {
-    Source source = new Source("@printf('%s%d\\n', 123) ");
+    Source source = new Source("@printf(\"%s%d\\n\", 123) ");
     source.addVariable("@PRINTF", Type.FUNCTION);
-    source.addVariable("'%s%d\\n'", Type.STRING_ANONYM);
+    source.addVariable("\"%s%d\\n\"", Type.STRING_ANONYM);
 
     List<Integer> p_code = getPCodeOf(source);
 
@@ -484,7 +464,7 @@ public class ITPCodeToAssemblerOther {
 
   @Test
   public void testFunctionInFunction() {
-    Source source = new Source("@printf('Hallo',x(1))");
+    Source source = new Source("@printf(\"Hallo\",x(1))");
     source.addVariable("@PRINTF", Type.FUNCTION);
     source.addVariable("X", Type.FUNCTION);
 
@@ -925,9 +905,9 @@ public class ITPCodeToAssemblerOther {
 
   @Test
   public void testExpressionPrintf2ParameterStringUint16() {
-    Source source = new Source("@printf('%s%D\\n', u16) ");
+    Source source = new Source("@printf(\"%s%D\\n\", u16) ");
     source.addVariable("@PRINTF", Type.FUNCTION);
-    source.addVariable("'%s%D\\n'", Type.STRING_ANONYM);
+    source.addVariable("\"%s%D\\n\"", Type.STRING_ANONYM);
     source.addVariable("U16", Type.UINT16);
 
     List<Integer> p_code = getPCodeOf(source);

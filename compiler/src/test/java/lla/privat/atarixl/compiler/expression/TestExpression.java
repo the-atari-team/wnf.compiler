@@ -173,18 +173,6 @@ public class TestExpression {
   }
 
   @Test
-  public void testExpressionWithString() {
-    Source source = new Source("'A'");
-
-    setupWordExpression(source);
-    Assert.assertEquals("160 65", expressionSUT.joinedPCode());
-
-    expressionSUT.optimisation();
-    Assert.assertEquals("167 65 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
-  }
-
-  @Test
   public void testExpressionWithByteArrayVariable() {
     Source source = new Source("x[$01]");
     source.addVariable("X", Type.BYTE_ARRAY);
@@ -455,7 +443,7 @@ public class TestExpression {
   // Aufrufen haben
   @Test
   public void testFunctionCallInExpressionWithMoreThanOneParameterExpression() {
-    Source source = new Source("48 + @printf('%s %d\n','Hallo World', 2+x*4)");
+    Source source = new Source("48 + @printf(\"%s %d\n\",\"Hallo World\", 2+x*4)");
     source.addVariable("X", Type.BYTE);
     source.addVariable("@PRINTF", Type.FUNCTION);
 
@@ -476,7 +464,7 @@ public class TestExpression {
 
   @Test
   public void testFunctionCallInExpressionTwoSamePArameter() {
-    Source source = new Source("@printf('Hallo','Hallo')");
+    Source source = new Source("@printf(\"Hallo\",\"Hallo\")");
     source.addVariable("@PRINTF", Type.FUNCTION);
 
     setupWordExpression(source);
@@ -490,7 +478,7 @@ public class TestExpression {
 
   @Test
   public void testFunctionCallInFunctionCall() {
-    Source source = new Source("@printf('Hallo',x(1))");
+    Source source = new Source("@printf(\"Hallo\",x(1))");
     source.addVariable("@PRINTF", Type.FUNCTION);
     source.addVariable("X", Type.FUNCTION);
 

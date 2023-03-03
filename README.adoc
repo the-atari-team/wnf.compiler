@@ -47,7 +47,7 @@ The compiler supports:
 * Numbers can give in 10base(default), 16base(hex), 2base(binary) and 4base(quad helpful for 2bit graphics)
 * Variable types are byte(unsigned), word(signed), int8(signed) or uint16(unsigned) also in arrays
 * Variables can set to fix addresses in memory
-* There exist no pointers but an address access feature to give access to its address. So a function call with a string as parameter like `@printf('Hello World')` is possible.
+* There exist no pointers but an address access feature to give access to its address. So a function call with a string as parameter like `@printf("Hello World")` is possible.
 
 * One-dimensional arrays. It takes care of the index access on the 8bit machine. So arrays smaller than 256 bytes are simple accessed by index access. Word wide arrays with lower than 256 elements will splitt in low and high byte arrays for faster access.
 * Strings with length up to 255 bytes are something like byte arrays.

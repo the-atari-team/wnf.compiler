@@ -205,7 +205,7 @@ begin
       line := line + 2
     end
 
-//    @printf('y0:%d y1:%d y2:%d y3:%d\n', bally[0],bally[1],bally[2],bally[3])
+//    @printf("y0:%d y1:%d y2:%d y3:%d\n", bally[0],bally[1],bally[2],bally[3])
 //    @pause(1)
   end
 
@@ -216,10 +216,10 @@ begin
 
 end
 
-include 'SCREEN_OUTPUT.INC'
-include 'PRINTF.INC'
-include 'TIME.INC'
-include 'MATH.INC'
-include 'BASIC.INC'
-include 'RANDOM.INC'
-include 'ARRAY.INC'
+include "SCREEN_OUTPUT.INC"
+include "PRINTF.INC"
+include "TIME.INC"
+include "MATH.INC"
+include "BASIC.INC"
+include "RANDOM.INC"
+include "ARRAY.INC"

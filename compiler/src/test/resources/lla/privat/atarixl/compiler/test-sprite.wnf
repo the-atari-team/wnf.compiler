@@ -516,7 +516,7 @@ begin
     ystep := @neg(ystep)
 
 // Ausgleich, sonst stossen wir irgendwann oben gegen
-    @printf('ystep:%d \n', ystep)
+    @printf("ystep:%d \n", ystep)
     ystep := ystep + 10
     yf := 9152
 //      y := 143
@@ -553,8 +553,8 @@ begin
 
     @setsprite(xp, yp, sprite[xn], mask[xn], adr:backbuffer)
 
-//    @printf('x:%d xp:%d, xn:%d, y:%d\n',x,xp,xn,y)
-//    @printf('x:%d, y:%d xstep:%d ystep:%d \n', x, y, xfstep, yfstep)
+//    @printf("x:%d xp:%d, xn:%d, y:%d\n",x,xp,xn,y)
+//    @printf("x:%d, y:%d xstep:%d ystep:%d \n", x, y, xfstep, yfstep)
     @waitline(100)
 
     @clearsprite(adr:backbuffer)
@@ -566,19 +566,19 @@ begin
 
   @showgiventime(time)
 
-  assert( time > 149, 'sprite speed: wir werden schneller')
-  assert( time < 152, 'sprite speed: wir werden langsamer')
+  assert( time > 149, "sprite speed: wir werden schneller")
+  assert( time < 152, "sprite speed: wir werden langsamer")
 
   @exit(@getAsserts())
 end
 
-include 'SCREEN_OUTPUT.INC'
-include 'PRINTF.INC'
-include 'GRAPHICS.INC'
-include 'GFX1BIT.INC'
-include 'MATH.INC'
-include 'BLITTER.INC'
-include 'RANDOM.INC'
-include 'BASIC.INC'
-include 'TIME.INC'
+include "SCREEN_OUTPUT.INC"
+include "PRINTF.INC"
+include "GRAPHICS.INC"
+include "GFX1BIT.INC"
+include "MATH.INC"
+include "BLITTER.INC"
+include "RANDOM.INC"
+include "BASIC.INC"
+include "TIME.INC"
 // RUNTIME.INC wird automatisch angehaengt
