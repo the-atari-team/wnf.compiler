@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory;
 
 import lla.privat.atarixl.compiler.source.Source;
 
-public class RegisterOptimizer {
+public class RegisterOptimizer extends Optimizer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RegisterOptimizer.class);
       
-  Source source;
+  // Source source;
   private List<String> codeList;
 
 //  private int line;
@@ -23,10 +23,13 @@ public class RegisterOptimizer {
 
   private int countOfOptimizations;
   
-  public RegisterOptimizer(Source source) {
-    this.source = source;
+  public RegisterOptimizer(Source source, int optimizationLevel) {
+    super(source, optimizationLevel);
+    
+    // this.source = source;
   }
 
+  @Override
   public RegisterOptimizer optimize() {
     // create a copy of current assembler-source
     this.codeList = new ArrayList<>();
@@ -34,13 +37,16 @@ public class RegisterOptimizer {
       codeList.add(source.getCode().get(i));
     }
 
-    registerOptimizeAll();
-
+//    if (optimisationLevel > 0) {
+      registerOptimizeAll();
+//    }
+    
     LOGGER.info("Register Optimizer has {} optimizations applied.", countOfOptimizations);
 
     return this;
   }
 
+  @Override
   public void build() {
     if (codeList != null) {
       source.resetCode(codeList);
@@ -298,12 +304,13 @@ public class RegisterOptimizer {
   }
 
   private void incrementStatus() {
+    incrementCountOfOptimize();
     ++countOfOptimizations;
   }
 
-  public int getUsedOptimisations() {
-    return countOfOptimizations;
-  }
+//  public int getUsedOptimisations() {
+//    return countOfOptimizations;
+//  }
   
   private boolean isSprungMarke(String codeLine) {
     if (codeLine.charAt(0) == '?' && codeLine.charAt(1) == 'F' && codeLine.charAt(2) == 'A' &&

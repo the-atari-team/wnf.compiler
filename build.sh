@@ -13,7 +13,7 @@ if [ -z "$JAVA_EXISTS" ]; then
 fi
 
 mvn clean
-mvn verify
+mvn verify $@
 
 if [ $? -eq 0 ]; then
   JAR="compiler/target/wnf-compiler.jar"

@@ -43,22 +43,27 @@ public class IfThenElse extends Code {
     source.match(condition, "THEN");
 
     // Due to the fact this is a single pass Compiler, we need such lines for the assembler
-    code(" .if .not .def ?else" + condi);
-    code(" jmp ?endif" + condi);
-    code(" .else");
+//    code(" .if .not .def ?else" + condi);
+//    code(" jmp ?endif" + condi);
+//    code(" .else");
     code(" jmp ?else" + condi);
-    code(" .endif");
+//    code(" .endif");
     code(conditionStr);
 
     nextSymbol = source.nextElement();
     nextSymbol = new Statement(source).statement(nextSymbol).build();
 
     if (nextSymbol.get().equals("ELSE")) {
+      // Es gibt ein ELSE, also ans Ende springen
       code(" jmp ?endif" + condi);
       code("?else"+condi);
 
       nextSymbol = source.nextElement();
       nextSymbol = new Statement(source).statement(nextSymbol).build();
+    }
+    else {
+      // Es gibt kein ELSE, trotzdem anlegen, so sparen wir und die "ELSE" Erkennung
+      code("?else"+condi);      
     }
     code("?endif"+condi);
     return this;

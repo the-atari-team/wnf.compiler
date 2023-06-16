@@ -11,7 +11,7 @@ tokens=[
     number='regexp:\d+(\.\d*)?'
     hexnumber='$regexp:(\d|[a-f]|[A-F])+?'
     variable='regexp:(@|[a-z]|[A-Z]|_)+'
-    string="regexp:'([^'\\]|\\.)*'"
+    string="regexp:'([^"\\]|\\.)*""
     singlestring="regexp:'\\.'"
  ]
 }

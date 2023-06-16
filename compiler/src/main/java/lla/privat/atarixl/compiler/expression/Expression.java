@@ -461,7 +461,10 @@ public class Expression extends Code {
       case "HI":
         hibyte();
         break;
+      case "NEG":
         // TODO: support neg for negativ
+        negativeValue();
+        break;
       default:
         source.error(symbol, "Expect only ADR or B2W before ':' was: " + name);
       }
@@ -635,6 +638,26 @@ public class Expression extends Code {
     }
   }
 
+  protected void negativeValue() {
+    Symbol peekSymbol = source.nextElement(); // ":"
+    source.match(peekSymbol, ":");
+
+    Symbol nameSymbol = source.nextElement(); // name
+    if (nameSymbol.getId() == SymbolEnum.variable_name) {
+      p_code.add(PCode.NOP.getValue());
+      p_code.add(PCode.NEGATIVE.getValue());
+      String name = nameSymbol.get();
+      source.throwIfVariableUndefined(name);
+    
+      int variablePosition = source.getVariablePosition(name);
+      p_code.add(variablePosition);
+      source.getVariable(nameSymbol.get()).setRead();
+    }
+    else {
+      source.error(nameSymbol, "Only Variables allowed after NEG:<var>");
+    }
+  }
+
   protected void addressAccess() {
     Symbol peekSymbol = source.nextElement(); // ":"
     source.match(peekSymbol, ":");
@@ -701,8 +724,23 @@ public class Expression extends Code {
     }
     source.throwIfVariableUndefined(name);
 
+//    Type ergebnisBeforeArrayAccess = ergebnis;
+//    p_code.add(PCode.NOP.getValue());
+//    int p_code_position = p_code.size();
+//    p_code.add(PCode.NOP.getValue());
+    
     /* Symbol squareBrackedClose = */ factor(squareBracketOpen);
 
+//    Type ergebnisAfterArrayAccess = ergebnis;
+//    if (ergebnisAfterArrayAccess != ergebnisBeforeArrayAccess) {
+//      p_code.set(p_code_position, PCode.TYPE_IS_WORD.getValue());
+//      if (ergebnisBeforeArrayAccess == Type.BYTE) {
+//        p_code.add(PCode.NOP.getValue());
+//        p_code.add(PCode.TYPE_IS_BYTE.getValue());
+//      }
+//    }
+    
+    
     VariableDefinition variable = source.getVariable(name);
     variable.setRead();
     if (variable.getType() == Type.BYTE_ARRAY || variable.getType() == Type.STRING) {
@@ -712,6 +750,9 @@ public class Expression extends Code {
     else if (variable.getType() == Type.FAT_BYTE_ARRAY) {
       p_code.add(PCode.FAT_BYTE_ARRAY.getValue());
       p_code.add(source.getVariablePosition(name));
+//      if (ergebnisBeforeArrayAccess != ergebnisAfterArrayAccess) {
+//        ergebnis = ergebnisBeforeArrayAccess;
+//      }
     }
     else if (variable.getType() == Type.WORD_ARRAY || variable.getType() == Type.FAT_WORD_ARRAY) {
       p_code.add(PCode.WORD_ARRAY.getValue());

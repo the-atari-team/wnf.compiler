@@ -842,4 +842,43 @@ public class TestExpression {
     Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
+  @Test
+  public void testExpressionNegativeWordVariable() {
+    Source source = new Source("neg:x");
+    source.addVariable("X", Type.WORD);
+
+    setupWordExpression(source);
+    Assert.assertEquals("254 179 0", expressionSUT.joinedPCode());
+
+    expressionSUT.optimisation();
+    Assert.assertEquals("254 179 0 9999999", expressionSUT.joinedPCode());
+    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
+  }
+
+  @Test
+  public void testExpressionNegativeByteVariable() {
+    Source source = new Source("neg:y");
+    source.addVariable("Y", Type.BYTE);
+
+    setupWordExpression(source);
+    Assert.assertEquals("254 179 0", expressionSUT.joinedPCode());
+
+    expressionSUT.optimisation();
+    Assert.assertEquals("254 179 0 9999999", expressionSUT.joinedPCode());
+    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
+  }
+  
+  @Test
+  public void testExpressionNegativeInt8Variable() {
+    Source source = new Source("neg:z");
+    source.addVariable("Z", Type.INT8);
+
+    setupWordExpression(source);
+    Assert.assertEquals("254 179 0", expressionSUT.joinedPCode());
+
+    expressionSUT.optimisation();
+    Assert.assertEquals("254 179 0 9999999", expressionSUT.joinedPCode());
+    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
+  }
+
 }

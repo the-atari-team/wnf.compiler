@@ -27,6 +27,8 @@ public class Assignment extends Code {
 
   private Symbol nextSymbol;
 
+  private String arrayVariable;
+  
   public Assignment(Source source) {
     super(source);
 
@@ -48,7 +50,7 @@ public class Assignment extends Code {
   public Assignment assign(final Symbol symbol) {
     if (symbol.getId() == SymbolEnum.variable_name) {
       String name = symbol.get();
-
+     
       boolean isArray = false;
       if (source.peekSymbol().get().equals("[")) {
         Symbol squaredBracketOpen = source.nextElement();
@@ -85,12 +87,15 @@ public class Assignment extends Code {
         Symbol squaredBracketClose = new Expression(source).setType(wishedType).expression(arrayAccess).build();
         source.match(squaredBracketClose, "]");
         isArray = true;
-        if (source.getTypeOfLastExpression() != Type.WORD && source.getTypeOfLastExpression() != Type.BYTE) {
+        if (source.getTypeOfLastExpression() != Type.WORD &&
+            source.getTypeOfLastExpression() != Type.BYTE &&
+            source.getTypeOfLastExpression() != Type.UINT16) {
           source.error(arrayAccess, "The array pointer must be WORD or BYTE only. Please convert before.");
         }
         if (source.getVariableType(name) == Type.BYTE_ARRAY ||
             source.getVariableType(name) == Type.STRING) {
           code(" sty @putarray");
+          arrayVariable = "@PUTARRAY";
         }
         else if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY) {
           if (source.getTypeOfLastExpression().getBytes() == 1) {
@@ -99,19 +104,22 @@ public class Assignment extends Code {
           if (name.equals("@MEM")) {
             code(" sty @PUTARRAY");
             code(" stx @PUTARRAY+1");
+            arrayVariable = "@PUTARRAY";
           }
           else {
             code(" tya");
             code(" clc");              // old putarrayb MACRO
-            code(" adc # <"+name);
-            code(" sta @PUTARRAY");
+            code(" adc #<"+name);
+            code(" sta @PUTARRAY0");
             code(" txa");
-            code(" adc # >"+name);
-            code(" sta @PUTARRAY+1");
+            code(" adc #>"+name);
+            code(" sta @PUTARRAY0+1");
+            arrayVariable = "@PUTARRAY0";
           }
         }
         else if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY) {
           code(" sty @putarray");
+          arrayVariable = "@PUTARRAY";
         }
         else if (source.getVariableType(name) == Type.WORD_ARRAY ||
             source.getVariableType(name) == Type.FAT_WORD_ARRAY ) {
@@ -128,10 +136,10 @@ public class Assignment extends Code {
 //          code(" TAX"); //          ; 2
 //          code(" CLC"); //          ; 2 add %1 to the nth value
 //          code(" TYA"); //          ; 2
-//          code(" ADC # <" + name); //    ; 2
+//          code(" ADC #<" + name); //    ; 2
 //          code(" STA @PUTARRAY"); //  ; 3
 //          code(" TXA"); //          ; 2
-//          code(" ADC # >" + name); //    ; 2
+//          code(" ADC #>" + name); //    ; 2
 //          code(" STA @PUTARRAY+1"); //  ; 3
 //          }
 
@@ -155,6 +163,7 @@ public class Assignment extends Code {
           code(" lda @putarray+1"); // ; 3
           code(" adc #>"+name); //     ; 2
           code(" sta @putarray+1"); // ; 3
+          arrayVariable = "@PUTARRAY";
         }
         else {
           source.error(arrayAccess, String.format("Given variable '{%s}' is not of type array.", name));
@@ -186,7 +195,7 @@ public class Assignment extends Code {
 
               code(" tya");
               code(" ldy #" + count);
-              code(" sta (@putarray),y");
+              code(" sta (" + arrayVariable + "),y");
               count ++;
               if (count > 255 ) {
                 source.error(rightHand, "max count of ListElements [...] is 255");                
@@ -247,14 +256,14 @@ public class Assignment extends Code {
     else if (source.getVariableType(name) == Type.BYTE_ARRAY ||
              source.getVariableType(name) == Type.STRING) {
       code(" tya");
-      code(" ldx @putarray");
+      code(" ldx " + arrayVariable);
       code(" sta " + name + ",x");
       source.incrementWrite(name);
     }
     else if (source.getVariableType(name) == Type.FAT_BYTE_ARRAY) {
       code(" tya");
       code(" ldy #0");
-      code(" sta (@putarray),y");
+      code(" sta ("+arrayVariable+"),y");
     }
     else if (source.getVariableType(name) == Type.WORD_SPLIT_ARRAY) {
       if (source.getTypeOfLastExpression().getBytes() == 1) {
@@ -277,7 +286,7 @@ public class Assignment extends Code {
 //          code(" sta " + name + "_high,x");
 
       code(" txa");
-      code(" ldx @putarray");
+      code(" ldx "+arrayVariable);
       code(" sta " + name + "_high,x");
       code(" tya");
       code(" sta " + name + "_low,x");
@@ -290,7 +299,7 @@ public class Assignment extends Code {
 //          }
       code(" tya");
       code(" ldy #0");
-      code(" sta (@putarray),y");
+      code(" sta ("+arrayVariable+"),y");
       if (source.getVariableSize(name) == 2) {
         code(" iny");
         if (source.getTypeOfLastExpression() == Type.WORD) {
@@ -299,7 +308,7 @@ public class Assignment extends Code {
         else {
           code(" lda #0");
         }
-        code(" sta (@putarray),y");
+        code(" sta ("+arrayVariable+"),y");
       }
     }
     return nextSymbol;

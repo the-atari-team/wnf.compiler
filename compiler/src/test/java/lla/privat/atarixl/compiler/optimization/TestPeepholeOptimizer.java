@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import lla.privat.atarixl.compiler.source.Source;
@@ -1097,6 +1096,38 @@ public class TestPeepholeOptimizer {
     Assert.assertEquals(" INY", source.getCode().get(1));
     Assert.assertEquals(" STY J1", source.getCode().get(2));
     Assert.assertEquals(" ...", source.getCode().get(3));
+  }
+
+  @Test
+  public void testclc_lda_x_adc_1_sta_y_not_byte() {
+    List<String> list = new ArrayList<>();
+    list.add(" CLC");
+    list.add(" LDA #<63");
+    list.add(" ADC #<1");
+    list.add(" STA J1");
+    list.add(" LDA #>63");
+    list.add(" ADC #>1");
+    list.add(" STA J1+1");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.setLevel(2).optimize().build();
+    Assert.assertEquals(0, peepholeOptimizerSUT.getUsedOptimisations());
+
+    List<String> code = source.getCode();
+    int n=-1;
+    
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA #<63", code.get(++n));
+    Assert.assertEquals(" ADC #<1", code.get(++n));
+    Assert.assertEquals(" STA J1", code.get(++n));
+    Assert.assertEquals(" LDA #>63", code.get(++n));
+    Assert.assertEquals(" ADC #>1", code.get(++n));
+    Assert.assertEquals(" STA J1+1", code.get(++n));
+    Assert.assertEquals(" ...", code.get(++n));
+
+    Assert.assertEquals(code.size(), n+1);
+
   }
 
   @Test

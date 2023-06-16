@@ -46,7 +46,7 @@ public class TestRegisterOptimizer {
   @Before
   public void setUp() {
     source = new Source("");
-    registerOptimizerSUT = new RegisterOptimizer(source);
+    registerOptimizerSUT = new RegisterOptimizer(source, 4);
   }
  
   @Test

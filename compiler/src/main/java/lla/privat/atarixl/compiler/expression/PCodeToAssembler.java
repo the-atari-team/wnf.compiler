@@ -33,7 +33,7 @@ public class PCodeToAssembler extends Code {
 
   private final Source source;
 
-  private final Type ergebnis;
+  private /*final*/ Type ergebnis;
 
   private final List<Integer> p_code;
 
@@ -179,7 +179,7 @@ public class PCodeToAssembler extends Code {
               code(" " + mne$ + " " + a$);
             }
             code(" tay");
-            if (ergebnis.getBytes() == 2) {
+            if (ergebnis.getBytes() == 2 || typ1.getBytes() == 2) {
               if (currentPCode == PCode.INT_ZAHL) { // high byte
                 code(" lda #>" + value);
               }
@@ -234,6 +234,11 @@ public class PCodeToAssembler extends Code {
                 if (ergebnis.getBytes() == 2) {
                   Type typ = source.getVariableType(a$);
                   if (typ == Type.INT8) {
+                    // wir prüfen auf < $80, wenn ja, carry gesetzt
+                    // X-Reg muss null sein
+                    // sonst X muss $FF sein (-1)
+                    // Code frisst 8 Zyklen, wenn >$80
+                    // sonst 7, weil bcc springt
                       code(" cpy #$80");    // switch carry flag
                       code(" ldx #0");      // ldx will not change carry flag
                       code(" bcc *+4");     // jump 2 bytes forward
@@ -321,7 +326,9 @@ public class PCodeToAssembler extends Code {
                   else if (ergebnis == Type.WORD && typOfa$ == Type.BYTE) {
                     code(" ldx #0");
                   }
-                  else if (ergebnis == Type.WORD && typOfa$.getBytes() == 2) {
+                  else if (
+                      (ergebnis == Type.WORD || ergebnis == Type.UINT16) &&
+                      typOfa$.getBytes() == 2) {
                     code(" LDX " + a$ + "+1");
                     source.incrementRead(a$);
                   }
@@ -526,24 +533,30 @@ public class PCodeToAssembler extends Code {
 // TODO: verstehen!
           code(" ldx #0"); // fat_byte_array
         }
+        
         if (a$.equals("@MEM")) {
           code(" sty @GETARRAY");
           code(" stx @GETARRAY+1");          
+          code(" LDY #0");
+          code(" LDA (@GETARRAY),Y");
         }
         else {
           code(" tya");
   //        code(" getarrayb " + a$); // ;" ;fat-byte-array"
           code(" clc"); // ;  2 Getarrayb MACRO
-          code(" adc # <"+a$);
-          code(" STA @GETARRAY");
+          code(" adc #<" + a$);
+//          code(" STA @GETARRAY");
+          code(" TAY");
           code(" TXA");
-          code(" ADC # >"+a$);
-          code(" STA @GETARRAY+1");
+          code(" ADC #>" + a$);
+          code(" STA @GETARRAY0+1");
+//          code(" LDY #0");
+          code(" LDA (@GETARRAY0),Y");
         }
-        code(" LDY #0");
-        code(" LDA (@GETARRAY),Y");
-        code(" LDX #0");
-        
+
+        if (ergebnis.getBytes() == 2) {
+          code(" LDX #0");
+        }
         code(" tay");
         sonderlocke_fat_byte_array = false;
         // y (x:=0) are set with a value out of getarrayb
@@ -664,6 +677,52 @@ public class PCodeToAssembler extends Code {
 //        code(" ldx #0");
         a = a + 2;
       }
+      // -------------------------------
+      else if (currentPCode == PCode.NEGATIVE) {
+        code(";#2 (21)");
+        int num = p_code.get(a + 1);
+        a$ = source.getVariableAt(num);
+        if (source.getVariableSize(a$) == 1) {
+          code(" lda " + a$);
+          code(" eor #$FF");
+          code(" tay");
+          code(" iny");
+
+          if (ergebnis.getBytes() == 2) {
+            Type typ = source.getVariableType(a$);
+            if (typ == Type.INT8) {
+              code(" cpy #$80");    // switch carry flag
+              code(" ldx #0");      // ldx will not change carry flag
+              code(" bcc *+4");
+              code(" ldx #$ff");
+            }
+            else {
+              code(" ldx #$ff");              
+            }
+          }
+        }
+        else if (source.getVariableSize(a$) == 2) {
+          code(" lda " + a$);
+          code(" eor #$FF");
+          code(" tay");
+          code(" lda " + a$ + "+1");
+          code(" eor #$FF");
+          code(" tax");
+          
+          code(" iny");
+          if (ergebnis.getBytes() == 2) { // must be WORD or WORD_ARRAY
+            code(" bne *+3");
+            code(" inx");
+            source.incrementNowinc();
+          }
+        }
+        else {
+          // Fehler
+          source.error(new Symbol("", SymbolEnum.noSymbol), "HI: with other than WORD/UINT16 or BYTE/INT8 is not supported.");
+        }
+//        code(" ldx #0");
+        a = a + 2;
+      }
 // -------------------------------
       else if (currentPCode == PCode.FUNCTION) {
         code(";#2 (14)");
@@ -731,6 +790,14 @@ public class PCodeToAssembler extends Code {
         }
         a = a + 2;
       }
+//      else if (currentPCode == PCode.TYPE_IS_BYTE) {
+//        ergebnis = Type.BYTE;
+//        a = a + 1;
+//      }
+//      else if (currentPCode == PCode.TYPE_IS_WORD) {
+//        ergebnis = Type.WORD;
+//        a = a + 1;
+//      }
     }
 // -------------------------------
     while (!(p_code.get(a) == PCode.END.getValue()));

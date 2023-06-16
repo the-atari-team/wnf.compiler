@@ -184,14 +184,15 @@ public class TestAssignmentInt8 {
 //    Assert.assertEquals(" GETARRAYB Y", code.get(++n));
 //  Assert.assertEquals(" GETARRAYB FAT", code.get(++n));
     Assert.assertEquals(" CLC", code.get(++n));
-    Assert.assertEquals(" ADC # <Y", code.get(++n));
-    Assert.assertEquals(" STA @GETARRAY", code.get(++n));
+    Assert.assertEquals(" ADC #<Y", code.get(++n));
+//    Assert.assertEquals(" STA @GETARRAY", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" TXA", code.get(++n));
-    Assert.assertEquals(" ADC # >Y", code.get(++n));
-    Assert.assertEquals(" STA @GETARRAY+1", code.get(++n));
-    Assert.assertEquals(" LDY #0", code.get(++n));
-    Assert.assertEquals(" LDA (@GETARRAY),Y", code.get(++n));
-    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(" ADC #>Y", code.get(++n));
+    Assert.assertEquals(" STA @GETARRAY0+1", code.get(++n));
+//    Assert.assertEquals(" LDY #0", code.get(++n));
+    Assert.assertEquals(" LDA (@GETARRAY0),Y", code.get(++n));
+//    Assert.assertEquals(" LDX #0", code.get(++n));
   
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" STY X", code.get(++n));

@@ -3,8 +3,20 @@
 
 == What is new
 
+* test-sieve.wnf runs ~2s faster than Action! code
+
+* Long Jump Optimizations, we can use JNE, JEQ, JCC, JCS, ... and optimize if most the time
+  makes the code smaller and little bit faster
+  
+* neg:var to negate the given variable. Only with variables possible, faster than the function call
+
+* condition check without condition memonic 'if a then ...' then will called if a != 0
+
+* PUTARRAY Optimization, we use (@PUTARRAY0),y access, where the first value in memory must be
+  always 0. To access the right byte position we use the y-Register. This saves some cycles at write.
+  
 * Strings are envelope by double quotes '"' Strings with a single value are possible also like "A".
-* Single Chars are envelop by single quote 'A' will replaced by value 65.
+* Single Characters are envelop by single quote. A given 'A' will be replaced by value 65.
 
 * Due to a write problem to an array, we now support readonly values.
   It is not like const.

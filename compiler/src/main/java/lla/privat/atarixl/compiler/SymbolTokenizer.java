@@ -82,6 +82,20 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
     return sourceCodeLine;
   }
 
+  /**
+   * This is our lex/yacc self written Token Recognizer Function
+   * overrun white spaces
+   * overrun comments, start by "//"
+   * check for "@("
+   * check for variables maybe reserved word
+   * check for numbers, decimal, hex($), binary(%), quad(#)
+   * check for spezial characters like "!=", "==", ...
+   * check for single quote strings, old version supported this
+   * check for double quote strings, new current version support this, single quote will be convert to a number
+   * 
+   * @return a new Symbol, contains information about Type, Content
+   * @throws StringIndexOutOfBoundsException
+   */
   private Symbol getSymbol_impl() throws StringIndexOutOfBoundsException {
     oldZeiger = zeiger;
 
@@ -96,7 +110,7 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
       }
 
       char ch1 = program.charAt(zeiger + 1);
-
+      // TODO: here we should add a string check if "@deprecated" is in a comment, like java      
       if (ch == '/' && ch1 == '/') {
         while (ch != '\n' && ch != '\r' && ch != 0x9b) {
           ch = program.charAt(++zeiger);
@@ -135,7 +149,6 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
       if (ReservedNames.isReservedWord(valueUpper)) {
         symbol.changeId(SymbolEnum.reserved_word);
       }
-
     }
     // check for Numbers start with 0-9, $ % #
 
@@ -153,8 +166,8 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
         number = convertBinToHex(number);
       }
       symbol = new Symbol(number, SymbolEnum.number);
-
     }
+
     // special chars
     else if ("+-*/=^<>()[].,:;&!".contains(String.valueOf(ch))) {
       int p1 = zeiger;
@@ -217,23 +230,27 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
         || symbol.getId() == SymbolEnum.number) {
       symbol.changeValue(symbol.get().toUpperCase());
     }
+    // atasm has problems with single A and W as a variable, so we add some chars
     if (symbol.get().equals("A")) {
       symbol.changeValue("A__");
     }
     if (symbol.get().equals("W")) {
       symbol.changeValue("W__");
     }
+    // prefix every variable, if prefix is given in INCLUDE mode
     if (symbol.getId() == SymbolEnum.variable_name && prefix.length() > 0) {
       String variable = symbol.get();
       if (!variable.startsWith("@")) {
         symbol.changeValue(prefix + "_" + variable);
       }
     }
+    // TODO: this may be a stupid behaviour, change reserved word to variable name!
     if (symbol.getId() == SymbolEnum.reserved_word) {
       if (symbol.get().equals("ADR") ||
           symbol.get().equals("ABS") ||
           symbol.get().equals("B2W") ||
-          symbol.get().equals("HI")) { // TODO: prüfen ob ADR eine variable sein muss
+          symbol.get().equals("HI") ||
+          symbol.get().equals("NEG")) { // TODO: prüfen ob ADR eine variable sein muss
         symbol.changeId(SymbolEnum.variable_name);
       }
     }

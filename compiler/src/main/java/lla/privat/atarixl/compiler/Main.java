@@ -16,6 +16,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import lla.privat.atarixl.compiler.optimization.LongJumpOptimizer;
 import lla.privat.atarixl.compiler.optimization.PeepholeOptimizer;
 import lla.privat.atarixl.compiler.optimization.RegisterOptimizer;
 import lla.privat.atarixl.compiler.source.Source;
@@ -219,6 +220,9 @@ public class Main {
         LOGGER.info("Parameter for test includes is given, we check all includes.");
         testInclude = true;
       }
+      else if (parameter.equalsIgnoreCase("-rangecheck")) {
+        LOGGER.info("Parameter for range-check, ignored, other branch!");
+      }
       else if (parameter.equals("-I")) {
         String additionalIncludePath = args[index + 1];
 
@@ -374,9 +378,13 @@ public class Main {
 
     setUsedOptimisations(optimizer.getUsedOptimisations());
 
-    RegisterOptimizer regOptimizer = new RegisterOptimizer(source);
+    RegisterOptimizer regOptimizer = new RegisterOptimizer(source, optimisationLevel);
     regOptimizer.optimize().build();
     regOptimizer.showStatus();
+
+    LongJumpOptimizer longJumpOptimizer = new LongJumpOptimizer(source, optimisationLevel);
+    longJumpOptimizer.optimize().build();
+    longJumpOptimizer.showStatus();
     
     return this;
   }
