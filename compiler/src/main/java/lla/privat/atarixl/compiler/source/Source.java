@@ -90,11 +90,11 @@ public class Source implements Enumeration<Symbol> {
     countOfAsserts=0;
     this.filename = "";
     nowinc = 0;
-    
+
 //    final String mem="@MEM";
 //    final VariableDefinition newVariable = new VariableDefinition(mem, Type.FAT_BYTE_ARRAY, 0, filename);
 //    variables.put(mem, newVariable);
-//    variableList.add(mem);    
+//    variableList.add(mem);
   }
 
   public void setOptions(Options options) {
@@ -104,7 +104,7 @@ public class Source implements Enumeration<Symbol> {
   public Options getOptions() {
     return this.options;
   }
-  
+
   /**
    * Der Name des zu erstellenden Programs kommt aus der 1. Zeile PROGRAM <name>
    *
@@ -209,6 +209,10 @@ public class Source implements Enumeration<Symbol> {
 
   public boolean showPeepholeOptimize() {
     return options.isShowPeepholeOptimize();
+  }
+
+  public boolean isBoundsCheck() {
+    return options.isBoundsCheck();
   }
 //
 //                                                   OO        OOO                               OOOOOO                   OO
@@ -706,7 +710,7 @@ public class Source implements Enumeration<Symbol> {
     if (name.equals("@MEM") && definition.getType() == Type.FAT_BYTE_ARRAY) {
       return;
     }
-    
+
     switch (definition.getType()) {
 
     case FUNCTION:
@@ -1086,4 +1090,16 @@ public class Source implements Enumeration<Symbol> {
   public void incrementAsserts() {
     ++countOfAsserts;
   }
+
+  private int boundsCheckCount = 0;
+
+  public int getBoundsCheckCount() {
+    return boundsCheckCount;
+  }
+
+  public void incrementBoundsCheckCount() {
+    ++boundsCheckCount;
+  }
+
+
 }

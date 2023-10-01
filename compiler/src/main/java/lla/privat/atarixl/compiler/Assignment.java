@@ -85,8 +85,23 @@ public class Assignment extends Code {
         // This must convert to unsigned at first
         Symbol arrayAccess = source.nextElement();
         Symbol squaredBracketClose = new Expression(source).setType(wishedType).expression(arrayAccess).build();
+        Type typeOfLastExpression = source.getTypeOfLastExpression();
         source.match(squaredBracketClose, "]");
         isArray = true;
+        if (!name.equals("@MEM")) {
+          if (source.isBoundsCheck()) {
+            // TODO: Check if not already checked.
+            code(";");
+            code("; WRITE BOUNDS CHECK");
+            code(";");
+            code("; (y+256*x) must be less than " + source.getVariableArraySize(name));
+            code(";");
+            if (typeOfLastExpression.getBytes() == 1) {
+              code(" LDX #0");
+            }
+            addBoundsCheckCode(name);
+          }
+        }        
         if (source.getTypeOfLastExpression() != Type.WORD &&
             source.getTypeOfLastExpression() != Type.BYTE &&
             source.getTypeOfLastExpression() != Type.UINT16) {
@@ -229,6 +244,30 @@ public class Assignment extends Code {
     return this;
   }
 
+//  public String convertSourceFilenameToVariable() {
+//    String filename = source.getFilename();
+//    filename = filename.replaceAll("\\.","_");
+//    filename = filename.replaceAll("-","_");
+//    return "__"+filename.toUpperCase();
+//  }
+  
+  private void addBoundsCheckCode(String name) {
+    source.addVariable(source.getFilename(), Type.STRING_ANONYM, 0, ReadOnly.YES);
+    
+    int variableArraySize = source.getVariableArraySize(name);
+    code(" cpy #<"+variableArraySize);
+    code(" txa");
+    code(" sbc #>"+variableArraySize);
+    code(" bcc __bounds_ok" + source.getBoundsCheckCount()); // var1 greater equal var2
+    code(" jsr @panic_bounds_check"); // PANIC will not return! MUST JSR for the values after!
+    code(" .word " + variableArraySize);
+    code(" .word " + source.getLine());
+    code(" .word " + "?STRING" + source.getVariablePosition(source.getFilename()));
+    
+    code("__bounds_ok" + source.getBoundsCheckCount());
+    source.incrementBoundsCheckCount();
+  }
+  
   private Symbol handleSingleValue(String name, boolean isArray, Symbol rightHand) {
     Type wishedType = source.getVariableOverType(name);
     Symbol nextSymbol = new Expression(source).setType(wishedType).expression(rightHand).build();

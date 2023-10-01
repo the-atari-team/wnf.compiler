@@ -82,7 +82,7 @@ public class Main {
     this.outputPath = outputPath;
     this.options = options;
   }
-  
+
 //  public Main(String filename, int optimize, int verboseLevel, String outputPath,
 //      boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
 //      boolean smallAddSubHeapPtr, boolean importHeader, boolean showVariableUsage,
@@ -130,8 +130,9 @@ public class Main {
     LOGGER.info(" -showVariableUsage    - if given, show how often a variable is used.");
     LOGGER.info(" -showVariableUnused   - if given, show a hint if a variable is unused.");
     LOGGER.info(" -showPeepholeOptimize - if given, show which peephole optimize will applied.");
-    LOGGER.info(" -precalculate (w|e)   - if given, expressions without variables (precalculatable) will result in build warning or error.");    
+    LOGGER.info(" -precalculate (w|e)   - if given, expressions without variables (precalculatable) will result in build warning or error.");
     LOGGER.info(" -testincludes         - if given, test given includes");
+    LOGGER.info(" -boundscheck or -bc   - if given, bounds check will be added in write to array");
     LOGGER.info("");
     LOGGER.info(" -h | --help           - display this help and exit.");
   }
@@ -155,9 +156,10 @@ public class Main {
     boolean showVariableUnused = false;
     boolean showPeepholeOptimize = false;
     boolean testInclude = false;
-    
+    boolean boundsCheck = false;
+
     char precalculate = 'n';
-    
+
     String outputpath = "";
     List<String> includePaths = new ArrayList<>();
 
@@ -220,8 +222,9 @@ public class Main {
         LOGGER.info("Parameter for test includes is given, we check all includes.");
         testInclude = true;
       }
-      else if (parameter.equalsIgnoreCase("-rangecheck")) {
-        LOGGER.info("Parameter for range-check, ignored, other branch!");
+      else if (parameter.equalsIgnoreCase("-boundscheck") || parameter.equalsIgnoreCase("-bc")) {
+        LOGGER.info("Parameter for bounds check is given, we add bounds check.");
+        boundsCheck = true;
       }
       else if (parameter.equals("-I")) {
         String additionalIncludePath = args[index + 1];
@@ -264,7 +267,7 @@ public class Main {
 //      final Main main = new Main(filename, optimisationLevel, verboseLevel, outputpath,
 //          selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader,
 //          showVariableUsage, showVariableUnused, showPeepholeOptimize, errorIfPrecalculatable);
-      
+
       Options options = new Options();
       options.setOptimisationLevel(optimisationLevel);
       options.setVerboseLevel(verboseLevel);
@@ -278,9 +281,10 @@ public class Main {
       options.setShowPeepholeOptimize(showPeepholeOptimize);
       options.setPrecalculate(precalculate);
       options.setTestIncludes(testInclude);
-      
+      options.setBoundsCheck(boundsCheck);
+
       final Main main = new Main(filename, outputpath, options);
-      
+
       main.setIncludePath(includePaths);
       if (!basename.isEmpty()) {
         main.addIncludePath(basename);
@@ -385,7 +389,7 @@ public class Main {
     LongJumpOptimizer longJumpOptimizer = new LongJumpOptimizer(source, optimisationLevel);
     longJumpOptimizer.optimize().build();
     longJumpOptimizer.showStatus();
-    
+
     return this;
   }
 

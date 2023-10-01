@@ -13,7 +13,8 @@ public class Options {
   private boolean showPeepholeOptimize = false;
   private boolean testIncludes = false;
   private char precalculate;
-  
+  private boolean boundsCheck = false;
+
   public Options() {
     verboseLevel = 0;
     optimisationLevel = 2;
@@ -27,14 +28,15 @@ public class Options {
     showPeepholeOptimize = false;
     testIncludes = false;
     precalculate = 'n';
+    boundsCheck = false;
   }
-  
+
   public Options(int optimisationLevel,
       int verboseLevel,
       boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
       boolean smallAddSubHeapPtr, boolean importHeader, boolean showVariableUsage,
       boolean showVariableUnused, boolean showPeepholeOptimize,
-      char precalculate) {
+      char precalculate, boolean boundsCheck) {
     this.optimisationLevel = optimisationLevel;
     this.verboseLevel = verboseLevel;
     this.selfModifiedCode = selfModifiedCode;
@@ -46,6 +48,7 @@ public class Options {
     this.showVariableUnused = showVariableUnused;
     this.showPeepholeOptimize = showPeepholeOptimize;
     this.precalculate = precalculate;
+    this.boundsCheck = boundsCheck;
   }
 
   public int getOptimisationLevel() {
@@ -149,6 +152,14 @@ public class Options {
   public void setTestIncludes(boolean testIncludes) {
     this.testIncludes = testIncludes;
   }
-  
-  
+
+  public boolean isBoundsCheck() {
+    return boundsCheck;
+  }
+
+  public void setBoundsCheck(boolean boundsCheck) {
+    this.boundsCheck = boundsCheck;
+  }
+
+
 }

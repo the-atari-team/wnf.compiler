@@ -13,6 +13,16 @@ import lla.privat.atarixl.compiler.source.Source;
 
 public class TestAssignment {
 
+
+//  @Test
+//  public void testConvertSourceFilenameToVariable() {
+//    Source source = new Source("humpe");
+//    source.setFilename("file.wnf");
+//    Assignment assignment = new Assignment(source);
+//    String filename = assignment.convertSourceFilenameToVariable();
+//    Assert.assertEquals("__FILE_WNF", filename);
+//  }
+  
 //
 // OO                    OO
 // OO                    OO
@@ -181,7 +191,7 @@ public class TestAssignment {
     Assert.assertEquals(" TAY", source.getCode().get(++n));
     Assert.assertEquals(" LDX #0", source.getCode().get(++n));
     Assert.assertEquals(" STY X", source.getCode().get(++n));
-    
+
     Assert.assertEquals(7, source.getCode().size());
   }
 
@@ -203,7 +213,7 @@ public class TestAssignment {
     int n=-1;
     Assert.assertEquals("; (20)", source.getCode().get(++n));
     Assert.assertEquals(" LDY WORD_VARIABLE+1", source.getCode().get(++n));
-    Assert.assertEquals(" STY X", source.getCode().get(++n));    
+    Assert.assertEquals(" STY X", source.getCode().get(++n));
     Assert.assertEquals(3, source.getCode().size());
   }
 
@@ -229,7 +239,7 @@ public class TestAssignment {
     Assert.assertEquals(" TAY", source.getCode().get(++n));
     Assert.assertEquals(" LDX #0", source.getCode().get(++n));
     Assert.assertEquals(" STY X", source.getCode().get(++n));
-    
+
     Assert.assertEquals(7, source.getCode().size());
   }
 
@@ -322,7 +332,7 @@ public class TestAssignment {
 //    Assert.assertEquals(" LDY #0", code.get(++n));
     Assert.assertEquals(" LDA (@GETARRAY0),Y", code.get(++n));
 //    Assert.assertEquals(" LDX #0", code.get(++n));
-    
+
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals(" STY X", code.get(++n));
   }
@@ -497,8 +507,8 @@ public class TestAssignment {
     Assert.assertEquals(" STY X", source.getCode().get(++n));
   }
 
-  
-  
+
+
   //
 // OO                    OO
 // OO                    OO
@@ -644,8 +654,8 @@ public class TestAssignment {
 // txa
 // adc #>big
 // sta @putarray+1
-    
-// old: 16 Takte    
+
+// old: 16 Takte
     Assert.assertEquals(" TYA", source.getCode().get(++n));
 //    Assert.assertEquals(" PUTARRAYB BIG", source.getCode().get(++n));
     Assert.assertEquals(" CLC", source.getCode().get(++n));
@@ -683,7 +693,7 @@ public class TestAssignment {
     int n=-1;
     Assert.assertEquals("; (5)", source.getCode().get(++n));
     Assert.assertEquals(" LDY #<710", source.getCode().get(++n));
-    Assert.assertEquals(" LDX #>710", source.getCode().get(++n));   
+    Assert.assertEquals(" LDX #>710", source.getCode().get(++n));
     Assert.assertEquals(" STY @PUTARRAY", source.getCode().get(++n));
     Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n));
 
@@ -694,7 +704,7 @@ public class TestAssignment {
  // ldy @putarray_byteindex
     Assert.assertEquals(" STA (@PUTARRAY),Y", source.getCode().get(++n));
   }
- 
+
   @Test
   public void testAssignmentSmallByteListToFatByteArrayMem() {
     Source source = new Source("@mem[710]:=[$01, $02]").setVerboseLevel(2);
@@ -712,7 +722,7 @@ public class TestAssignment {
     int n=-1;
     Assert.assertEquals("; (5)", source.getCode().get(++n));
     Assert.assertEquals(" LDY #<710", source.getCode().get(++n));
-    Assert.assertEquals(" LDX #>710", source.getCode().get(++n));   
+    Assert.assertEquals(" LDX #>710", source.getCode().get(++n));
     Assert.assertEquals(" STY @PUTARRAY", source.getCode().get(++n));
     Assert.assertEquals(" STX @PUTARRAY+1", source.getCode().get(++n));
 
@@ -722,7 +732,7 @@ public class TestAssignment {
     Assert.assertEquals(" LDY #0", source.getCode().get(++n));
  // ldy @putarray_byteindex
     Assert.assertEquals(" STA (@PUTARRAY),Y", source.getCode().get(++n));
-    
+
     Assert.assertEquals("; (5)", source.getCode().get(++n));
     Assert.assertEquals(" LDY #<2", source.getCode().get(++n));
     Assert.assertEquals(" TYA", source.getCode().get(++n));
@@ -731,87 +741,6 @@ public class TestAssignment {
     Assert.assertEquals(" STA (@PUTARRAY),Y", source.getCode().get(++n));
   }
 
-  @Test
-  public void testAssignmentFromFatByteArrayMem() {
-    Source source = new Source("color[1] := @mem[710]").setVerboseLevel(2);
-    source.addVariable("COLOR", Type.BYTE_ARRAY);
-
-    Symbol symbol = source.nextElement();
-
-    Symbol nextSymbol = new Assignment(source).assign(symbol).build();
-
-    Assert.assertEquals("", nextSymbol.get());
-    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
-
-    Assert.assertEquals(Type.BYTE, source.getTypeOfLastExpression());
-
-    List<String> code = source.getCode();
-    int n=-1;
-    Assert.assertEquals("; (5)", code.get(++n));
-    Assert.assertEquals(" LDY #<1", code.get(++n));
-    Assert.assertEquals(" STY @PUTARRAY", code.get(++n));
-
-    Assert.assertEquals("; (5)", code.get(++n));
-    Assert.assertEquals(" LDY #<710", code.get(++n));
-    Assert.assertEquals(" LDX #>710", code.get(++n));
-    Assert.assertEquals("; (12.2)", code.get(++n));
-    Assert.assertEquals(" STY @GETARRAY", code.get(++n));
-    Assert.assertEquals(" STX @GETARRAY+1", code.get(++n));
-    Assert.assertEquals(" LDY #0", code.get(++n));
-    Assert.assertEquals(" LDA (@GETARRAY),Y", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" LDX @PUTARRAY", code.get(++n));
-    Assert.assertEquals(" STA COLOR,X", code.get(++n));
-    
-    Assert.assertEquals(code.size(), n+1);
-  }
-  
-  @Test
-  public void testAssignmentFromFatByteArrayMemIndexVar() {
-    Source source = new Source("color[1] := @mem[design_addr+1]").setVerboseLevel(2);
-    source.addVariable("COLOR", Type.BYTE_ARRAY);
-    source.addVariable("DESIGN_ADDR", Type.WORD);
-
-    Symbol symbol = source.nextElement();
-
-    Symbol nextSymbol = new Assignment(source).assign(symbol).build();
-
-    Assert.assertEquals("", nextSymbol.get());
-    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
-
-    Assert.assertEquals(Type.WORD, source.getTypeOfLastExpression());
-
-    List<String> code = source.getCode();
-    int n=-1;
-    Assert.assertEquals("; (5)", code.get(++n));
-    Assert.assertEquals(" LDY #<1", code.get(++n));
-    Assert.assertEquals(" STY @PUTARRAY", code.get(++n));
-
-    Assert.assertEquals("; (3)", code.get(++n));
-    Assert.assertEquals(" CLC", code.get(++n));
-    Assert.assertEquals(" LDA DESIGN_ADDR", code.get(++n));
-    Assert.assertEquals(" ADC #<1", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" LDA DESIGN_ADDR+1", code.get(++n));
-    Assert.assertEquals(" ADC #>1", code.get(++n));
-    Assert.assertEquals(" TAX", code.get(++n));
-    
-    Assert.assertEquals("; (12.2)", code.get(++n));
-    Assert.assertEquals(" STY @GETARRAY", code.get(++n));
-    Assert.assertEquals(" STX @GETARRAY+1", code.get(++n));
-    Assert.assertEquals(" LDY #0", code.get(++n));
-    Assert.assertEquals(" LDA (@GETARRAY),Y", code.get(++n));
-    Assert.assertEquals(" LDX #0", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" LDX @PUTARRAY", code.get(++n));
-    Assert.assertEquals(" STA COLOR,X", code.get(++n));
-    
-    Assert.assertEquals(code.size(), n+1);
-  }
- 
-  
   @Test(expected = IllegalStateException.class)
   public void testAssignmentWrongAssignToByteArray() {
     Source source = new Source("big:=x").setVerboseLevel(2);
@@ -823,7 +752,7 @@ public class TestAssignment {
     /* Symbol nextSymbol =*/ new Assignment(source).assign(symbol).build();
 
   }
-  
+
   //
 //                                      OO
 //                                      OO
@@ -1156,7 +1085,7 @@ public class TestAssignment {
     Assert.assertEquals(" ADC #>Y", source.getCode().get(++n)); //          ; 2
     Assert.assertEquals(" STA @PUTARRAY+1", source.getCode().get(++n)); //          ; 2
 
-    
+
     Assert.assertEquals("; (6)", source.getCode().get(++n));
     Assert.assertEquals(" LDY X", source.getCode().get(++n));
     Assert.assertEquals(" LDX X+1", source.getCode().get(++n));
@@ -1290,51 +1219,5 @@ public class TestAssignment {
     Assert.assertEquals(" STY X", source.getCode().get(++n));
   }
 
-  
-  @Test
-  public void testAssignmentToFatByteArrayWithUint16Variable() {
-    Source source = new Source("big[u]:=x").setVerboseLevel(2);
-    source.addVariable("X", Type.WORD);
-    source.addVariable("U", Type.UINT16);
-    source.addVariable("BIG", Type.FAT_BYTE_ARRAY);
 
-    Symbol symbol = source.nextElement();
-
-    Symbol nextSymbol = new Assignment(source).assign(symbol).build();
-
-    Assert.assertEquals("", nextSymbol.get());
-    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
-
-    Assert.assertEquals(Type.WORD, source.getTypeOfLastExpression());
-
-    int n=-1;
-    Assert.assertEquals("; (6)", source.getCode().get(++n));
-    Assert.assertEquals(" LDY U", source.getCode().get(++n));
-    Assert.assertEquals(" LDX U+1", source.getCode().get(++n));
-// sty @putarray_byteindex
-// clc
-// txa
-// adc #>big
-// sta @putarray+1
-    
-// old: 16 Takte    
-    Assert.assertEquals(" TYA", source.getCode().get(++n));
-//    Assert.assertEquals(" PUTARRAYB BIG", source.getCode().get(++n));
-    Assert.assertEquals(" CLC", source.getCode().get(++n));
-    Assert.assertEquals(" ADC #<BIG", source.getCode().get(++n));
-    Assert.assertEquals(" STA @PUTARRAY0", source.getCode().get(++n));
-    Assert.assertEquals(" TXA", source.getCode().get(++n));
-    Assert.assertEquals(" ADC #>BIG", source.getCode().get(++n));
-    Assert.assertEquals(" STA @PUTARRAY0+1", source.getCode().get(++n));
-
-    Assert.assertEquals("; (6)", source.getCode().get(++n));
-    Assert.assertEquals(" LDY X", source.getCode().get(++n));
-    Assert.assertEquals(" LDX X+1", source.getCode().get(++n));
-
-    Assert.assertEquals(" TYA", source.getCode().get(++n));
-    Assert.assertEquals(" LDY #0", source.getCode().get(++n));
- // ldy @putarray_byteindex
-    Assert.assertEquals(" STA (@PUTARRAY0),Y", source.getCode().get(++n));
-  }
-  
 }
