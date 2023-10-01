@@ -3,6 +3,13 @@
 
 == What is new
 
+* Parameter -boundscheck or -bc add some code to check the array bounds so a panic occur if write outside an array.
+
+* Array access optimizations we support faster access where we only set the high byte of address in reserved zero page registers for read and write. The low byte in this registers will be always 0. The low byte is handled by y register so `load/store (address),y` are faster to realize.
+
+* Array add like `a[i] := a[i] + 1` will optimize to `ldx i; inc a,x`
+* Array sub like `a[i] := a[i] - 1` will optimize to `ldx i; dec a,x`
+
 * test-sieve.wnf runs ~2s faster than Action! code
 
 * Long Jump Optimizations, we can use JNE, JEQ, JCC, JCS, ... and optimize if most the time
