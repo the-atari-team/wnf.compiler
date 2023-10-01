@@ -1548,5 +1548,185 @@ public class TestPeepholeOptimizer {
    // 20 cycles 14 bytes
  }
 
+ @Test
+ public void testArrayIMinusArrayJ() {
+   // Source source = new Source("n := xpos[i]-ypos[j]").setVerboseLevel(2);
+
+   List<String> list = new ArrayList<>();
+
+   list.add(" LDY I");
+   list.add(" LDX YPOS_HIGH,Y ; (45)");
+   list.add(" LDA YPOS_LOW,Y");
+   list.add(" PHA");
+   list.add(" TXA");
+   list.add(" PHA");
+   list.add(" LDY J");
+   list.add(" LDX YPOS_HIGH,Y ; (45)");
+   list.add(" LDA YPOS_LOW,Y");
+   list.add(" STA @OP ; (11)");
+   list.add(" STX @OP+1");
+   list.add(" PLA");
+   list.add(" TAX");
+   list.add(" PLA");
+   list.add(" SEC");
+   list.add(" SBC @OP");
+   list.add(" TAY");
+   list.add(" TXA");
+   list.add(" SBC @OP+1");
+   list.add(" TAX");
+
+   list.add(" ...");
+   source.resetCode(list);
+
+   peepholeOptimizerSUT.setLevel(3).optimize().build();
+   Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//Assert.assertEquals(3, source.getCode().size());
+
+   int n = -1;
+   List<String> code = source.getCode();
+
+// LDY I
+// LDX J
+// SEC
+// LDA YPOS_LOW,X
+// SBC YPOS_LOW,Y
+// STA @OP
+// LDA YPOS_HIGH,X
+// SBC YPOS_HIGH,Y
+// TAX
+// LDY @OP
+
+   Assert.assertEquals(" LDY I ; (60)", code.get(++n));
+   Assert.assertEquals(" LDX J", code.get(++n));
+   Assert.assertEquals(" SEC", code.get(++n));
+   Assert.assertEquals(" LDA YPOS_LOW,X", code.get(++n));
+   Assert.assertEquals(" SBC YPOS_LOW,Y", code.get(++n));
+   Assert.assertEquals(" STA @OP", code.get(++n));
+   Assert.assertEquals(" LDA YPOS_HIGH,X ; (45)", code.get(++n));
+   Assert.assertEquals(" SBC YPOS_HIGH,Y ; (45)", code.get(++n));
+   Assert.assertEquals(" LDY @OP", code.get(++n));
+   Assert.assertEquals(" TAX", code.get(++n));
+   // 32 cycles
+ }
+
+ @Test
+ public void testArrayIPlusArrayJ() {
+   // Source source = new Source("n := xpos[i]+ypos[i]").setVerboseLevel(2);
+
+   List<String> list = new ArrayList<>();
+
+   list.add(" LDY I");
+   list.add(" LDX YPOS_HIGH,Y ; (45)");
+   list.add(" LDA YPOS_LOW,Y");
+   list.add(" PHA");
+   list.add(" TXA");
+   list.add(" PHA");
+   list.add(" LDY J");
+   list.add(" LDX YPOS_HIGH,Y ; (45)");
+   list.add(" LDA YPOS_LOW,Y");
+   list.add(" STA @OP ; (11)");
+   list.add(" STX @OP+1");
+   list.add(" PLA");
+   list.add(" TAX");
+   list.add(" PLA");
+   list.add(" CLC");
+   list.add(" ADC @OP");
+   list.add(" TAY");
+   list.add(" TXA");
+   list.add(" ADC @OP+1");
+   list.add(" TAX");
+
+   list.add(" ...");
+   source.resetCode(list);
+
+   peepholeOptimizerSUT.setLevel(3).optimize().build();
+   Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//Assert.assertEquals(3, source.getCode().size());
+
+   int n = -1;
+   List<String> code = source.getCode();
+
+// LDY I
+// LDX J
+// SEC
+// LDA YPOS_LOW,X
+// SBC YPOS_LOW,Y
+// STA @OP
+// LDA YPOS_HIGH,X
+// SBC YPOS_HIGH,Y
+// TAX
+// LDY @OP
+
+   Assert.assertEquals(" LDY I ; (61)", code.get(++n));
+   Assert.assertEquals(" LDX J", code.get(++n));
+   Assert.assertEquals(" CLC", code.get(++n));
+   Assert.assertEquals(" LDA YPOS_LOW,X", code.get(++n));
+   Assert.assertEquals(" ADC YPOS_LOW,Y", code.get(++n));
+   Assert.assertEquals(" STA @OP", code.get(++n));
+   Assert.assertEquals(" LDA YPOS_HIGH,X ; (45)", code.get(++n));
+   Assert.assertEquals(" ADC YPOS_HIGH,Y ; (45)", code.get(++n));
+   Assert.assertEquals(" LDY @OP", code.get(++n));
+   Assert.assertEquals(" TAX", code.get(++n));
+   // 32 cycles
+ }
+
+ @Test
+ public void testLdyOp_tax_txa() {
+   List<String> list = new ArrayList<>();
+
+   list.add(" LDY @OP");
+   list.add(" TAX");
+   list.add(" TXA");
+
+   list.add(" ...");
+   source.resetCode(list);
+
+   peepholeOptimizerSUT.setLevel(3).optimize().build();
+   Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//Assert.assertEquals(3, source.getCode().size());
+
+   int n = -1;
+   List<String> code = source.getCode();
+
+// LDY @OP
+
+   Assert.assertEquals(" LDY @OP ; (62)", code.get(++n));
+ }
+
+ @Test
+ public void testArrayIAssignArrayI() {
+   List<String> list = new ArrayList<>();
+
+   list.add(" LDY DB_I");
+   list.add(" LDX DB_MULT40_HIGH,Y ; (45)");
+   list.add(" LDA DB_MULT40_LOW,Y");
+   list.add(" TAY");
+   list.add(" TXA");
+   list.add(" LDX DB_I ; (38f)");
+   list.add(" STA DB_SCREEN1_HIGH,X");
+   list.add(" TYA");
+   list.add(" STA DB_SCREEN1_LOW,X");
+
+   list.add(" ...");
+   source.resetCode(list);
+
+   peepholeOptimizerSUT.setLevel(3).optimize().build();
+   Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
+
+//Assert.assertEquals(3, source.getCode().size());
+
+   int n = -1;
+   List<String> code = source.getCode();
+
+   Assert.assertEquals(" LDY DB_I ; (63)", code.get(++n));
+   Assert.assertEquals(" LDA DB_MULT40_LOW,Y", code.get(++n));
+   Assert.assertEquals(" STA DB_SCREEN1_LOW,Y", code.get(++n));
+   Assert.assertEquals(" LDA DB_MULT40_HIGH,Y ; (45)", code.get(++n));
+   Assert.assertEquals(" STA DB_SCREEN1_HIGH,Y", code.get(++n));
+ }
+
 }
 

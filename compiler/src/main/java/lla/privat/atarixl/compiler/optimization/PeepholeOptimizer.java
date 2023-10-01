@@ -129,6 +129,10 @@ public class PeepholeOptimizer extends Optimizer {
     LDA_GETARRAY_LDX_0_STA_NOT_STX, // (59)
     LDA_GETARRAY_TAY_BEQ, // (59b)
     LDX_CLC_ADC_TAY_TXA, // (59c)
+    ARRAY_I_MINUS_ARRAY_J, // (60)
+    ARRAY_I_PLUS_ARRAY_J, // (61)
+    LDY_OP_TAX_TXA, // (62) will only occur if (60) or (61)
+    ARRAY_I_ASSIGN_ARRAY_I, // (63)
     ENDE;
   }
 
@@ -275,7 +279,7 @@ public class PeepholeOptimizer extends Optimizer {
         increment_array_itself_by_1(); // (50)
         decrement_array_itself_by_1(); // (51)
         value_not_equal_zero(); // (52)
-
+       
         if (optimisationLevel > 2) {
           
           removeComments();
@@ -285,6 +289,14 @@ public class PeepholeOptimizer extends Optimizer {
           beq_then_jmp_else(); // (55)
 //          }
           putarray0(); // (57)
+
+          array_i_minus_array_j(); // (60)
+          removeComments();
+          ldy_tya(); // (6) (10) (11)
+          array_i_plus_array_j(); // (61)
+          removeComments();
+          ldy_op_tax_txa(); // (62)
+          array_i_assign_array_i(); // (63)
         }
       }
       removeComments();
@@ -3091,4 +3103,296 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
     }
   }
 
+  
+  /*
+;
+; [136]  deltay := @abs(ypos[i] - ypos[j])
+;
+ LDY I
+ LDX YPOS_HIGH,Y ; (45)
+ LDA YPOS_LOW,Y
+ PHA
+ TXA
+ PHA
+ LDY J
+ LDX YPOS_HIGH,Y ; (45)
+ LDA YPOS_LOW,Y
+ STA @OP ; (11)
+ STX @OP+1
+ PLA
+ TAX
+ PLA
+ SEC
+ SBC @OP
+ TAY
+ TXA
+ SBC @OP+1
+ TAX
+; 60 takte
+
+
+; neue verkuerzte Version!
+ LDY I
+ LDX J
+ SEC
+ LDA YPOS_LOW,X
+ SBC YPOS_LOW,Y
+ STA @OP
+ LDA YPOS_HIGH,X
+ SBC YPOS_HIGH,Y
+ TAX
+ LDY @OP
+; 32 Takte
+
+   */
+
+  private void array_i_minus_array_j() {
+    for (int i = 0; i < codeList.size() - 4; i++) {
+      array_i_minus_array_j(i, PeepholeType.ARRAY_I_MINUS_ARRAY_J);
+    }
+  }
+  
+  private void array_i_minus_array_j(int index, PeepholeType type) {
+    // @formatter:off
+      if (
+	  codeList.get(index     ).startsWith(" LDY ") &&
+	  codeList.get(index +1  ).startsWith(" LDX ") &&
+	  codeList.get(index +2  ).startsWith(" LDA ") &&
+	  codeList.get(index +3  ).startsWith(" PHA") &&
+	  codeList.get(index +4  ).startsWith(" TXA") &&
+	  codeList.get(index +5  ).startsWith(" PHA") &&
+	  codeList.get(index +6  ).startsWith(" LDY ") &&
+	  codeList.get(index +7  ).startsWith(" LDX ") &&
+	  codeList.get(index +8  ).startsWith(" LDA ") &&
+	  codeList.get(index +9  ).startsWith(" STA @OP") &&
+	  codeList.get(index +10 ).startsWith(" STX @OP+1") &&
+	  codeList.get(index +11 ).startsWith(" PLA") &&
+	  codeList.get(index +12 ).startsWith(" TAX") &&
+	  codeList.get(index +13 ).startsWith(" PLA") &&
+	  codeList.get(index +14 ).startsWith(" SEC") &&
+	  codeList.get(index +15 ).startsWith(" SBC @OP") &&
+	  codeList.get(index +16 ).startsWith(" TAY") &&
+	  codeList.get(index +17 ).startsWith(" TXA") &&
+	  codeList.get(index +18 ).startsWith(" SBC @OP+1") &&
+	  codeList.get(index +19 ).startsWith(" TAX")
+	  ) {
+	  
+	  String indexVariable1 = codeList.get(index).replace(" LDY ", "");
+	  String indexVariable2 = codeList.get(index+6).replace(" LDY ", "");
+
+	  String var_high_left = codeList.get(index+1).replace(" LDX ", "");
+	  String var_low_left = codeList.get(index+2).replace(" LDA ", "");
+
+      var_low_left = var_low_left.replace(",Y", ",X");
+      var_high_left = var_high_left.replace(",Y", ",X");
+
+      String var_high_right = codeList.get(index+7).replace(" LDX ", "");
+	  String var_low_right = codeList.get(index+8).replace(" LDA ", "");
+
+
+	  // left - right
+
+	  // @formatter:on
+	  LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+	  codeList.set(index + 0, " LDY " + indexVariable1 + " ; (60)");
+	  codeList.set(index + 1, " LDX " + indexVariable2);
+	  codeList.set(index + 2, " SEC");
+	  codeList.set(index + 3, " LDA " + var_low_left); // !! ,X
+	  codeList.set(index + 4, " SBC " + var_low_right);
+	  codeList.set(index + 5, " STA @OP");
+	  codeList.set(index + 6, " LDA " + var_high_left); // !! ,X
+	  codeList.set(index + 7, " SBC " + var_high_right);
+	  codeList.set(index + 8, " LDY @OP");
+      codeList.set(index + 9, " TAX");
+
+	  for (int i=10; i<=19;i++) {
+	      codeList.set(index + i, ";opt (60)");
+	  }
+
+	  incrementStatus(type);
+      }
+  }
+/*
+  ;
+  ; [85]  ypos[i] := ypos[i] + ystep[i]
+  ;
+
+  LDY I
+  LDX YPOS_HIGH,Y ; (45)
+  LDA YPOS_LOW,Y
+  PHA
+  TXA
+  PHA
+ ;  LDY I ; (100)
+  LDX YSTEP_HIGH,Y ; (45)
+  LDA YSTEP_LOW,Y
+  STA @OP ; (11)
+  STX @OP+1
+  PLA
+  TAX
+  PLA
+  CLC
+  ADC @OP
+  TAY
+  TXA
+  ADC @OP+1
+  TAX
+*/
+
+    
+  private void array_i_plus_array_j() {
+    for (int i = 0; i < codeList.size() - 4; i++) {
+      array_i_plus_array_j(i, PeepholeType.ARRAY_I_PLUS_ARRAY_J);
+    }
+  }
+  
+  private void array_i_plus_array_j(int index, PeepholeType type) {
+    // @formatter:off
+      if (
+	  codeList.get(index     ).startsWith(" LDY ") &&
+	  codeList.get(index +1  ).startsWith(" LDX ") &&
+	  codeList.get(index +2  ).startsWith(" LDA ") &&
+	  codeList.get(index +3  ).startsWith(" PHA") &&
+	  codeList.get(index +4  ).startsWith(" TXA") &&
+	  codeList.get(index +5  ).startsWith(" PHA") &&
+	  codeList.get(index +6  ).startsWith(" LDY ") &&
+	  codeList.get(index +7  ).startsWith(" LDX ") &&
+	  codeList.get(index +8  ).startsWith(" LDA ") &&
+	  codeList.get(index +9  ).startsWith(" STA @OP") &&
+	  codeList.get(index +10 ).startsWith(" STX @OP+1") &&
+	  codeList.get(index +11 ).startsWith(" PLA") &&
+	  codeList.get(index +12 ).startsWith(" TAX") &&
+	  codeList.get(index +13 ).startsWith(" PLA") &&
+	  codeList.get(index +14 ).startsWith(" CLC") &&
+	  codeList.get(index +15 ).startsWith(" ADC @OP") &&
+	  codeList.get(index +16 ).startsWith(" TAY") &&
+	  codeList.get(index +17 ).startsWith(" TXA") &&
+	  codeList.get(index +18 ).startsWith(" ADC @OP+1") &&
+	  codeList.get(index +19 ).startsWith(" TAX")
+	  ) {
+	  
+	  String indexVariable1 = codeList.get(index).replace(" LDY ", "");
+	  String indexVariable2 = codeList.get(index+6).replace(" LDY ", "");
+
+	  String var_high_left = codeList.get(index+1).replace(" LDX ", "");
+	  String var_low_left = codeList.get(index+2).replace(" LDA ", "");
+
+      var_low_left = var_low_left.replace(",Y", ",X");
+      var_high_left = var_high_left.replace(",Y", ",X");
+
+      String var_high_right = codeList.get(index+7).replace(" LDX ", "");
+	  String var_low_right = codeList.get(index+8).replace(" LDA ", "");
+
+
+	  // left - right
+
+	  // @formatter:on
+	  LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+	  codeList.set(index + 0, " LDY " + indexVariable1 + " ; (61)");
+	  codeList.set(index + 1, " LDX " + indexVariable2);
+	  codeList.set(index + 2, " CLC");
+	  codeList.set(index + 3, " LDA " + var_low_left); // !! ,X
+	  codeList.set(index + 4, " ADC " + var_low_right);
+	  codeList.set(index + 5, " STA @OP");
+	  codeList.set(index + 6, " LDA " + var_high_left); // !! ,X
+	  codeList.set(index + 7, " ADC " + var_high_right);
+	  codeList.set(index + 8, " LDY @OP");
+      codeList.set(index + 9, " TAX");
+
+	  for (int i=10; i<=19;i++) {
+	      codeList.set(index + i, ";opt (61)");
+	  }
+
+	  incrementStatus(type);
+      }
+  }
+  
+  private void ldy_op_tax_txa() {
+    for (int i = 0; i < codeList.size() - 3; i++) {
+      ldy_op_tax_txa(i, PeepholeType.LDY_OP_TAX_TXA);
+    }
+  }
+  
+  private void ldy_op_tax_txa(int index, PeepholeType type) {
+    // @formatter:off
+      if (
+          codeList.get(index    ).startsWith(" LDY @OP") &&
+          codeList.get(index + 1).startsWith(" TAX") &&
+          codeList.get(index + 2).startsWith(" TXA")
+          ) {
+
+        codeList.set(index, " LDY @OP ; (62)");
+        codeList.set(index + 1, ";opt (62)");
+        codeList.set(index + 2, ";opt (62)");
+
+        incrementStatus(type);
+        
+        }
+      }
+/*
+  LDY DB_I
+  LDX DB_MULT40_HIGH,Y ; (45)
+  LDA DB_MULT40_LOW,Y
+  TAY
+  TXA
+  LDX DB_I ; (38f)
+  STA DB_SCREEN1_HIGH,X
+  TYA
+  STA DB_SCREEN1_LOW,X
+*/
+  private void array_i_assign_array_i() {
+    for (int i = 0; i < codeList.size() - 9; i++) {
+      array_i_assign_array_i(i, PeepholeType.ARRAY_I_ASSIGN_ARRAY_I);
+    }
+  }
+  
+  private void array_i_assign_array_i(int index, PeepholeType type) {
+    // @formatter:off
+      if (
+          codeList.get(index    ).startsWith(" LDY ") &&
+          codeList.get(index + 1).startsWith(" LDX ") &&
+          codeList.get(index + 2).startsWith(" LDA ") &&
+          codeList.get(index + 3).startsWith(" TAY") &&
+          codeList.get(index + 4).startsWith(" TXA") &&
+          codeList.get(index + 5).startsWith(" LDX ") &&
+          codeList.get(index + 6).startsWith(" STA ") &&
+          codeList.get(index + 7).startsWith(" TYA") &&
+          codeList.get(index + 8).startsWith(" STA ")
+          ) {
+
+        String indexVariable1 = codeList.get(index).replace(" LDY ", "");
+        String indexVariable2 = codeList.get(index + 5).replace(" LDX ", "");
+        if (indexVariable2.indexOf(" ;") != -1) {
+          indexVariable2 = indexVariable2.substring(0, indexVariable2.indexOf(" ;"));
+        }
+        String src_high = codeList.get(index + 1).replace(" LDX ", "");
+        String src_low = codeList.get(index + 2).replace(" LDA ", "");
+
+        String dest_high = codeList.get(index + 6).replace(" STA ", "");
+        String dest_low = codeList.get(index + 8).replace(" STA ", "");
+
+        dest_high = dest_high.replace(",X", ",Y");
+        dest_low = dest_low.replace(",X", ",Y");
+        
+        if (indexVariable1.equals(indexVariable2)) {
+          codeList.set(index, " LDY " + indexVariable1 + " ; (63)");
+          codeList.set(index + 1, " LDA " + src_low);
+          codeList.set(index + 2, " STA " + dest_low);
+          codeList.set(index + 3, " LDA " + src_high);
+          codeList.set(index + 4, " STA " + dest_high);
+          codeList.set(index + 5, ";opt (63)");
+          codeList.set(index + 6, ";opt (63)");
+          codeList.set(index + 7, ";opt (63)");
+          codeList.set(index + 8, ";opt (63)");
+
+          incrementStatus(type);
+        }
+
+        
+      }
+    }
+    
 }
+  

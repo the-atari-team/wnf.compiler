@@ -14,7 +14,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import lla.privat.atarixl.compiler.source.Source;
@@ -79,7 +78,21 @@ public class TestRegisterOptimizer {
     Assert.assertEquals(1, registerOptimizerSUT.getUsedOptimisations());
   }
 
-  @Ignore
+  @Test
+  public void testLoad0() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDA #<0");
+    list.add(" STA A");
+    list.add(" LDA #>0"); // This should be optimized
+    list.add(" STA A+1");
+    list.add(" ...");
+    source.resetCode(list);
+    
+    registerOptimizerSUT.optimize();
+    
+    Assert.assertEquals(1, registerOptimizerSUT.getUsedOptimisations());
+  }
+
   @Test
   public void testStoreAsName_loadAImmidiatly() {
     List<String> list = new ArrayList<>();
@@ -94,8 +107,55 @@ public class TestRegisterOptimizer {
     
     Assert.assertEquals(1, registerOptimizerSUT.getUsedOptimisations());
   }
+
+  @Test
+  public void testStoreAsName_loadAIndirectIndexed() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY #1");
+    list.add(" LDA (HEAP_PTR),Y");
+    list.add(" LDY #2");
+    list.add(" LDA (HEAP_PTR),Y"); // must not optimized
+    list.add(" STA B");
+    list.add(" ...");
+    source.resetCode(list);
+    
+    registerOptimizerSUT.optimize();
+    
+    Assert.assertEquals(0, registerOptimizerSUT.getUsedOptimisations());
+  }
+
+  @Test
+  public void testStoreAsName_storeToHeapPtr() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY #1");
+    list.add(" LDA #0");
+    list.add(" STA (HEAP_PTR),Y");
+    list.add(" LDY #2");
+    list.add(" LDA (HEAP_PTR),Y"); // must not optimized
+    list.add(" STA B");
+    list.add(" ...");
+    source.resetCode(list);
+    
+    registerOptimizerSUT.optimize();
+    
+    Assert.assertEquals(0, registerOptimizerSUT.getUsedOptimisations());
+  }
+
+  @Test
+  public void testStoreAsName_loadA() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDA #<1");
+    list.add(" STA A");
+    list.add(" LDA A"); // This should be optimized
+    list.add(" STA B");
+    list.add(" ...");
+    source.resetCode(list);
+    
+    registerOptimizerSUT.optimize();
+    
+    Assert.assertEquals(1, registerOptimizerSUT.getUsedOptimisations());
+  }
   
-  @Ignore
   @Test
   public void testStoreAsName_loadXImmidiatly() {
     List<String> list = new ArrayList<>();
@@ -111,7 +171,6 @@ public class TestRegisterOptimizer {
     Assert.assertEquals(1, registerOptimizerSUT.getUsedOptimisations());
   }
   
-//  @Ignore
   @Test
   public void testStoreAsName_loadYImmidiatly() {
     List<String> list = new ArrayList<>();
@@ -198,7 +257,7 @@ public class TestRegisterOptimizer {
 
     registerOptimizerSUT.optimize().build();
     
-    Assert.assertEquals(38, registerOptimizerSUT.getUsedOptimisations());
+    Assert.assertEquals(41, registerOptimizerSUT.getUsedOptimisations());
 
     List<String> optimizedCode = source.getCode();
     
@@ -252,6 +311,24 @@ public class TestRegisterOptimizer {
     
     Assert.assertEquals(0, registerOptimizerSUT.getUsedOptimisations());
   }
+
+  @Test
+  public void testStoreLoadOtherRegister() {
+    List<String> list = new ArrayList<>();
+
+    list.add(" LDX memory");
+    list.add(" LDA #1");
+    list.add(" STA memory");
+    list.add(" LDX memory"); // must not optimized
+    list.add(" ...");
+    
+    source.resetCode(list);
+    
+    registerOptimizerSUT.optimize();
+    
+    Assert.assertEquals(0, registerOptimizerSUT.getUsedOptimisations());
+  }
+  
 
   @Test
   public void testLoadModifyStoreINC_loadAgain() {

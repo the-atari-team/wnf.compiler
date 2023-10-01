@@ -17,7 +17,7 @@ public class RegisterOptimizer extends Optimizer {
 
 //  private int line;
 
-  private String accu = "";
+  private ArrayList<String> accu = new ArrayList<>();
   private ArrayList<String> yRegisterList = new ArrayList<>();
   private ArrayList<String> xRegisterList = new ArrayList<>();
 
@@ -66,30 +66,37 @@ public class RegisterOptimizer extends Optimizer {
 
       if (isSprungMarke(codeLine)) {
         // Sämtliche Register löschen.
-        this.accu = "";
+        this.accu.clear();
         this.yRegisterList.clear();
         this.xRegisterList.clear();
       }
       else if (codeLine.startsWith(" LDA ")) {
         String accu = getVariable(codeLine.replace(" LDA ", ""));
-        if (!accu.contains(",") && this.accu.equals(accu) && this.accu.length() > 0) {
+        if (!accu.contains(",") && this.accu.contains(accu)) {
           // optimize possible
           codeList.set(line, "; " + codeLine + " ; (100)");
 
           incrementStatus();
         }
-        this.accu = accu;        
+        else {
+          this.accu.clear();
+          if (accu.length() > 0) {
+            this.accu.add(accu);
+          }
+        }
       }
       else if (codeLine.startsWith(" STA ")) {
         String accu = getVariable(codeLine.replace(" STA ", ""));
         if (!accu.contains(",")) {
-          if (this.xRegisterList.contains(accu)) {
-            xRegisterList.clear();
-          }
           if (this.yRegisterList.contains(accu)) {
             yRegisterList.clear();
           }
-          this.accu = accu;
+          if (this.xRegisterList.contains(accu)) {
+            xRegisterList.clear();
+          }
+          if (accu.length() > 0) {
+            this.accu.add(accu);
+          }
         }
       }
       else if (codeLine.startsWith(" LDY ")) {
@@ -111,8 +118,8 @@ public class RegisterOptimizer extends Optimizer {
           if (this.xRegisterList.contains(yRegister)) {
             xRegisterList.clear();
           }
-          if (this.accu.equals(yRegister)) {
-            this.accu = "";
+          if (this.accu.contains(yRegister)) {
+            this.accu.clear();
           }
           // this.yRegisterList.clear();
           this.yRegisterList.add(yRegister);
@@ -137,8 +144,8 @@ public class RegisterOptimizer extends Optimizer {
           if (this.yRegisterList.contains(xRegister)) {
             this.yRegisterList.clear();
           }
-          if (this.accu.equals(xRegister)) {
-            this.accu = "";
+          if (this.accu.contains(xRegister)) {
+            this.accu.clear();
           }
           this.xRegisterList.add(xRegister);
         }
@@ -157,7 +164,7 @@ public class RegisterOptimizer extends Optimizer {
         // @formatter:on
 
         // accu wurde manipulliert, also einfach löschen
-        this.accu = "";
+        this.accu.clear();
       }
 
 //      codeLine.startsWith(" LSR") ||
@@ -172,7 +179,7 @@ public class RegisterOptimizer extends Optimizer {
         if (memory.contains(",")) {
           yRegisterList.clear();
           xRegisterList.clear();
-          accu = "";
+          accu.clear();
         }
         else {
           if (this.yRegisterList.contains(memory)) {
@@ -181,8 +188,8 @@ public class RegisterOptimizer extends Optimizer {
           if (this.xRegisterList.contains(memory)) {
             this.xRegisterList.clear();
           }
-          if (this.accu.equals(memory) || memory.equals("A")) {
-            this.accu = "";
+          if (this.accu.contains(memory) || memory.equals("A")) {
+            this.accu.clear();
           }
         }
       }
@@ -193,7 +200,7 @@ public class RegisterOptimizer extends Optimizer {
         if (memory.contains(",")) {
           yRegisterList.clear();
           xRegisterList.clear();
-          accu = "";
+          accu.clear();
         }
         else {
           if (this.yRegisterList.contains(memory)) {
@@ -202,8 +209,8 @@ public class RegisterOptimizer extends Optimizer {
           if (this.xRegisterList.contains(memory)) {
             this.xRegisterList.clear();
           }
-          if (this.accu.equals(memory) || memory.equals("A")) {
-            this.accu = "";
+          if (this.accu.contains(memory) || memory.equals("A")) {
+            this.accu.clear();
           }
         }
       }
@@ -214,7 +221,7 @@ public class RegisterOptimizer extends Optimizer {
         if (memory.contains(",")) {
           yRegisterList.clear();
           xRegisterList.clear();
-          accu = "";
+          accu.clear();
         }
         else {
           if (this.yRegisterList.contains(memory)) {
@@ -223,8 +230,8 @@ public class RegisterOptimizer extends Optimizer {
           if (this.xRegisterList.contains(memory)) {
             this.xRegisterList.clear();
           }
-          if (this.accu.equals(memory) || memory.equals("A")) {
-            this.accu = "";
+          if (this.accu.contains(memory) || memory.equals("A")) {
+            this.accu.clear();
           }
         }
       }
@@ -235,7 +242,7 @@ public class RegisterOptimizer extends Optimizer {
         if (memory.contains(",")) {
           yRegisterList.clear();
           xRegisterList.clear();
-          accu = "";
+          accu.clear();
         }
         else {
           if (this.yRegisterList.contains(memory)) {
@@ -244,8 +251,8 @@ public class RegisterOptimizer extends Optimizer {
           if (this.xRegisterList.contains(memory)) {
             this.xRegisterList.clear();
           }
-          if (this.accu.equals(memory) || memory.equals("A")) {
-            this.accu = "";
+          if (this.accu.contains(memory) || memory.equals("A")) {
+            this.accu.clear();
           }
         }
       }
@@ -280,8 +287,8 @@ public class RegisterOptimizer extends Optimizer {
         if (this.yRegisterList.contains(memory)) {
           yRegisterList.clear();
         }
-        if (this.accu.equals(memory)) {
-          this.accu = "";
+        if (this.accu.contains(memory)) {
+          this.accu.clear();
         }
       }
       else if (codeLine.startsWith(" DEC ")) {
@@ -295,8 +302,8 @@ public class RegisterOptimizer extends Optimizer {
         if (this.yRegisterList.contains(memory)) {
           yRegisterList.clear();
         }
-        if (this.accu.equals(memory)) {
-          this.accu = "";
+        if (this.accu.contains(memory)) {
+          this.accu.clear();
         }
       }
       
@@ -349,7 +356,7 @@ public class RegisterOptimizer extends Optimizer {
 
     return false;
   }
-
+  
   private String getVariable(final String variableAndComment) {
     String variable = variableAndComment;
     int space = variable.indexOf(" ;");
@@ -362,6 +369,9 @@ public class RegisterOptimizer extends Optimizer {
 //    if (variable.startsWith("@")) {
 //      return "";
 //    }
+    if (variable.equals("#<0") || variable.equals("#>0")) {
+      variable = "#0";
+    }
     return variable;
   }
 }

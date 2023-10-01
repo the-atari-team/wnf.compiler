@@ -100,10 +100,10 @@ public class ITPeepholeOptimizer {
     source.resetCode(lines);
 
     peepholeOptimizerSUT.setLevel(optimize).optimize().build();
-    Assert.assertEquals(408, peepholeOptimizerSUT.getUsedOptimisations());
+    Assert.assertEquals(410, peepholeOptimizerSUT.getUsedOptimisations());
     
     List<String> optimizedCode = source.getCode();
-    Assert.assertEquals(2273, optimizedCode.size());
+    Assert.assertEquals(2271, optimizedCode.size());
     
 //    String outputFilename = "/tmp/ENEMY_3.INC";
 //    File outputFile = new File(outputFilename);
