@@ -30,15 +30,17 @@ public class TestRegisterOptimizer {
   public static void setUpClass() {
     String OS = System.getProperty("os.name");
     if (OS.startsWith("Windows")) {
-      tempPath = "C:/temp/compiler";
+      tempPath = "C:/temp/test-wnfc-compiler";
     }
     else {
-      tempPath = "/tmp/compiler";
+      tempPath = "/tmp/test-wnfc-compiler";
     }
     File directory = new File(tempPath);
     directory.mkdir();
 
-    File file = new File(tempPath, "ENEMY.INC");
+    File file = new File(tempPath, "ENEMY-register-optimized.INC");
+    file.delete();
+    file = new File(tempPath, "DUDE-register-optimized.INC");
     file.delete();
   }
 
@@ -220,9 +222,8 @@ public class TestRegisterOptimizer {
   }
 
   @Test
-  public void testEnemyO0() throws IOException {
+  public void testEnemyO0_register_optimize() throws IOException {
     String inputFilename = "src/test/resources/lla/privat/atarixl/compiler/ENEMY.INC";
-//    int optimize = 2;
 
     File file = new File(inputFilename);
     Assert.assertTrue(file.exists());
@@ -238,14 +239,13 @@ public class TestRegisterOptimizer {
 
     List<String> optimizedCode = source.getCode();
     
-    File outputFile = new File(tempPath, "ENEMY.INC");
+    File outputFile = new File(tempPath, "ENEMY-register-optimized.INC");
     writeLines(outputFile, optimizedCode);
   }
   
   @Test
-  public void testDudeO2() throws IOException {
+  public void testDudeO0_register_optimize() throws IOException {
     String inputFilename = "src/test/resources/lla/privat/atarixl/compiler/DUDE.INC";
-//    int optimize = 2;
 
     File file = new File(inputFilename);
     Assert.assertTrue(file.exists());
@@ -257,11 +257,11 @@ public class TestRegisterOptimizer {
 
     registerOptimizerSUT.optimize().build();
     
-    Assert.assertEquals(41, registerOptimizerSUT.getUsedOptimisations());
+    Assert.assertEquals(49, registerOptimizerSUT.getUsedOptimisations());
 
     List<String> optimizedCode = source.getCode();
     
-    File outputFile = new File(tempPath, "DUDE.INC");
+    File outputFile = new File(tempPath, "DUDE-register-optimized.INC");
     writeLines(outputFile, optimizedCode);
   }
 
@@ -319,14 +319,21 @@ public class TestRegisterOptimizer {
     list.add(" LDX memory");
     list.add(" LDA #1");
     list.add(" STA memory");
-    list.add(" LDX memory"); // must not optimized
+    list.add(" LDX memory"); // must not optimized in 100, but in 102!
     list.add(" ...");
     
     source.resetCode(list);
     
-    registerOptimizerSUT.optimize();
+    registerOptimizerSUT.optimize().build();
     
-    Assert.assertEquals(0, registerOptimizerSUT.getUsedOptimisations());
+    Assert.assertEquals(1, registerOptimizerSUT.getUsedOptimisations());
+    
+    List<String> code = source.getCode();
+    int n=-1;
+    Assert.assertEquals(" LDX memory", code.get(++n));
+    Assert.assertEquals(" LDA #1", code.get(++n));
+    Assert.assertEquals(" STA memory", code.get(++n));
+    Assert.assertEquals(" TAX ; (102)", code.get(++n));
   }
   
 
@@ -543,6 +550,35 @@ public class TestRegisterOptimizer {
     registerOptimizerSUT.optimize();
   
     Assert.assertEquals(0, registerOptimizerSUT.getUsedOptimisations());
+  }
+
+  @Test
+  public void testLoadvaluetoA_StoreAddr_LoadAddrtoY() {
+    List<String> list = new ArrayList<>();
+
+    list.add(";");
+    list.add("; [319]  animation_index_ptr := animation_index[i]");
+    list.add(";");
+    list.add(" LDY I");
+    list.add(" LDA ANIMATION_INDEX,Y");
+    list.add(" STA ANIMATION_INDEX_PTR ; (11)");
+    list.add(";");
+    list.add("; [320]  animation_value := animation[animation_index_ptr]");
+    list.add(";");
+    list.add(" LDY ANIMATION_INDEX_PTR"); // should optimized to TAY
+    list.add(" LDA ANIMATION,Y");
+    list.add(" STA ANIMATION_VALUE ; (11)");
+    list.add(" ...");
+    
+    source.resetCode(list);
+    
+    registerOptimizerSUT.optimize().build();
+    
+    Assert.assertEquals(1, registerOptimizerSUT.getUsedOptimisations());
+
+    List<String> code = source.getCode();
+    Assert.assertEquals(" TAY ; (101)", code.get(9));
+    Assert.assertEquals(" LDA ANIMATION,Y", code.get(10));
   }
 
 }

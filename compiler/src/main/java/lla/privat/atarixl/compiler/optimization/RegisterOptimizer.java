@@ -101,11 +101,22 @@ public class RegisterOptimizer extends Optimizer {
       }
       else if (codeLine.startsWith(" LDY ")) {
         String yRegister = getVariable(codeLine.replace(" LDY ", ""));
-        if (!yRegister.contains(",") && yRegisterList.contains(yRegister)) {
-          // optimize possible
-          codeList.set(line, "; " + codeLine + " ; (100)");
-
-          incrementStatus();
+        if (!yRegister.contains(",")) {
+          if (yRegisterList.contains(yRegister)) {
+            // optimize possible
+            codeList.set(line, "; " + codeLine + " ; (100)");
+            incrementStatus();
+          }
+          else if (accu.contains(yRegister)) {
+            codeList.set(line, " TAY ; (101)");
+            incrementStatus();
+            this.yRegisterList.clear();
+            this.yRegisterList.add(yRegister);
+          }
+          else {
+            this.yRegisterList.clear();
+            this.yRegisterList.add(yRegister);            
+          }
         }
         else {
           this.yRegisterList.clear();
@@ -127,11 +138,22 @@ public class RegisterOptimizer extends Optimizer {
       }
       else if (codeLine.startsWith(" LDX ")) {
         String xRegister = getVariable(codeLine.replace(" LDX ", ""));
-        if (!xRegister.contains(",") && this.xRegisterList.contains(xRegister)) {
-          // optimize possible
-          codeList.set(line, "; " + codeLine + " ; (100)");
-
-          incrementStatus();
+        if (!xRegister.contains(",")) {
+          if (this.xRegisterList.contains(xRegister)) {
+            // optimize possible
+            codeList.set(line, "; " + codeLine + " ; (100)");
+            incrementStatus();
+          }
+          else if (accu.contains(xRegister)) {
+            codeList.set(line, " TAX ; (102)");
+            incrementStatus();
+            this.xRegisterList.clear();
+            this.xRegisterList.add(xRegister);
+          }
+          else {
+            this.xRegisterList.clear();
+            this.xRegisterList.add(xRegister);            
+          }
         }
         else {
           this.xRegisterList.clear();
