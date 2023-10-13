@@ -150,6 +150,18 @@ public class PeepholeOptimizer extends Optimizer {
     }
   }
 
+  public List<String> getStatus() {
+    List<String> statusList = new ArrayList<>();
+    for (PeepholeType type : PeepholeType.values()) {
+      Integer used = status.get(type);
+      if (used > 0) {
+        statusList.add(type.name());
+      }
+    }
+    
+    return statusList;
+  }
+
   public void showStatus() {
     if (optimisationLevel > 0) {
       if (source.showPeepholeOptimize()) {
@@ -252,7 +264,10 @@ public class PeepholeOptimizer extends Optimizer {
       ldx_txa_ldx(); // (48)
       sta_putarray_lda_ldx_putarray_sta();
       lda_getarray_ldx_0_sta_not_stx();
-      
+
+      removeComments();
+      tay_tya(); // (15) (16)
+
       if (optimisationLevel > 1) {
 
         bne_fa_jmp_then();
@@ -279,7 +294,7 @@ public class PeepholeOptimizer extends Optimizer {
         increment_array_itself_by_1(); // (50)
         decrement_array_itself_by_1(); // (51)
         value_not_equal_zero(); // (52)
-       
+
         if (optimisationLevel > 2) {
           
           removeComments();
@@ -300,6 +315,7 @@ public class PeepholeOptimizer extends Optimizer {
         }
       }
       removeComments();
+//      tay_tya(); // (15) (16)
       
       LOGGER.info("Peephole Optimizer has {} optimizations applied.", count);
     }

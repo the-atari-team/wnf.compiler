@@ -89,7 +89,7 @@ public class ITOptimizer {
     longJumpOptimizerSUT.optimize().build();
 
     Assert.assertEquals(410, peepholeOptimizerSUT.getUsedOptimisations());
-    Assert.assertEquals(72, registerOptimizerSUT.getUsedOptimisations());
+    Assert.assertEquals(80, registerOptimizerSUT.getUsedOptimisations());
     Assert.assertEquals(72, longJumpOptimizerSUT.getUsedOptimisations());
 
     List<String> optimizedCode = source.getCode();

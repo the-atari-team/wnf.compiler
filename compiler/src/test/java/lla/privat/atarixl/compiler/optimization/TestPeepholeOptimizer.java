@@ -1728,5 +1728,76 @@ public class TestPeepholeOptimizer {
    Assert.assertEquals(" STA DB_SCREEN1_HIGH,Y", code.get(++n));
  }
 
+ /*
+ TAY
+ SEC
+ TYA
+ SBC #<1
+ TAY
+ TYA
+ ; sum 12 cycles
+ 
+ => good
+ 1.:
+ TAY
+ DEY
+ TYA
+ ; sum 6 cycles
+ 
+ => better!
+ SEC
+ SBC #<1 
+ ; sum 4 cycles
+  */
+
+ @Test
+ public void testSub1FromAccuByteValue() {
+   List<String> list = new ArrayList<>();
+
+   list.add(";  LDY EM_INDEX ; (100)");
+   list.add(" LDA EM_ARROW_IN_MOVE,Y");
+   list.add(" TAY");
+   list.add(" SEC");
+   list.add(" TYA");
+   list.add(" SBC #<1");
+   list.add(" TAY");
+   list.add(" TYA");
+   list.add(" LDX @PUTARRAY");
+   list.add(" STA EM_ARROW_IN_MOVE,X");
+   list.add(" ...");
+   source.resetCode(list);
+
+   peepholeOptimizerSUT.setLevel(2).optimize().build();
+   Assert.assertEquals(2, peepholeOptimizerSUT.getUsedOptimisations());
+
+//Assert.assertEquals(3, source.getCode().size());
+   List<String> status = peepholeOptimizerSUT.getStatus();
+   Assert.assertEquals(1, status.size());
+   Assert.assertEquals("TAY_TYA", status.get(0));
+   
+   int n = -1;
+   List<String> code = source.getCode();
+
+   Assert.assertEquals(";  LDY EM_INDEX ; (100)", code.get(++n));
+   Assert.assertEquals(" LDA EM_ARROW_IN_MOVE,Y", code.get(++n));
+
+   Assert.assertEquals(" SEC", code.get(++n));
+   Assert.assertEquals(" SBC #<1", code.get(++n));
+
+   Assert.assertEquals(" LDX @PUTARRAY", code.get(++n));
+   Assert.assertEquals(" STA EM_ARROW_IN_MOVE,X", code.get(++n));
 }
 
+ 
+ /* fix value replacement?
+ SEC
+ LDA #<16
+ SBC #<1
+ TAY
+ STY ?FOR1
+ 
+ =>
+ LDY #15
+ STY ?FOR1
+*/
+}

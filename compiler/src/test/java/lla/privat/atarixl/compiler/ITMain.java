@@ -22,10 +22,10 @@ public class ITMain {
   public static void setUpClass() {
     String OS = System.getProperty("os.name");
     if (OS.startsWith("Windows")) {
-      tempPath = "C:/temp/atari";
+      tempPath = "C:/temp/test-wnfc-compiler";
     }
     else {
-      tempPath = "/tmp/atari";
+      tempPath = "/tmp/test-wnfc-compiler";
     }
     File directory = new File(tempPath);
     directory.mkdir();
@@ -36,13 +36,14 @@ public class ITMain {
 
   @AfterClass
   public static void tearDown() {
-    File file = new File(tempPath + "/TESTCRC.INC");
-    file.delete();
+    File file = new File(tempPath, "TESTCRC.INC");
+//    file.delete();
 
-    file = new File(tempPath + "/TSTSIEVE.ASM");
-    file.delete();
+    file = new File(tempPath, "TSTSIEVE.ASM");
+//    file.delete();
   }
 
+  
   @Test
   public void testSimple() throws IOException {
     String simple = "src/test/resources/lla/privat/atarixl/compiler/simple.wnf";
@@ -63,20 +64,35 @@ public class ITMain {
     int optimize = 1;
     new Main(simple).readFile().compile().optimize(optimize).setOutputPath(tempPath).write();
 
-    File file = new File(tempPath + "/TESTCRC.INC");
+    File file = new File(tempPath, "TESTCRC.INC");
     Assert.assertTrue(file.exists());
   }
 
+  
   @Test
-  public void testSieve() throws IOException {
+  public void testSieveO2() throws IOException {
     String simple = "src/test/resources/lla/privat/atarixl/compiler/test-sieve.wnf";
     int optimize = 2;
     Main main = new Main(simple).readFile().compile().optimize(optimize).setOutputPath(tempPath).write();
 
-    File file = new File(tempPath + "/TSTSIEVE.ASM");
+    File file = new File(tempPath, "TSTSIEVE.ASM");
     Assert.assertTrue(file.exists());
-
+    file.renameTo(new File(tempPath, "TSTSIEVE-optimize-O2.ASM"));
+    
     Assert.assertEquals(71, main.getUsedOptimisations());
+  }
+
+  @Test
+  public void testSieveO3() throws IOException {
+    String simple = "src/test/resources/lla/privat/atarixl/compiler/test-sieve.wnf";
+    int optimize = 3;
+    Main main = new Main(simple).readFile().compile().optimize(optimize).setOutputPath(tempPath).write();
+
+    File file = new File(tempPath, "TSTSIEVE.ASM");
+    Assert.assertTrue(file.exists());
+    file.renameTo(new File(tempPath, "TSTSIEVE-optimize-O3.ASM"));
+    
+    Assert.assertEquals(77, main.getUsedOptimisations());
   }
 
   @Test
@@ -124,7 +140,7 @@ public class ITMain {
     Main main = new Main(testOxygeneBe, null, options).readFile().compile().optimize(optimize)
         .setOutputPath(tempPath).write();
     
-    File file = new File(tempPath + "/OXYGENBE.ASM");
+    File file = new File(tempPath, "OXYGENBE.ASM");
     Assert.assertTrue(file.exists());
 
     Assert.assertEquals(1032, main.getUsedOptimisations());

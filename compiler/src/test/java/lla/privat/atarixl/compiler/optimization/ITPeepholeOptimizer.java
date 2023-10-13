@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import lla.privat.atarixl.compiler.source.Source;
@@ -22,6 +23,28 @@ public class ITPeepholeOptimizer {
   private PeepholeOptimizer peepholeOptimizerSUT;
 
   private Source source;
+
+  private static String tempPath;
+  
+  @BeforeClass
+  public static void setUpClass() {
+    String OS = System.getProperty("os.name");
+    if (OS.startsWith("Windows")) {
+      tempPath = "C:/temp/test-wnfc-compiler";
+    }
+    else {
+      tempPath = "/tmp/test-wnfc-compiler";
+    }
+    File directory = new File(tempPath);
+    directory.mkdir();
+
+    File file = new File(tempPath, "ENEMY-peephole-optimized-O2.INC");
+    file.delete();
+    file = new File(tempPath, "ENEMY-peephole-optimized-O3.INC");
+    file.delete();
+    file = new File(tempPath, "DUDE-peephole-optimized-O3.INC");
+    file.delete();
+  }
 
   @Before
   public void setUp() {
@@ -80,10 +103,9 @@ public class ITPeepholeOptimizer {
     
     List<String> optimizedCode = source.getCode();
     Assert.assertEquals(2406, optimizedCode.size());
-    
-//    String outputFilename = "/tmp/ENEMY_2.INC";
-//    File outputFile = new File(outputFilename);
-//    writeLines(outputFile, optimizedCode);
+       
+    File outputFile = new File(tempPath, "ENEMY-peephole-optimized-O2.INC");
+    writeLines(outputFile, optimizedCode);
   }
 
   @Test
@@ -105,9 +127,31 @@ public class ITPeepholeOptimizer {
     List<String> optimizedCode = source.getCode();
     Assert.assertEquals(2271, optimizedCode.size());
     
-//    String outputFilename = "/tmp/ENEMY_3.INC";
-//    File outputFile = new File(outputFilename);
-//    writeLines(outputFile, optimizedCode);
+    File outputFile = new File(tempPath, "ENEMY-peephole-optimized-O3.INC");
+    writeLines(outputFile, optimizedCode);
+  }
+
+  @Test
+  public void testDudeSimpleOptimize3() throws IOException {
+    String inputFilename = "src/test/resources/lla/privat/atarixl/compiler/DUDE.INC";
+    int optimize = 4;
+
+    File file = new File(inputFilename);
+    Assert.assertTrue(file.exists());
+    List<String> lines = readLines(file);
+
+    Assert.assertEquals(3178, lines.size());
+    
+    source.resetCode(lines);
+
+    peepholeOptimizerSUT.setLevel(optimize).optimize().build();
+    Assert.assertEquals(10, peepholeOptimizerSUT.getUsedOptimisations());
+    
+    List<String> optimizedCode = source.getCode();
+    Assert.assertEquals(3168, optimizedCode.size());
+    
+    File outputFile = new File(tempPath, "DUDE-peephole-optimized-O3.INC");
+    writeLines(outputFile, optimizedCode);
   }
 
 }

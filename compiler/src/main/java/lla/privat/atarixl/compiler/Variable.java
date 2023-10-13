@@ -229,30 +229,45 @@ public class Variable {
     source.match(symbol, "[");
 
     boolean hasValues = true;
+    boolean positionVariable = false;
+    
     int localValues = 0;
     Symbol valueSymbol = source.nextElement();
 
     while (hasValues) {
       SymbolEnum id = valueSymbol.getId();
       if (id == SymbolEnum.variable_name) {
-        ++localValues;
         String name = valueSymbol.get();
-        if (name.equals("ADR")) {
-          // TODO: give a hint, adr is not need here!
+        if (name.equals("POS")) {
           Symbol doppelpunkt = source.nextElement();
           source.match(doppelpunkt, ":");
           Symbol variable = source.nextElement();
           name = variable.get();
-        }
-        if (name.startsWith("@")) {                   // Variables start with "@" are most functions defined somewhere else
-          source.addVariable(name, Type.FUNCTION);    // This is a job for the assembler
+
+          source.addVariable(name, Type.CONST);    // This is a const variable
+          source.setVariableAddress(name, String.valueOf(localValues));
+          positionVariable = true;
+          valueSymbol = source.nextElement();
         }
         else {
-          source.throwIfVariableUndefined(name);
+          ++localValues;
+          if (name.equals("ADR")) {
+            // TODO: give a hint, adr is not need here!
+            Symbol doppelpunkt = source.nextElement();
+            source.match(doppelpunkt, ":");
+            Symbol variable = source.nextElement();
+            name = variable.get();
+          }
+          if (name.startsWith("@")) {                   // Variables start with "@" are most functions defined somewhere else
+            source.addVariable(name, Type.FUNCTION);    // This is a job for the assembler
+          }
+          else {
+            source.throwIfVariableUndefined(name);
+          }
+          source.getVariable(name).setRead();
+          arrayValues.add(name);
+          valueSymbol = source.nextElement();
         }
-        source.getVariable(name).setRead();
-        arrayValues.add(name);
-        valueSymbol = source.nextElement();
       }
       else if (id == SymbolEnum.symbol && valueSymbol.get().equals("-")) {
         ++localValues;
@@ -296,6 +311,9 @@ public class Variable {
       String mnemonic = valueSymbol.get();
       if (mnemonic.equals(",")) {
         valueSymbol = source.nextElement();
+      }
+      else if (positionVariable) {
+        positionVariable = false;
       }
       else {
         hasValues = false;

@@ -196,6 +196,25 @@ public class TestVariable {
   }
 
   @Test
+  public void testVariableAssignmentByteArrayAndPositionConstVars() {
+    Source source = new Source("byte array x[2] = [0,pos:pos1 1,2,3,4,5,6,7]");
+
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("X"));
+    Assert.assertEquals(1, source.getVariableSize("X"));
+    Assert.assertEquals(8, source.getVariableArraySize("X"));
+
+    Assert.assertTrue(source.hasVariable("POS1"));
+    Assert.assertEquals("1", source.getVariableAddress("POS1"));
+  }
+
+  @Test
   public void testVariableAssignmentFatByteArray() {
     Source source = new Source("byte array x[257] = [1,2]");
 

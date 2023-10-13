@@ -250,7 +250,8 @@ public class SymbolTokenizer implements Enumeration<Symbol> {
           symbol.get().equals("ABS") ||
           symbol.get().equals("B2W") ||
           symbol.get().equals("HI") ||
-          symbol.get().equals("NEG")) { // TODO: prüfen ob ADR eine variable sein muss
+          symbol.get().equals("NEG") ||
+          symbol.get().equals("POS")) { // TODO: prüfen ob ADR eine variable sein muss
         symbol.changeId(SymbolEnum.variable_name);
       }
     }
