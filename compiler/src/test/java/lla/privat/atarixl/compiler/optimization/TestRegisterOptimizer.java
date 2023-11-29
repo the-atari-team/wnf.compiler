@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import lla.privat.atarixl.compiler.expression.Type;
 import lla.privat.atarixl.compiler.source.Source;
 
 public class TestRegisterOptimizer {
@@ -579,6 +580,24 @@ public class TestRegisterOptimizer {
     List<String> code = source.getCode();
     Assert.assertEquals(" TAY ; (101)", code.get(9));
     Assert.assertEquals(" LDA ANIMATION,Y", code.get(10));
+  }
+  
+  @Test
+  public void testLoadRandom_loadAgain() {
+    source.addVariable("RANDOM", Type.BYTE);
+    source.setVariableAddress("RANDOM", "$D20A");
+    
+    List<String> list = new ArrayList<>();
+
+    list.add(" LDA RANDOM");
+    list.add(" LDA RANDOM"); // must not optimized
+    list.add(" ...");
+    
+    source.resetCode(list);
+    
+    registerOptimizerSUT.optimize();
+    
+    Assert.assertEquals(0, registerOptimizerSUT.getUsedOptimisations());
   }
 
 }

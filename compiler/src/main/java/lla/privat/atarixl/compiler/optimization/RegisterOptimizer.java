@@ -81,7 +81,9 @@ public class RegisterOptimizer extends Optimizer {
         else {
           this.accu.clear();
           if (accu.length() > 0) {
-            this.accu.add(accu);
+            if (checkName(accu)) {
+              this.accu.add(accu);
+            }
           }
         }
       }
@@ -115,7 +117,9 @@ public class RegisterOptimizer extends Optimizer {
           }
           else {
             this.yRegisterList.clear();
-            this.yRegisterList.add(yRegister);            
+            if (checkName(yRegister)) {
+              this.yRegisterList.add(yRegister);
+            }
           }
         }
         else {
@@ -152,7 +156,9 @@ public class RegisterOptimizer extends Optimizer {
           }
           else {
             this.xRegisterList.clear();
-            this.xRegisterList.add(xRegister);            
+            if (checkName(xRegister)) {
+              this.xRegisterList.add(xRegister);
+            }
           }
         }
         else {
@@ -330,6 +336,21 @@ public class RegisterOptimizer extends Optimizer {
       }
       
     }
+  }
+
+  private boolean checkName(String accu) {
+    if (accu.equals("RANDOM")) {
+      return false;
+    }
+    if (source.hasVariable(accu)) {
+      String address = source.getVariableAddress(accu);
+      if (address != null) {
+        if (address.equals("$D20A") || address.equals("53770")) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   private void incrementStatus() {
