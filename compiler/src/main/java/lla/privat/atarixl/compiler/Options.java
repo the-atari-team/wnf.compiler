@@ -14,7 +14,8 @@ public class Options {
   private boolean testIncludes = false;
   private char precalculate;
   private boolean boundsCheck = false;
-
+  private boolean saveLocalToStack = true;
+  
   public Options() {
     verboseLevel = 0;
     optimisationLevel = 2;
@@ -161,5 +162,11 @@ public class Options {
     this.boundsCheck = boundsCheck;
   }
 
+  public boolean isSaveLocalToStack() {
+    return saveLocalToStack;
+  }
 
+  public void setSaveLocalToStack(boolean saveLocalToStack) {
+    this.saveLocalToStack = saveLocalToStack;
+  }
 }

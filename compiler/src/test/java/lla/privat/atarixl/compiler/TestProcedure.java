@@ -183,7 +183,14 @@ public class TestProcedure {
 
   @Test
   public void testProcedureOneAndLocalParameter() {
-    Source source = new Source("procedure name(one) local b begin end").setVerboseLevel(1);
+    Options options = new Options();
+// options.setSmallAddSubHeapPtr(false);
+    options.setSaveLocalToStack(false);
+    options.setVerboseLevel(1);
+
+
+    Source source = new Source("procedure name(one) local b begin end");
+    source.setOptions(options);
     source.addVariable("ONE", Type.BYTE);
     source.addVariable("B", Type.WORD);
 
@@ -265,6 +272,50 @@ public class TestProcedure {
     Assert.assertEquals(" STA ONE", code.get(++n));
 
     Assert.assertEquals(" RTS", code.get(++n));
+  }
+
+  @Test
+  public void testProcedureAndProcedure() {
+    Source source = new Source("procedure first()\nbegin\n  @second()\nend\nprocedure @second()\nbegin\nend").setVerboseLevel(1);
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Procedure(source).procedure(symbol, Type.PROCEDURE).build();
+
+    Assert.assertEquals("PROCEDURE", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.reserved_word, nextSymbol.getId());
+
+    nextSymbol = new Procedure(source).procedure(nextSymbol, Type.PROCEDURE).build();
+
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals(";", code.get(++n));
+    Assert.assertEquals("; [1]  procedure first()", code.get(++n));
+    Assert.assertEquals(";", code.get(++n));
+
+    Assert.assertEquals("FIRST", code.get(++n));
+    Assert.assertEquals("; FIRST", code.get(++n));
+    Assert.assertEquals("; procedure body", code.get(++n));
+    Assert.assertEquals(";", code.get(++n));
+    Assert.assertEquals("; [3]  @second()", code.get(++n));
+    Assert.assertEquals(";", code.get(++n));
+    Assert.assertEquals(" JSR @SECOND", code.get(++n));
+    
+    Assert.assertEquals("; procedure end", code.get(++n));
+    Assert.assertEquals("?RETURN1", code.get(++n));
+    Assert.assertEquals(" RTS", code.get(++n));
+
+    Assert.assertEquals(";", code.get(++n));
+    Assert.assertEquals("; [5]  procedure @second()", code.get(++n));
+    Assert.assertEquals(";", code.get(++n));
+
+    Assert.assertEquals("@SECOND", code.get(++n));
+    Assert.assertEquals("; @SECOND", code.get(++n));
+    Assert.assertEquals("; procedure body", code.get(++n));
+    Assert.assertEquals("; procedure end", code.get(++n));
+    Assert.assertEquals("?RETURN2", code.get(++n));
+    Assert.assertEquals(" RTS", code.get(++n));
+
   }
 
 }

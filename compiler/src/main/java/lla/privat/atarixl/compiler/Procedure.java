@@ -86,27 +86,44 @@ public class Procedure extends Code {
     return this;
   }
 
+  private boolean isSaveLocalToStack() {
+    return source.getOptions().isSaveLocalToStack();
+  }
 
   private void freeLocalVariables() {
     if (localVariableCount > 1) {
       yregistersafe = false;
       if (procedureType == Type.FUNCTION) {
-        code(" sty @reg+2");
-        yregistersafe = true;
+        if (!isSaveLocalToStack()) {
+          code(" sty @reg+2");
+          yregistersafe = true;
+        }
       }
-      source.sub_from_heap_ptr(localVariableCount);
+      if (!isSaveLocalToStack()) {
+        source.sub_from_heap_ptr(localVariableCount);
+      }
 
       while (localVariableCount > 1) {
         String variable = localVariables.pop();
         Type typ = source.getVariableType(variable);
         localVariableCount -= 2;
-        code(" ldy #" + localVariableCount);
-        code(" lda (@heap_ptr),y");
-        code(" sta " + variable);
-        if (typ.getBytes() == 2) {
-          code(" iny");
+        if (isSaveLocalToStack()) {
+          if (typ.getBytes() == 2) {
+            code(" pla");
+            code(" sta " + variable + "+1");
+          }          
+          code(" pla");          
+          code(" sta " + variable);
+        }
+        else {
+          code(" ldy #" + localVariableCount);
           code(" lda (@heap_ptr),y");
-          code(" sta " + variable + "+1");
+          code(" sta " + variable);
+          if (typ.getBytes() == 2) {
+            code(" iny");
+            code(" lda (@heap_ptr),y");
+            code(" sta " + variable + "+1");
+          }
         }
       }
     }
@@ -149,13 +166,23 @@ public class Procedure extends Code {
         if (typ.getBytes() > 2) {
           source.error(nextSymbol, "LOCAL variable " + variable + " must be 1 or 2 bytes long, no arrays");
         }
-        code(" lda " + variable);
-        code(" ldy #" + localVariableCount);
-        code(" sta (@heap_ptr),y");
-        if (typ.getBytes() == 2) {
-          code(" iny");
-          code(" lda " + variable + "+1");
+        if (isSaveLocalToStack()) {
+          code(" lda " + variable);
+          code(" pha");          
+          if (typ.getBytes() == 2) {
+            code(" lda " + variable + "+1");
+            code(" pha");
+          }          
+        }
+        else {
+          code(" lda " + variable);
+          code(" ldy #" + localVariableCount);
           code(" sta (@heap_ptr),y");
+          if (typ.getBytes() == 2) {
+            code(" iny");
+            code(" lda " + variable + "+1");
+            code(" sta (@heap_ptr),y");
+          }
         }
         localVariableCount += 2;
         localVariables.push(variable);
@@ -169,8 +196,10 @@ public class Procedure extends Code {
         hasLocalVariables = false;
       }
     }
-    if (localVariableCount > 1) {
-        source.add_to_heap_ptr(localVariableCount);
+    if (!isSaveLocalToStack()) {
+      if (localVariableCount > 1) {
+          source.add_to_heap_ptr(localVariableCount);
+      }
     }
     return nextSymbol;
   }

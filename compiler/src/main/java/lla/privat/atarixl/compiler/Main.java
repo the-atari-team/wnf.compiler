@@ -133,6 +133,11 @@ public class Main {
     LOGGER.info(" -precalculate (w|e)   - if given, expressions without variables (precalculatable) will result in build warning or error.");
     LOGGER.info(" -testincludes         - if given, test given includes");
     LOGGER.info(" -boundscheck or -bc   - if given, bounds check will be added in write to array");
+    LOGGER.info(" -noSafeLocalToStack   - if given, local variables will store on heap");
+    LOGGER.info("                         6502 Stack holds only 256 bytes and need 2 bytes per function call.");
+    LOGGER.info("                         Now it stores also local variables on stack.");
+    LOGGER.info("                         If stack underrun occur, use this parameter.");
+    LOGGER.info("                         Most the time the stack should be big enough.");    
     LOGGER.info("");
     LOGGER.info(" -h | --help           - display this help and exit.");
   }
@@ -157,7 +162,8 @@ public class Main {
     boolean showPeepholeOptimize = false;
     boolean testInclude = false;
     boolean boundsCheck = false;
-
+    boolean saveLocalToStack = true;
+    
     char precalculate = 'n';
 
     String outputpath = "";
@@ -226,6 +232,10 @@ public class Main {
         LOGGER.info("Parameter for bounds check is given, we add bounds check.");
         boundsCheck = true;
       }
+      else if (parameter.equalsIgnoreCase("-noSafeLocalToStack") || parameter.equalsIgnoreCase("-nl")) {
+        LOGGER.info("Parameter for noSaveLocalToStack is given, local variables will store on heap.");
+        saveLocalToStack = true;
+      }
       else if (parameter.equals("-I")) {
         String additionalIncludePath = args[index + 1];
 
@@ -282,7 +292,8 @@ public class Main {
       options.setPrecalculate(precalculate);
       options.setTestIncludes(testInclude);
       options.setBoundsCheck(boundsCheck);
-
+      options.setSaveLocalToStack(saveLocalToStack);
+      
       final Main main = new Main(filename, outputpath, options);
 
       main.setIncludePath(includePaths);
