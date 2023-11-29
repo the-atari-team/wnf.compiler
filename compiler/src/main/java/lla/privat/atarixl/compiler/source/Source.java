@@ -412,7 +412,7 @@ public class Source implements Enumeration<Symbol> {
    */
   public void addVariable(String name, Type type, int countArray, ReadOnly readOnly) {
     if (variables.containsKey(name)) {
-      if (name.startsWith("@") && type == Type.FUNCTION) {
+      if (name.startsWith("@") && (type == Type.FUNCTION || type == Type.PROCEDURE)) {
         return;
       }
       if (type == Type.STRING_ANONYM) {
@@ -923,7 +923,9 @@ public class Source implements Enumeration<Symbol> {
     if (hasVariable(name)) {
       VariableDefinition definition = getVariable(name);
       String filename = definition.getFilename();
-      error(new Symbol(name, SymbolEnum.noSymbol), "variable " + name + " is already defined in file:"+filename);
+      if (name.charAt(0) != '@') {
+        error(new Symbol(name, SymbolEnum.noSymbol), "variable " + name + " is already defined in file:"+filename);
+      }
     }
   }
 
