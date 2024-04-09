@@ -1,6 +1,6 @@
 image:https://github.com/the-atari-team/wnf.compiler/actions/workflows/maven.yml/badge.svg[Build Status,link=https://github.com/the-atari-team/wnf.compiler/]
 
-= Atari 8bit WNF Compiler
+# Atari 8bit WNF Compiler
 
 Yes! The first ideas for such compiler are over 30 years old!
 
@@ -8,48 +8,51 @@ de_DE:: WNF für "WiNiFe"-Projekt oder "Wird nie fertig" (ak. Baumann und Clause
 
 en_EN:: WNF stays for "WiNeFi" project or "Will never finished" (german gov. comedy)
 
-== What is this?
+## What is this?
 
 _This is a hobby project._ It is a compiler for an Algol 68 like language.
-It only produces assembler source code for the old https://en.wikipedia.org/wiki/MOS_Technology_6502[MOS-6502] CPU.
-The compiler based also on ideas of https://compilers.iecc.com/crenshaw/[Jack Crenshaws] documents "Let's Build a Compiler".
+It only produces assembler source code for the old [MOS-6502](https://en.wikipedia.org/wiki/MOS_Technology_6502) CPU.
+The compiler based also on ideas of [Jack Crenshaws](https://compilers.iecc.com/crenshaw/) documents "Let's Build a Compiler".
 It is hardcoded to 6502 assembler for simplicity.
 The assembler files are full compatible to
-https://github.com/CycoPH/atasm/[atasm-Assembler],
+[atasm-Assembler](https://github.com/CycoPH/atasm/),
 and mostly compatible to mac/65 from OSS.
 
-== For what?
+## For what?
 
-This is just a simple but full working demonstration to build assembler code for computers like Atari 8bit.
+This is just a simple but full working demonstration to build 6502 assembler code for computers like Atari 8bit.
 
-== Why another compiler
+## Why another compiler
 
-This is also a demonstration for myself. I would like to create a language something faster than Turbo-Basic XL. A simple language which also supports assembler functions in a simple manner. Something I can also use in Turbo-Basic.
+This is also a demonstration for myself.
+I would like to create a language something faster than Turbo-Basic XL.
+A simple language which also supports assembler functions in a simple manner.
+Something I can also use in Turbo-Basic.
 
 * Action! has the limitation of the need of an expensive cartridge. (350,-DM in 1984) Also programs which use the runtime need the cartridge to run. Nevertheless was Action! a wunderful high speed language at this time.
 * Atmas-II Assembler has a very nice editor but much memory limitations and do not support includes. So it was just an assembler for very small projects.
 * Mac65 was a very nice assembler to build real fat projects, but the editor is a pain.
-* cc65 is a monster and it use C syntax with it's boiler plate ';' etc.
+* cc65 is a monster, it uses C syntax with boiler plate ';' etc.
 * kickc use also C syntax
 
-=== Features
+### Features
 
 The compiler supports:
 
-==== Language
+#### Language
 * Simple language like Algol 68 with very few reserved word.
 * Single pass compiler, no prototypes. But call of _unknown_ functions if functionname starts with @ is supported.
 
 * Complex expressions also with call to self created functions.
 * 2-complement mult and div can be done by shift
-* A star chain feature to convert fix value multiplications to shift/add/sub memonics.
+* A star chain feature to convert fix value _multiplications_ to shift/add/sub memonics.
 * Full access to the mult/div code so a replacement to a faster version if only 8 bit is need to `a*b = ((a+b)^2)/4 - ((a-b)^2)/4` is possible.
 * Numbers can give in 10base(default), 16base(hex), 2base(binary) and 4base(quad helpful for 2bit graphics)
 * Variable types are byte(unsigned), word(signed), int8(signed) or uint16(unsigned) also in arrays
 * Variables can set to fix addresses in memory
 * There exist no pointers but an address access feature to give access to its address. So a function call with a string as parameter like `@printf("Hello World")` is possible.
 
-* One-dimensional arrays. It takes care of the index access on the 8bit machine. So arrays smaller than 256 bytes are simple accessed by index access. Word wide arrays with lower than 256 elements will splitt in low and high byte arrays for faster access.
+* One-dimensional arrays. It takes care of the index access on the 8bit machine. So arrays smaller than 256 bytes are simple accessed by index access. Word wide arrays with lower than 256 elements will splitt in low and high byte arrays for fast index access.
 * Strings with length up to 255 bytes are something like byte arrays.
 * Arrays of strings are possible.
 
@@ -62,20 +65,20 @@ The compiler supports:
 * There exist a simple peephole optimizer.
 * The compiler produce readable assembler source code with extra comments of the corresponding source code. Helpful for debugging or check the code.
 
-==== Hardware Features
+#### Hardware Features
 * Gives near full control over the Atari 8bit machine.
 * DLI/Interrupt sub routines could write in this language, but it is not recommended.
-* The code has a very little footprint in the zero page. It uses only the floating point registers of the Atari (212-255) so it works best together with Atari Basic. Also supports simple parameter access from Basic.
+* The code has a relative little footprint in the zero page. It uses only the floating point registers of the Atari (212-255) so it works best together with Atari Basic. Also supports simple parameter access from Basic.
 
 * The default runtime is very small. Other code is stored in include files and can import if need. No automatism for such external code is implemented.
 
 * Memory limit on Atari: you can create single files from $1000 up to $bfff loadable by DOS.
 
-=== Not supported
+### Not supported
 
 * Pointer arithmetic like in C is not supported, use array access instead.
-* The tristate operator <condition> ? <true> : <false> do not exists.
-* Pre/Postincrement `+ +V V+ + --V V--` are not supported use of `V:=V+1` will result in fast INC V code.
+* The tristate operator <condition> ? <true> : <false> do not exist.
+* Pre/Postincrement `++V V++ --V V--` are not supported use of `V:=V+1` will result in fast `INC V` assembler code. `V[i] := V[i] + 1` will result in `LDX I; INC V,X`.
 * Range control in array access is not supported.
 * Floating Point Arithmetic
 * Datatypes/Structs
@@ -87,26 +90,26 @@ The compiler supports:
 * do loop endless loop not exists. Use `while 1=1 do <statement>` instead.
 * Good dynamic optimizer do not exist, just a simple peephole optimizer.
 
-=== Other limitations
+### Other limitations
 * The biggest limitation, you need Java to run the compiler. ;-) There exists only a very old version outdated native version of the compiler in turbo basic with much less features.
 * There exists only the header files for the Atari 8bit.
-* It is hardcoded for the https://en.wikipedia.org/wiki/MOS_Technology_6502[MOS-6502] CPU.
-* It produces only assembler source code. You need the https://github.com/CycoPH/atasm/[atasm-Assembler] to create Atari binary files.
+* It is hardcoded for the [MOS-6502](https://en.wikipedia.org/wiki/MOS_Technology_6502) CPU.
+* It produces only assembler source code. You need the [atasm-Assembler](https://github.com/CycoPH/atasm/) to create Atari binary files.
 * No linker only the possibility to check which include has to add by hand.
 * No debugger, only the source code lines will be in stored in the assembler source code with line numbers. With modern atasm assembler version 1.17 and Altirra you can debug the assembler source where the compiler sources build in. Very helpful, but not perfect.
 
 
-== Licenses
+## Licenses
 The Atari 8bit WNF Compiler sources are licensed under
-https://creativecommons.org/licenses/by-sa/2.5/[Creative Commons Licenses].
+[Creative Commons Licenses](https://creativecommons.org/licenses/by-sa/2.5/).
 
 
-This small Java application has been rewritten in Java language
+This small TurboBasic application has been rewritten in Java language
 since october 2020.
 
 It reads Atari 8bit wnf-files and compile these files to 6502-assembler.
 The assembler files are full compatible to
-https://github.com/CycoPH/atasm/[atasm-Assembler],
+[atasm-Assembler](https://github.com/CycoPH/atasm/),
 and mostly compatible to mac/65 from OSS.
 
 * [x] read full wnf file
@@ -115,10 +118,10 @@ and mostly compatible to mac/65 from OSS.
 * [x] peephole optimizer
 
 
-== TODOs
+## TODOs
 * [ ] lot of german comments, sorry
 
-== Build
+## Build
 This is a Apache Maven based Java program. You need at least OpenJDK 8.
 To build it, just call `mvn verify` or use the
 bash-script `./build.sh`, which also simply call Apache-Maven.
@@ -127,7 +130,7 @@ There exist a lot JUnit tests, therefore you see lot of output.
 The source-code-coverage of tests is more then 95%.
 
 
-== Installation
+## Installation
 After successful build, copy the `compiler/target/wnf-compiler.jar` file
 to a directory, where a path in your $PATH variable shows to.
 Then create the following simple script like
@@ -145,13 +148,15 @@ It is just for me to install this compiler on my Windows (mingw) PC
 and on my Linux PC. Maybe you find it useful.
 
 
-== Parameter
+## Parameter
 Usage::
-wnfc [OPTIONS] [FILE]
+`wnfc [OPTIONS] [FILE]`
 
-OPTIONS::
+**OPTIONS**
 
--O level:: Give the wished optimization level,
+-O level
+: Give the wished optimization level,
+
 * 0 for no optimization,
 * 1 for normal optimization,
 * 2 for also branch optimizations. +
@@ -159,55 +164,85 @@ The wnfc compiler contains a very rudimentare peephole optimizer.
 Which takes a look into the generated assembler source and replace some constructs by faster one. +
 The compiler produce really simple code with parameter -O 0.
 
--v level:: Give the verbose level
+-v level
+: Give the verbose level
 
--I path:: Path where to search for include files.
+-I path
+: Path where to search for include files.
 The current path is default. +
 The -I parameter can give more than once.
 
--o path:: The output path, where to copy the generated ASM/INC files.
+-o path
+: The output path, where to copy the generated ASM/INC files.
 
--smc:: If given, allow self modified code (smc). +
+-smc
+: If given, allow self modified code (smc). +
 This is very experimental, do not use!
 
--noscm:: Deactivate the shift/(add|sub) for hard coded multiplications.
+-noscm
+: Deactivate the shift/(add|sub) for hard coded multiplications.
 
--noshift:: Multiplication/divisions with 2-complement will not use. e.g. x := y * 2 or x:=y / 4...
+-noshift
+: Multiplication/divisions with 2-complement will not use. e.g. x := y * 2 or x:=y / 4...
 
--smallHeapPtr:: if given, only 256 bytes will use as heap. This means less than 256 Bytes for parameter and local variables. Be careful!
+-smallHeapPtr
+: if given, only 256 bytes will use as heap. This means less than 256 Bytes for parameter and local variables. Be careful!
 
--noHeader:: If given, header.wnf will not automatically import, if file exists.
+-noHeader
+: If given, header.wnf will not automatically import, if file exists.
 
--precalculate (w|e):: If given, expressions without variables may be precalculatable. This will result in warnings or build errors. If such expression found.
+-showVariableUsage
+: Show how often each variable is used.
 
-- testincludes:: If given, a check for all functions will be done. If an include is missed, it will produce a warning.
+-showVariableUnused
+: Show if variable is used in code.
 
--h:: Show this help.
+-showPeepholeOptimize
+: Show which optimization is applied.
 
-FILE:: Give one source file. Currently, it is not possible to
+-precalculate (w|e)
+: If given, expressions without variables may be precalculatable. This will result in warnings or build errors. If such expression found.
+
+- testincludes
+: If given, a check for all functions will be done. If an include is missed, it will produce a warning.
+
+- boundscheck or -bc
+: Add bounds check code. An access outside the array will panic the code.
+
+-noSaveLocalToStack
+: If given local variables will store on heap. The new default is to store local variables on the small 6502 stack.
+
+-verbose level
+: Set the verbose level, default is 2.
+
+-h
+: Show this help.
+
+FILE
+: Give one source file. Currently, it is not possible to
 give more than one file.
 
 
-== PLAIN
+## PLAIN
 
 This is only the plain compiler to compile wnf-files to 6502-assembler.
 Currently, you can only compile the Oxygene Be sources.
 
 More include files to build other things will follow soon.
 
-== Sorry
+## Sorry
 This Java Application has been created very fast out of my original
 compiler written in Turbo-Basic-XL.
-See link:[turbobasic/README.adoc].
+See link:[turbobasic](turbobasic/README.adoc).
 Due to the fact it is a very old german project (over 30 years old), lots of comments
 also in the Java source are in german.
 
 You need to name this compiler `wnfc` to build Oxygene Be from source, because there exists a Makefile in the sources which use wnfc as compiler.
 
-== Hello World example
+## Hello World example
 
 Create a file `hello-world.wnf` with content:
-
+```
  program hello
  lomem=$4000,runad
  begin
@@ -215,6 +250,7 @@ Create a file `hello-world.wnf` with content:
  end
  include 'SCREEN_OUTPUT.INC'
  include 'PRINTF.INC'
+```
 
 To build the assembler code we need to know where to find the include files. Here we assume in variable $COMPILER_LIB
 
@@ -224,12 +260,12 @@ This will produce an assembler program HELLO.ASM which we need to assemble.
 
 `atasm HELLO.ASM`
 
-Will assemble the HELLO.ASM to an executable HELLO.65o
+Will assemble the `HELLO.ASM` to an executable `HELLO.65o`.
 
 `atari800 HELLO.65o`
 
-Starts an atari emulator and loads the HELLO.65o into memory. Due to the `lomem=$4000,runad` the compiler adds the start feature of atari files so such files can load by DOS with autostart.
+Starts an atari emulator and loads the HELLO.65o into memory. Due to the `lomem=$4000,runad` the compiler adds the start feature of Atari files so such files can load by DOS with autostart.
 
-The executable here *.65o is equivalent to *.COM files.
+The executable here `*.65o` is equivalent to `*.COM` files.
 
 I recommend the use of Makefiles to build such programs.

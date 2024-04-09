@@ -1,8 +1,20 @@
-= Atari 8bit WNF Compiler
+# Atari 8bit WNF Compiler
 :lang: en
 
-== What is new
+## What is new
+* Fix a problem with for loop `for i:=0 to n-1 do ...` where i is a word variable and n is a byte variable. `n-1` would compiled wrong. (Peephole problem fixed)
+
 * Fix a problem with load random twice
+
+* New function call aspect for "High Speed Parameters".
+If a function/procedure name starts with @HSP_ it will use "High Speed Parameters" in the call.
+The parameters will store in extra global variable area starts with @HSP_PARAM.
+The first parameter will store at @HSP_PARAM+1(low byte) and @HSP_PARAM+2(high byte) and so on. Always 2 bytes will be used at function call creation.
+Restrictions:
+** Only self written Assembler functions (include at the end) can call with this "High Speed Parameters" feature.
+** Minimum: At least one parameter must exist.
+** Maximum: Up to 8 parameters are allowed. They should be in the zero page.
+** @HSP_PARAM is defined as @REG+10, it uses the @REG Registers, so at first copy the values away.
 
 * local variables will store on the 6502 stack per default,
   it saves some bytes and is faster instead of heap usage.
@@ -11,11 +23,11 @@
   overrun.
   With new parameter -noSaveLocalToStack it will be possible to
   switch off store local variables on stack.
-  
+
 * Generate const variables as positions within an array
   byte array var[10] = [0,1,2,3,4,pos:here 5,6,7,8,9]
-  so the const variable HERE will have the value 5
-    
+  so the const variable 'HERE' will have the value 5
+
 * Parameter -boundscheck or -bc add some code to check the array bounds so a panic occur if write outside an array.
 
 * Array access optimizations we support faster access where we only set the high byte of address in reserved zero page registers for read and write. The low byte in this registers will be always 0. The low byte is handled by y register so `load/store (address),y` are faster to realize.
@@ -27,14 +39,14 @@
 
 * Long Jump Optimizations, we can use JNE, JEQ, JCC, JCS, ... and optimize if most the time
   makes the code smaller and little bit faster
-  
+
 * neg:var to negate the given variable. Only with variables possible, faster than the function call
 
 * condition check without condition memonic 'if a then ...' then will called if a != 0
 
 * PUTARRAY Optimization, we use (@PUTARRAY0),y access, where the first value in memory must be
   always 0. To access the right byte position we use the y-Register. This saves some cycles at write.
-  
+
 * Strings are envelope by double quotes '"' Strings with a single value are possible also like "A".
 * Single Characters are envelop by single quote. A given 'A' will be replaced by value 65.
 
