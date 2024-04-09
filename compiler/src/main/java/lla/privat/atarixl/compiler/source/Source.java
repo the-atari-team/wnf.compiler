@@ -95,6 +95,9 @@ public class Source implements Enumeration<Symbol> {
 //    final VariableDefinition newVariable = new VariableDefinition(mem, Type.FAT_BYTE_ARRAY, 0, filename);
 //    variables.put(mem, newVariable);
 //    variableList.add(mem);
+
+    // Helper Variable, will set if we use a special function with at least 1 Parameter.
+    highSpeedParameterMode = false;
   }
 
   public void setOptions(Options options) {
@@ -959,6 +962,10 @@ public class Source implements Enumeration<Symbol> {
     }
   }
 
+  public void throwUnsupportedFeature(String name) {
+    error(Symbol.noSymbol(), "Feature '" + name + "' is not supported yet");    
+  }
+  
   public void error(Symbol symbol, String message) {
     programTokenizer.error(symbol, message);
   }
@@ -1103,5 +1110,23 @@ public class Source implements Enumeration<Symbol> {
     ++boundsCheckCount;
   }
 
-
+  private boolean highSpeedParameterMode;
+  
+  public void setHighSpeedParameterMode(boolean highSpeedParameterMode) {
+    this.highSpeedParameterMode = highSpeedParameterMode;
+  }
+  
+  public boolean getHighSpeedParameterMode() {
+    return highSpeedParameterMode;
+  }
+  
+  private boolean useCFOptimisation;
+  public void setCFOptimisation(boolean useCF) {
+    useCFOptimisation = useCF;
+  }
+  
+  public boolean useCFOptimisation() {
+    return useCFOptimisation;
+  }
+  
 }

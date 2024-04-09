@@ -460,6 +460,15 @@ public class Expression extends Code {
     // make unknown function start with '@' possible
     if (name.startsWith("@")) {
       source.addVariable(name, Type.FUNCTION);
+
+      if (name.startsWith("@HSP_")) {
+        if (source.getHighSpeedParameterMode()) {
+          // @hsp_a(@hsp_b(b)) is not allowed.
+          source.error(new Symbol(name, SymbolEnum.noSymbol), "High speed parameter function " + name + "(...), cannot nest high speed parameter function calls");
+        }
+        source.setHighSpeedParameterMode(true);
+      }
+
     }
     source.throwIfFunctionUndefined(name);
 
@@ -488,7 +497,12 @@ public class Expression extends Code {
         parameterCount = oldParameterCount;
 
         // Push Marke, damit schreiben wir (y,x) in den HeapPointer
-        p_code.add(PCode.PARAMETER_PUSH.getValue());
+        if (source.getHighSpeedParameterMode()) {
+          p_code.add(PCode.HSP_PARAMETER_PUSH.getValue());          
+        }
+        else {
+          p_code.add(PCode.PARAMETER_PUSH.getValue());
+        }
         p_code.add(localParameterCount);
         localParameterCount += 1; // next word!
       }
@@ -526,6 +540,19 @@ public class Expression extends Code {
       p_code.add(PCode.PARAMETER_END_SUB_FROM_HEAP_PTR.getValue());
       p_code.add(parameterCount);
     }
+    
+    if (source.getHighSpeedParameterMode()) {
+      if ( localParameterCount == 0) {
+        // @hsp_a() is not allowed. (At least one parameter)
+        source.error(new Symbol(name, SymbolEnum.noSymbol), "High speed parameter function " + name + "(...), must contain at least one parameter.");
+      }
+      if (localParameterCount > 8) {
+        // @hsp_a(a,b,c,d,e,f,g,h,i) max 8 parameter are allowed
+        source.error(new Symbol(name, SymbolEnum.noSymbol), "High speed parameter function " + name + "(...), must not use more than 8 parameter.");
+      }
+    }
+    
+    source.setHighSpeedParameterMode(false);
   }
 
   protected void toWord() {
