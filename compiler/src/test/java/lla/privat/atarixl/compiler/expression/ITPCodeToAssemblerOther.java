@@ -1070,4 +1070,126 @@ public class ITPCodeToAssemblerOther {
     /*List<Integer> p_code = */ getPCodeOf(source); // Must throw here due to wrong size of variable
   }
 
+@Test
+  public void testExpressionWordFunctionMitVariableParameterStoreHeapPtrFunction() {
+    Source source = new Source("x(n) ");
+    source.getOptions().setUseStoreHeapPtrFunction(true);
+
+    source.addVariable("X", Type.FUNCTION);
+    source.addVariable("N", Type.WORD);
+
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY N", code.get(++n));
+    Assert.assertEquals(" LDX N+1", code.get(++n));
+
+    Assert.assertEquals("; (16c)", code.get(++n));
+    Assert.assertEquals(" JSR @STORETOHEAP1", code.get(++n));
+
+    Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals(" JSR X_I", code.get(++n));
+  }
+
+@Test
+public void testFunctionInFunctionInFunctionStoreHeapPtrFunction() {
+  Source source = new Source("@A(1,2,@B(3,@C(4)))");
+  source.getOptions().setUseStoreHeapPtrFunction(true);
+  List<Integer> p_code = getPCodeOf(source);
+
+  Type ergebnis = Type.WORD;
+  PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+  pcodeGenerator.build();
+  List<String> code = source.getCode();
+
+  int n = -1;
+  Assert.assertEquals("; (5)", code.get(++n));           // 1. parameter for @A
+  Assert.assertEquals(" LDY #<1", code.get(++n));
+  Assert.assertEquals(" LDX #>1", code.get(++n));
+
+  Assert.assertEquals("; (16c)", code.get(++n));
+  Assert.assertEquals(" JSR @STORETOHEAP1", code.get(++n));
+
+  Assert.assertEquals("; (5)", code.get(++n));           // 2. parameter for @A
+  Assert.assertEquals(" LDY #<2", code.get(++n));
+  Assert.assertEquals(" LDX #>2", code.get(++n));
+
+  Assert.assertEquals("; (16c)", code.get(++n));
+  Assert.assertEquals(" JSR @STORETOHEAP3", code.get(++n));
+
+  Assert.assertEquals("; (17)", code.get(++n));          // move heap_ptr + 5
+//  Assert.assertEquals(" ADD_TO_HEAP_PTR 5", code.get(++n));
+  Assert.assertEquals(" CLC", code.get(++n));
+  Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+  Assert.assertEquals(" ADC #5", code.get(++n));
+  Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+  Assert.assertEquals(" BCC *+4", code.get(++n));
+  Assert.assertEquals(" INC @HEAP_PTR+1", code.get(++n));
+
+  Assert.assertEquals("; (5)", code.get(++n));           // 1. parameter for @B
+  Assert.assertEquals(" LDY #<3", code.get(++n));
+  Assert.assertEquals(" LDX #>3", code.get(++n));
+
+  Assert.assertEquals("; (16c)", code.get(++n));
+  Assert.assertEquals(" JSR @STORETOHEAP1", code.get(++n));
+
+  Assert.assertEquals("; (17)", code.get(++n));          // move heap_ptr + 3
+//  Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
+  Assert.assertEquals(" CLC", code.get(++n));
+  Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+  Assert.assertEquals(" ADC #3", code.get(++n));
+  Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+  Assert.assertEquals(" BCC *+4", code.get(++n));
+  Assert.assertEquals(" INC @HEAP_PTR+1", code.get(++n));
+
+  Assert.assertEquals("; (5)", code.get(++n));           // 1. parameter for @C
+  Assert.assertEquals(" LDY #<4", code.get(++n));
+  Assert.assertEquals(" LDX #>4", code.get(++n));
+
+  Assert.assertEquals("; (16c)", code.get(++n));
+  Assert.assertEquals(" JSR @STORETOHEAP1", code.get(++n));
+
+  Assert.assertEquals("; (14)", code.get(++n));         // call @C
+  Assert.assertEquals(" JSR @C_I", code.get(++n));
+
+  Assert.assertEquals("; (18)", code.get(++n));         // move back heap ptr -= 3
+//  Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
+  Assert.assertEquals(" SEC", code.get(++n));
+  Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+  Assert.assertEquals(" SBC #3", code.get(++n));
+  Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+  Assert.assertEquals(" BCS *+4", code.get(++n));
+  Assert.assertEquals(" DEC @HEAP_PTR+1", code.get(++n));
+
+  Assert.assertEquals("; (16c)", code.get(++n));         // result is 2. parameter for @B
+  Assert.assertEquals(" JSR @STORETOHEAP3", code.get(++n));
+
+  Assert.assertEquals("; (14)", code.get(++n));         // call @B
+  Assert.assertEquals(" JSR @B_II", code.get(++n));
+
+  Assert.assertEquals("; (18)", code.get(++n));         // move back heap ptr -= 5
+//  Assert.assertEquals(" SUB_FROM_HEAP_PTR 5", code.get(++n));
+  Assert.assertEquals(" SEC", code.get(++n));
+  Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+  Assert.assertEquals(" SBC #5", code.get(++n));
+  Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
+  Assert.assertEquals(" BCS *+4", code.get(++n));
+  Assert.assertEquals(" DEC @HEAP_PTR+1", code.get(++n));
+
+  Assert.assertEquals("; (16c)", code.get(++n));         // result is 3. parameter for @A
+  Assert.assertEquals(" JSR @STORETOHEAP5", code.get(++n));
+
+  Assert.assertEquals("; (14)", code.get(++n));         // call @A
+  Assert.assertEquals(" JSR @A_III", code.get(++n));
+}
+
+
 }

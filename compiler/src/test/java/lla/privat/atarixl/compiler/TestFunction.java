@@ -40,6 +40,7 @@ public class TestFunction {
 
   @Test
   public void testFunctionOneParameter() {
+    options.setSaveLocalToStack(false);
     Source source = new Source("function name(one) begin end").setVerboseLevel(1);
     source.addVariable("ONE", Type.BYTE);
 
@@ -97,6 +98,7 @@ public class TestFunction {
 
   @Test
   public void testFunctionOneTwoParameters() {
+    options.setSaveLocalToStack(false);
     Source source = new Source("function name(one, two) begin end").setVerboseLevel(1);
     source.addVariable("ONE", Type.BYTE);
     source.addVariable("TWO", Type.WORD);

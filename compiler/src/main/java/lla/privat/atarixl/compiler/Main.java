@@ -89,14 +89,13 @@ public class Main {
 //      boolean showVariableUnused, boolean showPeepholeOptimize,
 //      ) {
 //    this.filename = filename;
-//    this.options = new Options(optimize, verboseLevel, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader, showVariableUsage, showVariableUnused, showPeepholeOptimize, errorIfPrecalculatable);
+//    this.options = new Options(optimize, verboseLevel, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader, showVariableUsage, showVariableUnused, showPeepholeOptimize);
 //    this.outputPath = outputPath;
 //  }
 
   public Main setOptions(final Options options) {
     this.options.setOptimisationLevel(options.getOptimisationLevel());
     this.options.setVerboseLevel(options.getVerboseLevel());
-    this.options.setPrecalculate(options.getPrecalculate());
     // TODO: fill with all options
     source.setOptions(this.options);
     return this;
@@ -137,11 +136,15 @@ public class Main {
     LOGGER.info("                         Now it stores also local variables on stack.");
     LOGGER.info("                         If stack underrun occur, use this parameter.");
     LOGGER.info("                         Most the time the stack should be big enough.");    
+    LOGGER.info(" -useHeapPtrFunction   - if given, parameter will call storeToHeapPtrFunction()");
+    LOGGER.info("                         this makes function call more expensive, but need less bytes.");
+   
     LOGGER.info("");
     LOGGER.info(" -h | --help           - display this help and exit.");
   }
 
 
+  @SuppressWarnings("serial")
   public static void main(final String[] args) throws IOException {
     if (args.length < 1) {
       LOGGER.error("No parameter given");
@@ -162,7 +165,7 @@ public class Main {
     boolean testInclude = false;
     boolean boundsCheck = false;
     boolean saveLocalToStack = true;
-    
+    boolean useHeapPtrFunction = false;
 
     String outputpath = "";
     List<String> includePaths = new ArrayList<>();
@@ -227,7 +230,11 @@ public class Main {
       }
       else if (parameter.equalsIgnoreCase("-noSaveLocalToStack") || parameter.equalsIgnoreCase("-nl")) {
         LOGGER.info("Parameter for noSaveLocalToStack is given, local variables will store on heap.");
-        saveLocalToStack = true;
+        saveLocalToStack = false;
+      }
+      else if (parameter.equalsIgnoreCase("-useHeapPtrFunction")) {
+        LOGGER.info("Parameter for useHeapPtrFunction is given");
+        useHeapPtrFunction = true;
       }
       else if (parameter.equals("-I")) {
         String additionalIncludePath = args[index + 1];
@@ -285,7 +292,8 @@ public class Main {
       options.setTestIncludes(testInclude);
       options.setBoundsCheck(boundsCheck);
       options.setSaveLocalToStack(saveLocalToStack);
-      
+      options.setUseStoreHeapPtrFunction(useHeapPtrFunction);
+
       final Main main = new Main(filename, outputpath, options);
 
       main.setIncludePath(includePaths);

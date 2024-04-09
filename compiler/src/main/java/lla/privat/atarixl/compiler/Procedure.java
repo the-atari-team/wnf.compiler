@@ -132,8 +132,10 @@ public class Procedure extends Code {
   private void freeCallVariables() {
     if (innerCallParameterPosition > 1) {
       if (procedureType == Type.FUNCTION && yregistersafe == false) {
-        code(" sty @reg+2");
-        yregistersafe = true;
+        if (!isSaveLocalToStack()) {
+          code(" sty @reg+2");
+          yregistersafe = true;
+        }
       }
       source.sub_from_heap_ptr(innerCallParameterPosition);
 
@@ -141,13 +143,23 @@ public class Procedure extends Code {
         String variable = callVariables.pop();
         Type typ = source.getVariableType(variable);
         innerCallParameterPosition -= 2;
-        code(" ldy #" + innerCallParameterPosition);
-        code(" lda (@heap_ptr),y");
-        code(" sta " + variable);
-        if (typ.getBytes() == 2) {
-          code(" iny");
+        if (isSaveLocalToStack()) {
+          if (typ.getBytes() == 2) {
+            code(" pla");
+            code(" sta " + variable + "+1"); // 6-7 Zyklen
+          }          
+          code(" pla");          
+          code(" sta " + variable); // +6-7 Zyklen
+        }
+        else {
+          code(" ldy #" + innerCallParameterPosition);
           code(" lda (@heap_ptr),y");
-          code(" sta " + variable + "+1");
+          code(" sta " + variable);  // 10-11 Zyklen
+          if (typ.getBytes() == 2) {
+            code(" iny");
+            code(" lda (@heap_ptr),y");
+            code(" sta " + variable + "+1"); // + 10-11 Zyklen
+          }
         }
       }
     }
@@ -218,19 +230,38 @@ public class Procedure extends Code {
         ++countOfParameters;
 
         String variable = variableName.get();
-        code(" ldx " + variable);
-        code(" ldy #" + innerCallParameterPosition);
-        code(" lda (@heap_ptr),y");
-        code(" sta " + variable);
-        code(" txa");
-        code(" sta (@heap_ptr),y");
-        if (source.getVariableType(variable).getBytes() == 2) {
-          code(" iny");
-          code(" ldx " + variable + "+1");
+        Type typ = source.getVariableType(variable);
+        if (isSaveLocalToStack()) {
+          // store the variable value to stack
+          // saves 4-8 cycles per variable
+          code(" lda " + variable);
+          code(" pha");
+          code(" ldy #" + innerCallParameterPosition);
           code(" lda (@heap_ptr),y");
-          code(" sta " + variable + "+1");
+          code(" sta " + variable); // 17-19 Zyklen
+          if (typ.getBytes() == 2) {
+            code(" lda " + variable + "+1");
+            code(" pha");
+            code(" iny");
+            code(" lda (@heap_ptr),y");
+            code(" sta " + variable + "+1");  // + 17-19 Zyklen
+          }
+        }
+        else {
+          code(" ldx " + variable);
+          code(" ldy #" + innerCallParameterPosition);
+          code(" lda (@heap_ptr),y");
+          code(" sta " + variable);
           code(" txa");
-          code(" sta (@heap_ptr),y");
+          code(" sta (@heap_ptr),y"); // 21-23 Zyklen
+          if (typ.getBytes() == 2) {
+            code(" iny");
+            code(" ldx " + variable + "+1");
+            code(" lda (@heap_ptr),y");
+            code(" sta " + variable + "+1");
+            code(" txa");
+            code(" sta (@heap_ptr),y"); // + 21-23 Zyklen
+          }
         }
         innerCallParameterPosition += 2;
         callVariables.push(variable);

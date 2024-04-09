@@ -15,6 +15,7 @@ public class Options {
 //  private char precalculate;
   private boolean boundsCheck = false;
   private boolean saveLocalToStack = true;
+  private boolean useStoreHeapPtrFunction = false;
   
   public Options() {
     verboseLevel = 0;
@@ -30,6 +31,7 @@ public class Options {
     testIncludes = false;
 //    precalculate = 'n';
     boundsCheck = false;
+    useStoreHeapPtrFunction = false;
   }
 
   public Options(int optimisationLevel,
@@ -37,6 +39,7 @@ public class Options {
       boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
       boolean smallAddSubHeapPtr, boolean importHeader, boolean showVariableUsage,
       boolean showVariableUnused, boolean showPeepholeOptimize,
+      boolean boundsCheck, boolean useStoreHeapPtrFunction) {
     this.optimisationLevel = optimisationLevel;
     this.verboseLevel = verboseLevel;
     this.selfModifiedCode = selfModifiedCode;
@@ -49,6 +52,7 @@ public class Options {
     this.showPeepholeOptimize = showPeepholeOptimize;
 //    this.precalculate = precalculate;
     this.boundsCheck = boundsCheck;
+    this.useStoreHeapPtrFunction = useStoreHeapPtrFunction;
   }
 
   public int getOptimisationLevel() {
@@ -168,4 +172,14 @@ public class Options {
   public void setSaveLocalToStack(boolean saveLocalToStack) {
     this.saveLocalToStack = saveLocalToStack;
   }
+
+  public boolean isUseStoreHeapPtrFunction() {
+    return useStoreHeapPtrFunction;
+  }
+
+  public void setUseStoreHeapPtrFunction(boolean useStoreHeapPtrFunction) {
+    this.useStoreHeapPtrFunction = useStoreHeapPtrFunction;
+  }
+  
+
 }

@@ -40,7 +40,13 @@ public class TestProcedure {
 
   @Test
   public void testProcedureOneParameter() {
+    Options options = new Options();
+// options.setSmallAddSubHeapPtr(false);
+    options.setSaveLocalToStack(false);
+    options.setVerboseLevel(1);
+
     Source source = new Source("procedure name(one) begin end").setVerboseLevel(1);
+    source.setOptions(options);
     source.addVariable("ONE", Type.BYTE);
 
     Symbol symbol = source.nextElement();
@@ -95,7 +101,14 @@ public class TestProcedure {
 
   @Test
   public void testProcedureOneTwoParameters() {
+    Options options = new Options();
+// options.setSmallAddSubHeapPtr(false);
+    options.setSaveLocalToStack(false);
+    options.setVerboseLevel(1);
+
     Source source = new Source("procedure name(one, two) begin end").setVerboseLevel(1);
+    source.setOptions(options);
+
     source.addVariable("ONE", Type.BYTE);
     source.addVariable("TWO", Type.WORD);
 
