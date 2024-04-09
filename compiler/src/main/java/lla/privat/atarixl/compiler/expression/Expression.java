@@ -27,7 +27,6 @@ public class Expression extends Code {
   private Type ergebnis;
   private Type ergebnisMayBe;
   
-  private boolean precalculationPossible;
   private int countArithmeticSymbols;
 
   public Expression(Source source) {
@@ -38,7 +37,6 @@ public class Expression extends Code {
     parameterCount = 0;
     ergebnis = Type.BYTE;
     ergebnisMayBe = Type.UNKNOWN;
-    precalculationPossible = false;
     countArithmeticSymbols = 0;
   }
 
@@ -82,73 +80,12 @@ public class Expression extends Code {
     return codeGen(sourcecodeline);
   }
 
-  private void calculatePrecalculation() {
-    precalculationPossible = true;
-//    System.out.print("PCode: ");
-//    try {
-      for (int i = 0; i < p_code.size(); i++) {
-        int pcode = p_code.get(i);
-//        System.out.print(pcode);
-        
-        if (pcode == PCode.ZAHL.getValue()) {
-          ++i; // naechste Zahl interessiert nicht
-//          System.out.print(" <" + p_code.get(i) + ">");
-        }
-        else if (pcode == PCode.PUSH.getValue() || pcode == PCode.PULL.getValue()) {        
-        }
-        else if (pcode >= PCode.UPN_ADD.getValue() && pcode <= PCode.UPN_MODULO.getValue()) {
-        }
-        else if (pcode == PCode.NOP.getValue()) {          
-        }
-        else if (pcode == PCode.ADDRESS.getValue()) {
-          ++i; // naechste Zahl interessiert nicht
-        }
-        else {
-          precalculationPossible = false;
-        }
-//        System.out.print(" ");
-      }
-//      System.out.println();
-    
-      // Sonderlocke, single Value
-      if (p_code.size() == 2 && p_code.get(0) == PCode.ZAHL.getValue()) {
-        precalculationPossible = false;
-      }
-      // Sonderlocke, single address
-      if (p_code.size() == 3 && p_code.get(0) == PCode.NOP.getValue() && p_code.get(1) == PCode.ADDRESS.getValue()) {
-        precalculationPossible = false;
-      }
-//    }
-//    catch (IndexOutOfBoundsException e) {
-//      System.out.println("ERROR: " + p_code.size());
-//      source.error(new Symbol(null, null), "UNKNOWN ERROR!");
-//    }
-  } 
   
   public Symbol build() {
     // TODO: ergebnis im PCode hinterlegen?
     code(";#3 vor optimierung");
     code(";#3 <P-Code> " + joinedPCode());
-
-//    if (getCountArithmeticSymbols() > 0) {
-//      if (isPrecalculationPossible()) {
-//        source.warning(Symbol.noSymbol(), "Expression could be precalculated!");
-//      }
-//    }
-
-    // If parameter -errorIfPrecalculatable is given and an expression contains only fix digits
-    // it should precalculated by the developer. Due to the fact it is a single path compiler
-    // the compiler is NOT be able to help here in precalculate itself.
-    
-    if (precalculationPossible) {
-      if (source.getOptions().isErrorPrecalculate()) {
-        source.error(Symbol.noSymbol(), "Error: Precalculation is possible here. Fix it!");
-      }
-      if (source.getOptions().isWarningPrecalculate()) {
-        source.warn("Warning: Precalculation is possible here.");
-      }
-    }
-    
+   
     optimisation();
 
     LOGGER.debug("PCode is " + joinedPCode());
@@ -157,13 +94,6 @@ public class Expression extends Code {
     new PCodeToAssembler(source, p_code, ergebnis).build();
 
     return lastSymbol;
-  }
-
-  /**
-   * @return true, if compiler could calculate the result completely
-   */
-  boolean isPrecalculationPossible() {
-    return precalculationPossible;
   }
 
   int getCountArithmeticSymbols() {
@@ -226,7 +156,6 @@ public class Expression extends Code {
     }
     lastSymbol = nextSymbol;
 
-    calculatePrecalculation();
     // fluid interface
     return this;
   }

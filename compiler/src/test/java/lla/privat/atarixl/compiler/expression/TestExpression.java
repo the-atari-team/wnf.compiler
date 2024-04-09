@@ -46,7 +46,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 123 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -59,7 +58,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 160 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -72,7 +70,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 175 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(0, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -86,7 +83,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 184 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -99,7 +95,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 184 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -112,7 +107,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("168 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -125,7 +119,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 0 17 168 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -138,7 +131,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("168 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -153,7 +145,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("168 0 16 167 123 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(Type.BYTE, source.getTypeOfLastExpression());
   }
 
@@ -169,7 +160,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("254 171 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -182,7 +172,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 1 170 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -195,7 +184,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 1 169 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -235,7 +223,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 123 16 167 876 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -249,7 +236,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 123 22 167 876 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -263,7 +249,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 123 20 167 876 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -278,7 +263,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 123 21 167 876 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -293,7 +277,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 123 23 167 876 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -307,7 +290,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 2 16 167 3 17 167 4 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
 
   }
 
@@ -321,7 +303,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 999 17 167 876 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -334,7 +315,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 2 162 167 3 18 167 4 163 8 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(2, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -348,7 +328,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 8 19 167 2 17 167 4 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(2, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -362,7 +341,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 -1 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -377,7 +355,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 2 18 167 -1 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -393,7 +370,6 @@ public class TestExpression {
     Source source = new Source("@x()");
 
     setupWordExpression(source);
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -422,7 +398,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 48 162 180 0 167 123 181 0 64 0 1 163 8 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -504,7 +479,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("254 171 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   
@@ -524,7 +498,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("254 171 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test(expected = IllegalStateException.class)
@@ -592,7 +565,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     Assert.assertEquals("167 2 162 167 3 162 167 4 162 167 5 16 167 6 163 8 163 8 163 8 9999999",
         expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -604,7 +576,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 255 17 167 16 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -620,7 +591,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("180 0 65 0 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -633,7 +603,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 2 16 167 3 16 167 4 9999999", expressionSUT.joinedPCode());
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(2, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -653,7 +622,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     joinedPCode = expressionSUT.joinedPCode();
     Assert.assertEquals("167 2 162 167 3 19 167 4 163 10 9999999", joinedPCode);
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -677,7 +645,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     joinedPCode = expressionSUT.joinedPCode();
     Assert.assertEquals("167 2 18 167 3 19 167 4 9999999", joinedPCode);
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(2, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -691,7 +658,6 @@ public class TestExpression {
 
     String joinedPCode = expressionSUT.joinedPCode();
     Assert.assertEquals("180 0 168 0 181 0 160 159 162 168 1 163 9 181 1 64 2 2", joinedPCode);
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -704,7 +670,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     Assert.assertEquals(Type.BYTE, source.getTypeOfLastExpression());
     Assert.assertEquals("167 1 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -717,7 +682,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     Assert.assertEquals(Type.WORD, source.getTypeOfLastExpression());
     Assert.assertEquals("167 -129 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -730,7 +694,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     Assert.assertEquals(Type.WORD, source.getTypeOfLastExpression());
     Assert.assertEquals("167 256 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -743,7 +706,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     Assert.assertEquals(Type.BYTE, source.getTypeOfLastExpression());
     Assert.assertEquals("167 1 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -756,7 +718,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     Assert.assertEquals(Type.BYTE, source.getTypeOfLastExpression());
     Assert.assertEquals("167 255 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(0, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -770,7 +731,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     Assert.assertEquals(Type.INT8, source.getTypeOfLastExpression());
     Assert.assertEquals("167 -1 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(0, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -799,7 +759,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     Assert.assertEquals(Type.WORD, source.getTypeOfLastExpression());
     Assert.assertEquals("168 0 16 168 1 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -816,7 +775,6 @@ public class TestExpression {
     expressionSUT.optimisation();
     Assert.assertEquals(Type.WORD, source.getTypeOfLastExpression());
     Assert.assertEquals("168 0 16 167 123 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -839,7 +797,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("254 178 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -852,7 +809,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("254 179 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -865,7 +821,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("254 179 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
   
   @Test
@@ -878,7 +833,6 @@ public class TestExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("254 179 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
 }

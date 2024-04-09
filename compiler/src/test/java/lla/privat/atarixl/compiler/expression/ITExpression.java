@@ -24,8 +24,6 @@ public class ITExpression {
 
     Assert.assertEquals(SymbolEnum.noSymbol, symbol.getId());
 
-    // a single fix integer digit is NOT precalculatable
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -38,9 +36,6 @@ public class ITExpression {
     symbol = expressionSUT.expression(symbol).build();
 
     Assert.assertEquals(SymbolEnum.noSymbol, symbol.getId());
-
-    // two fix integer digits are precalculatable
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -53,9 +48,6 @@ public class ITExpression {
     symbol = expressionSUT.expression(symbol).build();
 
     Assert.assertEquals(SymbolEnum.noSymbol, symbol.getId());
-
-    // three fix integer digits are precalculatable
-    Assert.assertTrue(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -69,9 +61,6 @@ public class ITExpression {
     symbol = expressionSUT.expression(symbol).build();
 
     Assert.assertEquals(SymbolEnum.noSymbol, symbol.getId());
-
-    // a variable in the expression results in not precalculatable
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
   
   @Test
@@ -85,9 +74,6 @@ public class ITExpression {
     symbol = expressionSUT.expression(symbol).build();
 
     Assert.assertEquals(SymbolEnum.noSymbol, symbol.getId());
-
-    // a variable in the expression results in not precalculatable
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
 }

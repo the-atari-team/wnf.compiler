@@ -12,7 +12,7 @@ public class Options {
   private boolean showVariableUnused = false;
   private boolean showPeepholeOptimize = false;
   private boolean testIncludes = false;
-  private char precalculate;
+//  private char precalculate;
   private boolean boundsCheck = false;
   private boolean saveLocalToStack = true;
   
@@ -28,7 +28,7 @@ public class Options {
     showVariableUnused = false;
     showPeepholeOptimize = false;
     testIncludes = false;
-    precalculate = 'n';
+//    precalculate = 'n';
     boundsCheck = false;
   }
 
@@ -37,7 +37,6 @@ public class Options {
       boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
       boolean smallAddSubHeapPtr, boolean importHeader, boolean showVariableUsage,
       boolean showVariableUnused, boolean showPeepholeOptimize,
-      char precalculate, boolean boundsCheck) {
     this.optimisationLevel = optimisationLevel;
     this.verboseLevel = verboseLevel;
     this.selfModifiedCode = selfModifiedCode;
@@ -48,7 +47,7 @@ public class Options {
     this.showVariableUsage = showVariableUsage;
     this.showVariableUnused = showVariableUnused;
     this.showPeepholeOptimize = showPeepholeOptimize;
-    this.precalculate = precalculate;
+//    this.precalculate = precalculate;
     this.boundsCheck = boundsCheck;
   }
 
@@ -132,19 +131,19 @@ public class Options {
     this.showVariableUnused = showVariableUnused;
   }
 
-  public boolean isErrorPrecalculate() {
-    return precalculate=='e';
-  }
-  public boolean isWarningPrecalculate() {
-    return precalculate=='w';
-  }
-  public char getPrecalculate() {
-    return precalculate;
-  }
-
-  public void setPrecalculate(char precalculate) {
-    this.precalculate = precalculate;
-  }
+//  public boolean isErrorPrecalculate() {
+//    return precalculate=='e';
+//  }
+//  public boolean isWarningPrecalculate() {
+//    return precalculate=='w';
+//  }
+//  public char getPrecalculate() {
+//    return precalculate;
+//  }
+//
+//  public void setPrecalculate(char precalculate) {
+//    this.precalculate = precalculate;
+//  }
 
   public boolean isTestIncludes() {
     return testIncludes;

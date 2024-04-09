@@ -17,7 +17,7 @@ public class StarChain  extends Code {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StarChain.class);
 
-  private final Source source;
+  // private final Source source;
 
   int[] stack;
 
@@ -26,7 +26,7 @@ public class StarChain  extends Code {
   public StarChain(Source source) {
     super(source);
 
-    this.source = source;
+    // this.source = source;
     stack = new int[10];
   }
 

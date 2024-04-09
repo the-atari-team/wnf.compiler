@@ -37,7 +37,6 @@ public class TestStringExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 65 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
   
   
@@ -51,7 +50,6 @@ public class TestStringExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("167 155 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   // Test "A", single length double quoted string will not replaced as an integer value
@@ -64,7 +62,6 @@ public class TestStringExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("172 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   
@@ -89,7 +86,6 @@ public class TestStringExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("172 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
   @Test
@@ -101,7 +97,6 @@ public class TestStringExpression {
 
     expressionSUT.optimisation();
     Assert.assertEquals("172 0 9999999", expressionSUT.joinedPCode());
-    Assert.assertFalse(expressionSUT.isPrecalculationPossible());
   }
 
 

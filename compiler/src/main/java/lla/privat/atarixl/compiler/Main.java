@@ -87,7 +87,7 @@ public class Main {
 //      boolean selfModifiedCode, boolean starChainMult, boolean shiftMultDiv,
 //      boolean smallAddSubHeapPtr, boolean importHeader, boolean showVariableUsage,
 //      boolean showVariableUnused, boolean showPeepholeOptimize,
-//      boolean errorIfPrecalculatable) {
+//      ) {
 //    this.filename = filename;
 //    this.options = new Options(optimize, verboseLevel, selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader, showVariableUsage, showVariableUnused, showPeepholeOptimize, errorIfPrecalculatable);
 //    this.outputPath = outputPath;
@@ -130,7 +130,6 @@ public class Main {
     LOGGER.info(" -showVariableUsage    - if given, show how often a variable is used.");
     LOGGER.info(" -showVariableUnused   - if given, show a hint if a variable is unused.");
     LOGGER.info(" -showPeepholeOptimize - if given, show which peephole optimize will applied.");
-    LOGGER.info(" -precalculate (w|e)   - if given, expressions without variables (precalculatable) will result in build warning or error.");
     LOGGER.info(" -testincludes         - if given, test given includes");
     LOGGER.info(" -boundscheck or -bc   - if given, bounds check will be added in write to array");
     LOGGER.info(" -noSafeLocalToStack   - if given, local variables will store on heap");
@@ -164,7 +163,6 @@ public class Main {
     boolean boundsCheck = false;
     boolean saveLocalToStack = true;
     
-    char precalculate = 'n';
 
     String outputpath = "";
     List<String> includePaths = new ArrayList<>();
@@ -219,11 +217,6 @@ public class Main {
         LOGGER.info("Parameter for peephole optimize is given, show which optimization is applied.");
         showPeepholeOptimize = true;
       }
-      else if (parameter.equalsIgnoreCase("-precalculate")) {
-        LOGGER.info("Parameter for precalculate is given, if an expression is precalculatable, it will stop with error or give a warning.");
-        precalculate = args[index + 1].charAt(0);
-        ++index;
-      }
       else if (parameter.equalsIgnoreCase("-testincludes")) {
         LOGGER.info("Parameter for test includes is given, we check all includes.");
         testInclude = true;
@@ -276,7 +269,7 @@ public class Main {
       }
 //      final Main main = new Main(filename, optimisationLevel, verboseLevel, outputpath,
 //          selfModifiedCode, starChainMult, shiftMultDiv, smallAddSubHeapPtr, importHeader,
-//          showVariableUsage, showVariableUnused, showPeepholeOptimize, errorIfPrecalculatable);
+//          showVariableUsage, showVariableUnused, showPeepholeOptimize);
 
       Options options = new Options();
       options.setOptimisationLevel(optimisationLevel);
@@ -289,7 +282,6 @@ public class Main {
       options.setShowVariableUnused(showVariableUnused);
       options.setShowVariableUsage(showVariableUsage);
       options.setShowPeepholeOptimize(showPeepholeOptimize);
-      options.setPrecalculate(precalculate);
       options.setTestIncludes(testInclude);
       options.setBoundsCheck(boundsCheck);
       options.setSaveLocalToStack(saveLocalToStack);

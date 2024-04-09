@@ -82,7 +82,7 @@ public class LongJumpOptimizer extends Optimizer {
         
         // We must search from beginning to index-1 and search for the falseNumber and replace by jump to elseNumber
         int positiv = 0;
-        boolean found = false;
+        // boolean found = false;
         int size = codeList.size()-4;
         
         for (int i = index + 1; i < index + 128; i++) {
@@ -97,7 +97,7 @@ public class LongJumpOptimizer extends Optimizer {
               mnemonic = codeList.get(index).replace('J', 'B');
               codeList.set(index, mnemonic + " ; (99)");
             }
-            found = true;
+            // found = true;
             break;
           }
           else {
@@ -149,25 +149,26 @@ public class LongJumpOptimizer extends Optimizer {
     return 3;
   }
 
-  private void jccFixer() {
-    int fixed = 0;
-    
-    for (int i = 0; i < codeList.size(); i++) {
-      if (codeList.get(i).startsWith(" JCC ")) {
-        String jumpmark = codeList.get(i).replace(" JCC ", "");
-        if (jumpmark.contains(";")) {
-          int semikolon = jumpmark.indexOf(";");
-          if (semikolon>0) {
-            jumpmark = jumpmark.substring(0, semikolon-1);
-          }
-        }
-        // That we give it in a byte code, because we can't simple update the list
-        // also it is just a fix
-        codeList.set(i, " .BYTE $B0,$03,$4C,<" + jumpmark + ",>" + jumpmark + " ; jccfixer");
-        ++fixed;
-      }
-    }
-    LOGGER.info("Long Jump Optimizer use jccfixer:{} times", fixed);
-  }
+
+  //  private void jccFixer() {
+//    int fixed = 0;
+//    
+//    for (int i = 0; i < codeList.size(); i++) {
+//      if (codeList.get(i).startsWith(" JCC ")) {
+//        String jumpmark = codeList.get(i).replace(" JCC ", "");
+//        if (jumpmark.contains(";")) {
+//          int semikolon = jumpmark.indexOf(";");
+//          if (semikolon>0) {
+//            jumpmark = jumpmark.substring(0, semikolon-1);
+//          }
+//        }
+//        // That we give it in a byte code, because we can't simple update the list
+//        // also it is just a fix
+//        codeList.set(i, " .BYTE $B0,$03,$4C,<" + jumpmark + ",>" + jumpmark + " ; jccfixer");
+//        ++fixed;
+//      }
+//    }
+//    LOGGER.info("Long Jump Optimizer use jccfixer:{} times", fixed);
+//  }
 
 }
