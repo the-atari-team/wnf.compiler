@@ -15,7 +15,9 @@ import lla.privat.atarixl.compiler.source.Source;
 public class ITPCodeToAssemblerMostlyWord {
 
   private List<Integer> getPCodeOf(Source source) {
-    source.setVerboseLevel(2);
+    if (source.getVerboseLevel() < 2) {
+      source.setVerboseLevel(2);
+    }
     Expression expression = new Expression(source);
 
     Symbol symbol = source.nextElement();
@@ -77,14 +79,22 @@ public class ITPCodeToAssemblerMostlyWord {
     pcodeGenerator.build();
     List<String> code = source.getCode();
     int n = -1;
-    Assert.assertEquals("; (3)", code.get(++n));
-    Assert.assertEquals(" CLC", code.get(++n));
-    Assert.assertEquals(" LDA #<123", code.get(++n));
-    Assert.assertEquals(" ADC #<124", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" LDA #>123", code.get(++n));
-    Assert.assertEquals(" ADC #>124", code.get(++n));
-    Assert.assertEquals(" TAX", code.get(++n));
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", code.get(++n));
+      Assert.assertEquals(" LDY #<247", code.get(++n));
+      Assert.assertEquals(" LDX #>247", code.get(++n));
+    }
+    else {
+      Assert.assertEquals("; (3)", code.get(++n));
+      
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA #<123", code.get(++n));
+      Assert.assertEquals(" ADC #<124", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));   
+      Assert.assertEquals(" LDA #>123", code.get(++n));
+      Assert.assertEquals(" ADC #>124", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n));   
+    }
   }
 
   @Test
@@ -98,14 +108,21 @@ public class ITPCodeToAssemblerMostlyWord {
     pcodeGenerator.build();
     List<String> code = source.getCode();
     int n = -1;
-    Assert.assertEquals("; (3)", code.get(++n));
-    Assert.assertEquals(" CLC", code.get(++n));
-    Assert.assertEquals(" LDA #<-1", code.get(++n));
-    Assert.assertEquals(" ADC #<-2", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" LDA #>-1", code.get(++n));
-    Assert.assertEquals(" ADC #>-2", code.get(++n));
-    Assert.assertEquals(" TAX", code.get(++n));
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", code.get(++n));
+      Assert.assertEquals(" LDY #<-3", code.get(++n));
+      Assert.assertEquals(" LDX #>-3", code.get(++n));
+    }
+    else {
+      Assert.assertEquals("; (3)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA #<-1", code.get(++n));
+      Assert.assertEquals(" ADC #<-2", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));   
+      Assert.assertEquals(" LDA #>-1", code.get(++n));
+      Assert.assertEquals(" ADC #>-2", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n));   
+    }
   }
 
   @Test
@@ -509,20 +526,27 @@ public class ITPCodeToAssemblerMostlyWord {
     pcodeGenerator.build();
     List<String> code = source.getCode();
     int n = -1;
-    Assert.assertEquals("; (4)", code.get(++n));
-    Assert.assertEquals(" LDY #<2", code.get(++n));
-    Assert.assertEquals(" LDX #>2", code.get(++n));
-
-    Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" STX @OP+1", code.get(++n));
-    Assert.assertEquals(" ASL A", code.get(++n)); // * 2
-    Assert.assertEquals(" ROL @OP+1", code.get(++n));
-    Assert.assertEquals(" ASL A", code.get(++n)); // * 2
-    Assert.assertEquals(" ROL @OP+1", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" LDX @OP+1", code.get(++n));
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", code.get(++n));
+      Assert.assertEquals(" LDY #<8", code.get(++n));
+      Assert.assertEquals(" LDX #>8", code.get(++n));      
+    }
+    else {
+      Assert.assertEquals("; (4)", code.get(++n));
+      Assert.assertEquals(" LDY #<2", code.get(++n));
+      Assert.assertEquals(" LDX #>2", code.get(++n));
+  
+      Assert.assertEquals(" TYA", code.get(++n));
+      Assert.assertEquals(" STX @OP+1", code.get(++n));
+      Assert.assertEquals(" ASL A", code.get(++n)); // * 2
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+      Assert.assertEquals(" ASL A", code.get(++n)); // * 2
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" LDX @OP+1", code.get(++n));
+    }
   }
-
+  
   @Test
   public void testExpressionZahlMult2ByMult() {
     Source source = new Source("2 * 4 ");
@@ -537,17 +561,24 @@ public class ITPCodeToAssemblerMostlyWord {
     pcodeGenerator.build();
     List<String> code = source.getCode();
     int n = -1;
-    Assert.assertEquals("; (4)", code.get(++n));
-    Assert.assertEquals(" LDY #<2", code.get(++n));
-    Assert.assertEquals(" LDX #>2", code.get(++n));
-
-    Assert.assertEquals(" LDA #<4", code.get(++n));
-    Assert.assertEquals(" STA @OP", code.get(++n));
-    Assert.assertEquals(" LDA #>4", code.get(++n));
-    Assert.assertEquals(" STA @OP+1", code.get(++n));
-    Assert.assertEquals(" JSR @IMULT", code.get(++n));
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", code.get(++n));
+      Assert.assertEquals(" LDY #<8", code.get(++n));
+      Assert.assertEquals(" LDX #>8", code.get(++n));      
+    }
+    else {
+      Assert.assertEquals("; (4)", code.get(++n));
+      Assert.assertEquals(" LDY #<2", code.get(++n));
+      Assert.assertEquals(" LDX #>2", code.get(++n));
+  
+      Assert.assertEquals(" LDA #<4", code.get(++n));
+      Assert.assertEquals(" STA @OP", code.get(++n));
+      Assert.assertEquals(" LDA #>4", code.get(++n));
+      Assert.assertEquals(" STA @OP+1", code.get(++n));
+      Assert.assertEquals(" JSR @IMULT", code.get(++n));
+    }
   }
-
+  
   @Test
   public void testExpressionXDiv256Zahl2erKomplement() {
     Source source = new Source("X / 256 ");
@@ -638,41 +669,48 @@ public class ITPCodeToAssemblerMostlyWord {
     pcodeGenerator.build();
     List<String> code = source.getCode();
     int n = -1;
-    Assert.assertEquals("; (1)", code.get(++n));
-    Assert.assertEquals(" LDA #<2", code.get(++n));
-    Assert.assertEquals(" PHA", code.get(++n));
-    Assert.assertEquals(" LDA #>2", code.get(++n));
-    Assert.assertEquals(" PHA", code.get(++n));
-
-    Assert.assertEquals("; (4)", code.get(++n));
-    Assert.assertEquals(" LDY #<2", code.get(++n));
-    Assert.assertEquals(" LDX #>2", code.get(++n));
-    Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" STX @OP+1", code.get(++n));
-    Assert.assertEquals(" ASL A", code.get(++n)); // * 2
-    Assert.assertEquals(" ROL @OP+1", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" LDX @OP+1", code.get(++n));
-
-    Assert.assertEquals("; (7)", code.get(++n));
-    Assert.assertEquals(" STY @OP", code.get(++n));
-    Assert.assertEquals(" STX @OP+1", code.get(++n));
-    Assert.assertEquals(" PLA", code.get(++n));
-    Assert.assertEquals(" TAX", code.get(++n));
-    Assert.assertEquals(" PLA", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" CLC", code.get(++n));
-    Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" ADC @OP", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" TXA", code.get(++n));
-    Assert.assertEquals(" ADC @OP+1", code.get(++n));
-    Assert.assertEquals(" TAX", code.get(++n));
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", code.get(++n));
+      Assert.assertEquals(" LDY #<6", code.get(++n));
+      Assert.assertEquals(" LDX #>6", code.get(++n));
+    }
+    else {
+      Assert.assertEquals("; (1)", code.get(++n));
+      Assert.assertEquals(" LDA #<2", code.get(++n));
+      Assert.assertEquals(" PHA", code.get(++n));
+      Assert.assertEquals(" LDA #>2", code.get(++n));
+      Assert.assertEquals(" PHA", code.get(++n));
+  
+      Assert.assertEquals("; (4)", code.get(++n));
+      Assert.assertEquals(" LDY #<2", code.get(++n));
+      Assert.assertEquals(" LDX #>2", code.get(++n));
+      Assert.assertEquals(" TYA", code.get(++n));
+      Assert.assertEquals(" STX @OP+1", code.get(++n));
+      Assert.assertEquals(" ASL A", code.get(++n)); // * 2
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" LDX @OP+1", code.get(++n));
+  
+      Assert.assertEquals("; (7)", code.get(++n));
+      Assert.assertEquals(" STY @OP", code.get(++n));
+      Assert.assertEquals(" STX @OP+1", code.get(++n));
+      Assert.assertEquals(" PLA", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n));
+      Assert.assertEquals(" PLA", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" TYA", code.get(++n));
+      Assert.assertEquals(" ADC @OP", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" TXA", code.get(++n));
+      Assert.assertEquals(" ADC @OP+1", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n));
+    }
   }
-
   @Test
   public void testExpressionVariableAddZahlMulZahl() {
     Source source = new Source("X + 2 * 3 ");
+    
     source.setStarChainMult(true);
 
     source.addVariable("X", Type.BYTE);
@@ -684,68 +722,89 @@ public class ITPCodeToAssemblerMostlyWord {
     pcodeGenerator.build();
     List<String> code = source.getCode();
     int n = -1;
-    Assert.assertEquals("; (2)", code.get(++n));
-    Assert.assertEquals(" LDA X", code.get(++n));
-    Assert.assertEquals(" PHA", code.get(++n));
-    Assert.assertEquals(" LDA #0", code.get(++n));
-    Assert.assertEquals(" PHA", code.get(++n));
-
-    Assert.assertEquals("; (4)", code.get(++n));
-    Assert.assertEquals(" LDY #<2", code.get(++n));
-    Assert.assertEquals(" LDX #>2", code.get(++n));
-
-    Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" STX @OP+1", code.get(++n));
-    Assert.assertEquals(" STA @PRODUKT", code.get(++n));
-    Assert.assertEquals(" STX @PRODUKT+1", code.get(++n));
-
-    Assert.assertEquals(" ASL A", code.get(++n));
-    Assert.assertEquals(" ROL @OP+1", code.get(++n));
-    Assert.assertEquals(" ASL A", code.get(++n));
-    Assert.assertEquals(" ROL @OP+1", code.get(++n));
-
-    Assert.assertEquals(" SEC", code.get(++n));
-    Assert.assertEquals(" SBC @PRODUKT", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" LDA @OP+1", code.get(++n));
-    Assert.assertEquals(" SBC @PRODUKT+1", code.get(++n));
-    Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1
-    Assert.assertEquals(" TYA", code.get(++n));
-
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" LDX @OP+1", code.get(++n));
-
-//    Assert.assertEquals(" LDA #<3", code.get(++n));
-//    Assert.assertEquals(" STA @OP", code.get(++n));
-//    Assert.assertEquals(" LDA #>3", code.get(++n));
-//    Assert.assertEquals(" STA @OP+1", code.get(++n));
-//    Assert.assertEquals(" JSR @IMULT", code.get(++n));
-
-    /*
-     * ; Wuerde voraussetzen, das die Daten rückwärts auf den Stack kommen sty @op
-     * ;3 stx @op+1 ;3 clc ;2 pla ;4 adc @op ;3 tay ;2 pla ;4 adc @op+1 ;3 tax ;2 =
-     * 26
-     */
-    Assert.assertEquals("; (7)", code.get(++n));
-    Assert.assertEquals(" STY @OP", code.get(++n));
-    Assert.assertEquals(" STX @OP+1", code.get(++n));
-
-    Assert.assertEquals(" PLA", code.get(++n));
-    Assert.assertEquals(" TAX", code.get(++n));
-    Assert.assertEquals(" PLA", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" CLC", code.get(++n));
-    Assert.assertEquals(" TYA", code.get(++n));
-    Assert.assertEquals(" ADC @OP", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
-    Assert.assertEquals(" TXA", code.get(++n));
-    Assert.assertEquals(" ADC @OP+1", code.get(++n));
-    Assert.assertEquals(" TAX", code.get(++n)); // 32 takte
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (3)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA X", code.get(++n));
+      Assert.assertEquals(" ADC #<6", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" LDA #0", code.get(++n));
+      Assert.assertEquals(" ADC #>6", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n));
+    }
+    else {
+      Assert.assertEquals("; (2)", code.get(++n));
+      Assert.assertEquals(" LDA X", code.get(++n));
+      Assert.assertEquals(" PHA", code.get(++n));
+      Assert.assertEquals(" LDA #0", code.get(++n));
+      Assert.assertEquals(" PHA", code.get(++n));
+  
+      Assert.assertEquals("; (4)", code.get(++n));
+      Assert.assertEquals(" LDY #<2", code.get(++n));
+      Assert.assertEquals(" LDX #>2", code.get(++n));
+  
+      Assert.assertEquals(" TYA", code.get(++n));
+      Assert.assertEquals(" STX @OP+1", code.get(++n));
+      Assert.assertEquals(" STA @PRODUKT", code.get(++n));
+      Assert.assertEquals(" STX @PRODUKT+1", code.get(++n));
+  
+      Assert.assertEquals(" ASL A", code.get(++n));
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+      Assert.assertEquals(" ASL A", code.get(++n));
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+  
+      Assert.assertEquals(" SEC", code.get(++n));
+      Assert.assertEquals(" SBC @PRODUKT", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" LDA @OP+1", code.get(++n));
+      Assert.assertEquals(" SBC @PRODUKT+1", code.get(++n));
+      Assert.assertEquals(" STA @OP+1", code.get(++n));   // Rw -= R1
+      Assert.assertEquals(" TYA", code.get(++n));
+  
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" LDX @OP+1", code.get(++n));
+  
+  //    Assert.assertEquals(" LDA #<3", code.get(++n));
+  //    Assert.assertEquals(" STA @OP", code.get(++n));
+  //    Assert.assertEquals(" LDA #>3", code.get(++n));
+  //    Assert.assertEquals(" STA @OP+1", code.get(++n));
+  //    Assert.assertEquals(" JSR @IMULT", code.get(++n));
+  
+      
+       // ; Wuerde voraussetzen, das die Daten rückwärts auf den Stack kommen
+      // sty @op ;3
+      // stx @op+1 ;3
+      // clc ;2
+      // pla ;4
+      // adc @op ;3
+      // tay ;2 
+      // pla ;4
+      // adc @op+1 ;3
+      // tax ;2 = 26 (13 bytes)
+       
+      Assert.assertEquals("; (7)", code.get(++n));
+      Assert.assertEquals(" STY @OP", code.get(++n));
+      Assert.assertEquals(" STX @OP+1", code.get(++n));
+  
+      Assert.assertEquals(" PLA", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n));
+      Assert.assertEquals(" PLA", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" TYA", code.get(++n));
+      Assert.assertEquals(" ADC @OP", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" TXA", code.get(++n));
+      Assert.assertEquals(" ADC @OP+1", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n)); // 32 takte (17 bytes)
+    }
   }
 
   @Test
   public void testExpressionGeradengleichung() {
     Source source = new Source("M * X + B");
+    source.setVerboseLevel(3);
+
     source.addVariable("M", Type.WORD);
     source.addVariable("X", Type.WORD);
     source.addVariable("B", Type.WORD);
@@ -1044,5 +1103,67 @@ public class ITPCodeToAssemblerMostlyWord {
     Assert.assertEquals(" TAX", code.get(++n));
     Assert.assertEquals(8, code.size());
   }
+
+  @Test
+  public void testExpressionWordAAddWordB() {
+    Source source = new Source("A + B + C");
+    source.addVariable("A__", Type.WORD);
+    source.addVariable("B", Type.WORD);
+    source.addVariable("C", Type.WORD);
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (3)", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA A__", code.get(++n));
+    Assert.assertEquals(" ADC B", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA A__+1", code.get(++n));
+    Assert.assertEquals(" ADC B+1", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+    
+    Assert.assertEquals("; (8)", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" ADC C", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" ADC C+1", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+    
+    Assert.assertEquals(16, code.size());
+  }
+
+  @Test
+  public void testExpressionAIntAddWordB() {
+    Source source = new Source("1 + b ");
+    source.addVariable("B", Type.WORD);
+
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n=-1;
+    Assert.assertEquals("; (3)", code.get(++n));
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" LDA #<1", code.get(++n));
+    Assert.assertEquals(" ADC B", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA #>1", code.get(++n));
+    Assert.assertEquals(" ADC B+1", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+    Assert.assertEquals(8, code.size());
+  }
+
 
 }

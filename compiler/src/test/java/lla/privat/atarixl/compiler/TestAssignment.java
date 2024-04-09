@@ -972,20 +972,34 @@ public class TestAssignment {
     Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
 
     Assert.assertTrue(source.hasVariable("X"));
+
+    List<String> code = source.getCode();
     int n=-1;
-    Assert.assertEquals("; (3)", source.getCode().get(++n));
-    Assert.assertEquals(" CLC", source.getCode().get(++n));
-    Assert.assertEquals(" LDA #<123", source.getCode().get(++n));
-    Assert.assertEquals(" ADC #<1", source.getCode().get(++n));
-    Assert.assertEquals(" TAY", source.getCode().get(++n));
-    Assert.assertEquals(" LDA #>123", source.getCode().get(++n));
-    Assert.assertEquals(" ADC #>1", source.getCode().get(++n));
-    Assert.assertEquals(" TAX", source.getCode().get(++n));
 
-    Assert.assertEquals(" STY X", source.getCode().get(++n));
-    Assert.assertEquals(" STX X+1", source.getCode().get(++n));
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", source.getCode().get(++n));
+      Assert.assertEquals(" LDY #<124", source.getCode().get(++n));
+      Assert.assertEquals(" LDX #>124", source.getCode().get(++n));
+
+      Assert.assertEquals(" STY X", source.getCode().get(++n));
+      Assert.assertEquals(" STX X+1", source.getCode().get(++n));
+    }
+    else {
+
+      Assert.assertEquals("; (3)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA #<123", code.get(++n));
+      Assert.assertEquals(" ADC #<1", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));   
+      Assert.assertEquals(" LDA #>123", code.get(++n));
+      Assert.assertEquals(" ADC #>1", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n));       
+
+      Assert.assertEquals(" STY X", source.getCode().get(++n));
+      Assert.assertEquals(" STX X+1", source.getCode().get(++n));
+    }
   }
-
+  
   @Test
   public void testAssignmentX_Word_equal_Y_const_add_zahl_2() {
     Source source = new Source("x:=y+2").setVerboseLevel(2);
@@ -1001,20 +1015,32 @@ public class TestAssignment {
     Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
 
     Assert.assertTrue(source.hasVariable("X"));
+    List<String> code = source.getCode();
     int n=-1;
-    Assert.assertEquals("; (3)", source.getCode().get(++n));
-    Assert.assertEquals(" CLC", source.getCode().get(++n));
-    Assert.assertEquals(" LDA #<123", source.getCode().get(++n));
-    Assert.assertEquals(" ADC #<2", source.getCode().get(++n));
-    Assert.assertEquals(" TAY", source.getCode().get(++n));
-    Assert.assertEquals(" LDA #>123", source.getCode().get(++n));
-    Assert.assertEquals(" ADC #>2", source.getCode().get(++n));
-    Assert.assertEquals(" TAX", source.getCode().get(++n));
 
-    Assert.assertEquals(" STY X", source.getCode().get(++n));
-    Assert.assertEquals(" STX X+1", source.getCode().get(++n));
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", source.getCode().get(++n));
+      Assert.assertEquals(" LDY #<125", source.getCode().get(++n));
+      Assert.assertEquals(" LDX #>125", source.getCode().get(++n));
+
+      Assert.assertEquals(" STY X", source.getCode().get(++n));
+      Assert.assertEquals(" STX X+1", source.getCode().get(++n));
+    }
+    else {
+
+      Assert.assertEquals("; (3)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA #<123", code.get(++n));
+      Assert.assertEquals(" ADC #<2", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));   
+      Assert.assertEquals(" LDA #>123", code.get(++n));
+      Assert.assertEquals(" ADC #>2", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n));       
+  
+      Assert.assertEquals(" STY X", source.getCode().get(++n));
+      Assert.assertEquals(" STX X+1", source.getCode().get(++n));
+    }
   }
-
 
   // TODO word from word array
 

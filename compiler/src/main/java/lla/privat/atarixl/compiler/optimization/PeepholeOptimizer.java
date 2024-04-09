@@ -133,6 +133,7 @@ public class PeepholeOptimizer extends Optimizer {
     ARRAY_I_PLUS_ARRAY_J, // (61)
     LDY_OP_TAX_TXA, // (62) will only occur if (60) or (61)
     ARRAY_I_ASSIGN_ARRAY_I, // (63)
+    COMPARE_INT8_LDY_STY_ERG_LDA__SBC_BVC_EOR, // (64)
     ENDE;
   }
 
@@ -295,6 +296,8 @@ public class PeepholeOptimizer extends Optimizer {
         decrement_array_itself_by_1(); // (51)
         value_not_equal_zero(); // (52)
 
+        compare_int8_ldy_sty_erg_lda__sbc_erg_bvc_eor(); // (64)
+        
         if (optimisationLevel > 2) {
           
           removeComments();
@@ -438,18 +441,18 @@ public class PeepholeOptimizer extends Optimizer {
 
   private void ldx_ntax_txa(int index, PeepholeType type) {
     // @formatter:off
-    if (codeList.get(index).startsWith(" LDX") &&
-        codeList.get(index + 2).startsWith(" TXA")) {
+    if (codeList.get(index + 1).startsWith(" LDX") &&
+        codeList.get(index + 3).startsWith(" TXA")) {
 
-      if (!codeList.get(index + 1).startsWith(" CPY")) {
+      if (!codeList.get(index + 2).startsWith(" CPY") && !codeList.get(index + 0).startsWith(" BCC *+4")) {
 
         LOGGER.debug("Peephole Optimization possible at Line: {}", index);
-        String newLoad = codeList.get(index).replace(" LDX", " LDA");
-        String between = codeList.get(index + 1);
+        String newLoad = codeList.get(index + 1).replace(" LDX", " LDA");
+        String between = codeList.get(index + 2);
 
-        codeList.set(index, between);
-        codeList.set(index + 1, newLoad + " ; (6.2)");
-        codeList.set(index + 2, ";opt TXA ; (6.2)");
+        codeList.set(index + 1, between);
+        codeList.set(index + 2, newLoad + " ; (6.2)");
+        codeList.set(index + 3, ";opt TXA ; (6.2)");
         incrementStatus(type);
       }
     }
@@ -794,7 +797,8 @@ public class PeepholeOptimizer extends Optimizer {
     if (codeList.get(index).startsWith(" SEC") &&
         codeList.get(index + 1).startsWith(" LDA") &&
         codeList.get(index + 2).startsWith(" SBC #<1") &&
-        codeList.get(index + 3).startsWith(" STA")
+        codeList.get(index + 3).startsWith(" STA") &&
+        !codeList.get(index + 5).startsWith(" SBC #>")        // word Subtraktion, nicht weiter optimierbar!
         ) {
       String value = codeList.get(index+2).replace(" SBC #<", "");
       String loadVariable = codeList.get(index+1).replace(" LDA ", "");
@@ -806,24 +810,24 @@ public class PeepholeOptimizer extends Optimizer {
         storeVariable = storeVariable.substring(0, storeVariable.indexOf(" "));
       }
       
-      if (value.equals("1")) {
-        if (! codeList.get(index + 4).startsWith(" LDA " + loadVariable + "+1")) {
-          if (loadVariable.equals(storeVariable)) {
-            codeList.set(index, " DEC " + loadVariable + " ; (24a)");
-            codeList.set(index+1, ";opt (24)");
-            codeList.set(index+2, ";opt (24)");
-            codeList.set(index+3, ";opt (24)");
-            incrementStatus(type);
-          } 
-          else {
-            codeList.set(index, " LDY " + loadVariable + " ; (24b)");
-            codeList.set(index+1, " DEY");
-            codeList.set(index+2, " STY " + storeVariable);
-            codeList.set(index+3, ";opt (24)");
-            incrementStatus(type);         
+        if (value.equals("1")) {
+          if (! codeList.get(index + 4).startsWith(" LDA " + loadVariable + "+1")) {
+            if (loadVariable.equals(storeVariable)) {
+              codeList.set(index, " DEC " + loadVariable + " ; (24a)");
+              codeList.set(index+1, ";opt (24)");
+              codeList.set(index+2, ";opt (24)");
+              codeList.set(index+3, ";opt (24)");
+              incrementStatus(type);
+            } 
+            else {
+              codeList.set(index, " LDY " + loadVariable + " ; (24b)");
+              codeList.set(index+1, " DEY");
+              codeList.set(index+2, " STY " + storeVariable);
+              codeList.set(index+3, ";opt (24)");
+              incrementStatus(type);         
+            }
           }
         }
-      }
     }
   }
   // @formatter:off
@@ -3409,6 +3413,35 @@ private void ldx_clc_adc_sta_txa(int index, PeepholeType type) {
         
       }
     }
-    
+
+  private void compare_int8_ldy_sty_erg_lda__sbc_erg_bvc_eor() {
+    for (int i = 0; i < codeList.size() - 9; i++) {
+      compare_int8_ldy_sty_erg_lda__sbc_erg_bvc_eor(i, PeepholeType.COMPARE_INT8_LDY_STY_ERG_LDA__SBC_BVC_EOR);
+    }
+  }
+  
+  // @formatter:off
+  private void compare_int8_ldy_sty_erg_lda__sbc_erg_bvc_eor(int index, PeepholeType type) {
+
+    if (codeList.get(index + 0).startsWith(" LDY") &&
+        codeList.get(index + 1).startsWith(" STY @ERG") &&
+        codeList.get(index + 2).startsWith(" LDA") &&
+        // codeList.get(index+3) is "clc" or "sec"
+        codeList.get(index + 4).startsWith(" SBC @ERG") &&
+        codeList.get(index + 5).startsWith(" BVC *+4") &&
+        codeList.get(index + 6).startsWith(" EOR #$80")
+        ) {
+      LOGGER.debug("Peephole Optimization possible at Line: {}", index);
+
+      String variable1 = codeList.get(index).replace(" LDY ", "");
+      codeList.set(index+0, ";opt LDY " + variable1);
+      codeList.set(index+1, ";opt STY @ERG ; (64)");
+
+      codeList.set(index+4, " SBC " + variable1 + " ; (64)");
+      incrementStatus(type);
+    }
+  }
+  // @formatter:on
+
 }
   

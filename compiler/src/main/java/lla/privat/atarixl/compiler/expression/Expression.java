@@ -58,22 +58,6 @@ public class Expression extends Code {
     return ergebnis;
   }
 
-  /**
-   * Unary add or sub symbol
-   * -1 is a negative digit
-   * +1 is a positiv digit
-   *
-   * 1 - -1 == 2
-   * 1 - 1 == 0
-   * 1 - +1 == 0
-   *
-   * @param symbol
-   * @return
-   */
-//  private boolean isUnaryAddOrSub(Symbol symbol) {
-//    final String mayBeUnaryOperator = symbol.get();
-//    return mayBeUnaryOperator.equals("+") || mayBeUnaryOperator.equals("-");
-//  }
 
   public int code(final String sourcecodeline) {
     LOGGER.debug(sourcecodeline);
@@ -107,10 +91,9 @@ public class Expression extends Code {
    * @return nextSymbol
    */
   public Expression expression(Symbol symbol) {
-    Symbol nextSymbol = new Symbol("", SymbolEnum.noSymbol);
+    Symbol nextSymbol; // = new Symbol("", SymbolEnum.noSymbol);
 
-    // Strings with length or 1 ('a') has intern length of 3 can act like a 'a Value
-    // 97
+    // Strings start with '"' single char values must envelope in single quotes 'A'
     if (symbol.getId() == SymbolEnum.string && symbol.get().charAt(0) == '"') {
       p_code.add(PCode.STRING.getValue());
       source.addVariable(symbol.get(), Type.STRING_ANONYM);
@@ -120,14 +103,7 @@ public class Expression extends Code {
     }
     else {
       // Mathematischer Ausdruck
-//      if (isUnaryAddOrSub(symbol)) { // unary - or + => 0 - expression oder 0 + expression
-//        p_code.add(PCode.ZAHL.getValue());
-//        p_code.add(0);
-//        nextSymbol = symbol; // kein Symbol neu laden, einfach als Operator verwenden!
-//      }
-//     else {
         nextSymbol = term(symbol);
-//      }
 
       String operator = nextSymbol.get();
       while (operator.equals("+") || operator.equals("-") || operator.equals("&") || operator.equals("!")
@@ -149,6 +125,8 @@ public class Expression extends Code {
         case "XOR":
           nextSymbol = xor(nextSymbol);
           break;
+        default:
+          // source.throwUnsupportedFeature(operator);
         }
         operator = nextSymbol.get();
         ++countArithmeticSymbols;
@@ -183,9 +161,12 @@ public class Expression extends Code {
         nextSymbol = divide(nextSymbol);
         break;
       case "MOD":
+        // TODO: add some modulo stuff and more tests
         ergebnis = Type.WORD;
         nextSymbol = modulo(nextSymbol);
         break;
+      default:
+        // source.throwUnsupportedFeature(operator);
       }
       if (ergebnisMayBe == Type.WORD) {
         ergebnisMayBe = Type.UNKNOWN;
@@ -456,7 +437,7 @@ public class Expression extends Code {
     Symbol nextSymbol = source.nextElement(); // "("
     source.match(nextSymbol, "(");
     ergebnis = Type.WORD; // Funktionen geben IMMER ein Word zurück
-
+    
     // make unknown function start with '@' possible
     if (name.startsWith("@")) {
       source.addVariable(name, Type.FUNCTION);
@@ -768,6 +749,7 @@ public class Expression extends Code {
     Symbol nextSymbol = term(source.nextElement());
     p_code.add(PCode.PULL.getValue());
     p_code.add(PCode.UPN_SUB.getValue());
+    p_code.add(PCode.NOP.getValue());
 
     return nextSymbol;
   }
@@ -777,6 +759,7 @@ public class Expression extends Code {
     Symbol nextSymbol = term(source.nextElement());
     p_code.add(PCode.PULL.getValue());
     p_code.add(PCode.UPN_MUL.getValue());
+    p_code.add(PCode.NOP.getValue());
 
     return nextSymbol;
   }
@@ -786,6 +769,7 @@ public class Expression extends Code {
     Symbol nextSymbol = term(source.nextElement());
     p_code.add(PCode.PULL.getValue());
     p_code.add(PCode.UPN_DIV.getValue());
+    p_code.add(PCode.NOP.getValue());
 
     return nextSymbol;
   }
@@ -795,18 +779,33 @@ public class Expression extends Code {
     Symbol nextSymbol = term(source.nextElement());
     p_code.add(PCode.PULL.getValue());
     p_code.add(PCode.UPN_MODULO.getValue());
+    p_code.add(PCode.NOP.getValue());
 
     return nextSymbol;
   }
 
+  private void showPCode(String comment) {
+    if (source.getVerboseLevel() > 2) {
+      if (comment.length()>0) {
+        System.out.println(comment);
+      }
+      System.out.println(joinedPCode());
+    }
+  }
+  
   public void optimisation() {
     // TODO: versuchen sich zu erinnern, warum wir ZAHL zu INT_ZAHL wandeln
     // mussten...
+    
     for (int i = 0; i < p_code.size(); i++) {
-      if (p_code.get(i) == PCode.WORD.getValue() || p_code.get(i) == PCode.BYTE_ARRAY.getValue()
-          || p_code.get(i) == PCode.FAT_BYTE_ARRAY.getValue() || p_code.get(i) == PCode.WORD_ARRAY.getValue()
-          || p_code.get(i) == PCode.WORD_SPLIT_ARRAY.getValue() || p_code.get(i) == PCode.ADDRESS.getValue()
-          || p_code.get(i) == PCode.FUNCTION.getValue() || p_code.get(i) == PCode.STRING.getValue()) {
+      if (p_code.get(i) == PCode.WORD.getValue() ||
+          p_code.get(i) == PCode.BYTE_ARRAY.getValue() ||
+          p_code.get(i) == PCode.FAT_BYTE_ARRAY.getValue() ||
+          p_code.get(i) == PCode.WORD_ARRAY.getValue() ||
+          p_code.get(i) == PCode.WORD_SPLIT_ARRAY.getValue() ||
+          p_code.get(i) == PCode.ADDRESS.getValue() ||
+          p_code.get(i) == PCode.FUNCTION.getValue() ||
+          p_code.get(i) == PCode.STRING.getValue()) {
         ++i;
       }
       else if (p_code.get(i) == PCode.ZAHL.getValue()) {
@@ -816,61 +815,51 @@ public class Expression extends Code {
     }
 
     p_code.add(PCode.END.getValue());
+    showPCode("");
+    // var       push var       pull upn_add
+    // 168  0    162  168  1    163  8
+    // a    a+1  a+2  a+3  a+4  a+5  a+6
+    // => (replace UPN by Infix)
+    // var    iadd var
+    // 168 0    16 168 1
 
-    // 168 0 162 168 1   163 8
-    //       a   a+1 a+2 a+3 a+4
-    // =>
-    // 168 0 16  168 1
-    for (int a = 0; a < p_code.size(); a++) {
-      if (p_code.get(a) == PCode.PUSH.getValue()) {
-        int p1 = p_code.get(a + 1);
-        if (p1 == PCode.ZAHL.getValue() || p1 == 161 || p1 == PCode.INT_ZAHL.getValue()
-            || p1 == PCode.WORD.getValue()) {
-          if (p_code.get(a + 3) == PCode.PULL.getValue()) {
-            if ((p_code.get(a + 4) & 0xf8) == 8) { // arithmetik
-              // P_CODE(A)=P_CODE(A+K4)&K7!k16
-              p_code.set(a, p_code.get(a + 4) & 0x7 | 16);
 
-              // Anpassungen, Code zusammenziehen.
-              for (int c = a + 3; c < p_code.size() - 2; c++) {
-                p_code.set(c, p_code.get(c + 2));
-              }
-            }
+    // int       push int       pull upn_add
+    // 167  1    162  167  2    163  8
+    // a    a+1  a+2  a+3  a+4  a+5  a+6
+    // => (replace UPN by Infix)
+    // var    iadd var
+    // 167 1    16 167 2
+    // => (constant folding)
+    // 167 3
+
+    source.setCFOptimisation(true);
+
+    boolean again = true;
+    
+    while (again) {
+      
+      again = false;
+      int a = 0;
+      while (a < p_code.size()-6) {
+  
+        if (replaceUPNbyInfix(a)) {
+          if (constant_folding(a)) {
+            again = true;
+          }
+          else {
+            a++;
           }
         }
+        else {
+          a++;
+        }
       }
-    }
-
-    // 168   0 162  254 171  1   163  8      =>
-    //         a    a+1 a+2  a+3 a+4  a+5
-    // pzahl   push nop addr     pull arith
-    // 168   0 16   254 171  1
-    //                           c    c+1 c+2
-//    for (int a = 0; a < p_code.size(); a++) {
-//      if (p_code.get(a) == PCode.PUSH.getValue()) {
-//        if (p_code.get(a+1) == PCode.NOP.getValue()) {
-//          int p1 = p_code.get(a + 2);
-//
-//          if (p1 == PCode.ADDRESS.getValue()) {
-//            if (p_code.get(a + 4) == PCode.PULL.getValue()) {
-//              if ((p_code.get(a + 5) & 0xf8) == 8) { // arithmetik
-//                // P_CODE(A)=P_CODE(A+K4)&K7!k16
-//                p_code.set(a, p_code.get(a + 5) & 0x7 | 16);
-//
-//                // Anpassungen, Code zusammenziehen.
-//                for (int c = a + 4; c < p_code.size() - 2; c++) {
-//                  p_code.set(c, p_code.get(c + 2));
-//                }
-//              }
-//            }
-//          }
-//        }
-//      }
-//    }
-
+    }   
+    
     // Sonderfall für einfache Zahlen
     if (p_code.size() == 3) {
-
+      showPCode("Simple value");
       // Das gilt nur fuer Zahlen zwischen 0 und 256!!!
 //      if (p_code.get(0) == PCode.INT_ZAHL.getValue() && p_code.get(2) == PCode.END.getValue()) {
 //        if (ergebnis.getBytes() == 1 ) {
@@ -886,7 +875,7 @@ public class Expression extends Code {
 //          }
 //        }
 //      }
-      if (p_code.get(0) == PCode.WORD.getValue() && p_code.get(2) == PCode.END.getValue()) {
+      if (isVariable(0) && p_code.get(2) == PCode.END.getValue()) {
         // wir sind eine einfache Variable, das Ergebnis auf dessen Type einstellen
         String name = source.getVariableAt(p_code.get(1));
         final Type type = source.getVariableType(name);
@@ -899,7 +888,9 @@ public class Expression extends Code {
       }
     }
     else if (p_code.size() == 5) {
-      if ((p_code.get(0) == PCode.INT_ZAHL.getValue() || p_code.get(0) == PCode.WORD.getValue())
+      showPCode("Longer value");
+      
+      if (isZahlOrVariable(0)
           && (p_code.get(2) == PCode.BYTE_ARRAY.getValue() || p_code.get(2) == PCode.FAT_BYTE_ARRAY.getValue())
           && p_code.get(4) == PCode.END.getValue()) {
 
@@ -907,7 +898,9 @@ public class Expression extends Code {
         ergebnis = Type.BYTE;
       }
     }
-
+    else {
+      showPCode("Long Expression");
+    }
     ArrayList<Integer> optimizedPCode = new ArrayList<>();
     int i = 0;
     while (p_code.get(i) != PCode.END.getValue()) {
@@ -926,6 +919,93 @@ public class Expression extends Code {
     p_code = optimizedPCode;
 
     source.setTypeOfLastExpression(ergebnis);
+  }
+
+  private boolean isZahlOrVariable(int index) {
+    int pcode = p_code.get(index);
+    if (pcode == PCode.ZAHL.getValue() ||
+        pcode == PCode.INT_ZAHL.getValue() ||
+        pcode == PCode.WORD.getValue()) {
+      // p2 is a zahl or value
+      return true;
+    }
+    return false;
+  }
+
+  private boolean isVariable(int index) {
+    return p_code.get(index) == PCode.WORD.getValue();    
+  }
+  
+  private boolean isIntegerZahl(int index) {
+    return p_code.get(index) == PCode.INT_ZAHL.getValue();
+  }
+  
+  private boolean isPush(int index) {
+    return p_code.get(index) == PCode.PUSH.getValue();
+  }
+  
+  private boolean isPull(int index) {
+    return p_code.get(index) == PCode.PULL.getValue();
+  }
+
+  private boolean replaceUPNbyInfix(int a) {
+    if (isPush(a + 2) &&
+        isZahlOrVariable(a + 3) &&
+        isPull(a + 5) &&
+        (p_code.get(a + 6) == PCode.UPN_ADD.getValue() ||
+         p_code.get(a+6) == PCode.UPN_SUB.getValue() ||
+         p_code.get(a+6) == PCode.UPN_MUL.getValue() ||
+         p_code.get(a+6) == PCode.UPN_DIV.getValue() ||
+         p_code.get(a+6) == PCode.UPN_MODULO.getValue() ||
+         p_code.get(a+6) == PCode.UPN_AND.getValue() ||
+         p_code.get(a+6) == PCode.UPN_OR.getValue() ||
+         p_code.get(a+6) == PCode.UPN_XOR.getValue() )) { // UPN arithmetik
+      // UPN Arithmetik wird zu normaler Infix Arithmetik
+      p_code.set(a + 2, p_code.get(a + 6) & 0x07 | 16);
+
+      // Anpassungen, Code zusammenziehen.
+      p_code.remove(a + 5);
+      p_code.remove(a + 5);
+      showPCode("Remove PUSH/PULL");
+      return true;
+    }
+    return false;
+  }
+
+  private boolean constant_folding(int a) {
+    if (isIntegerZahl(a) &&
+        isIntegerZahl(a+3) &&
+        (p_code.get(a+2) == PCode.IADD.getValue() ||
+        p_code.get(a+2) == PCode.ISUB.getValue() ||
+        p_code.get(a+2) == PCode.IMULT.getValue() /*||
+        p_code.get(a+2) == PCode.IDIV.getValue()*/ )) {
+      
+      int v1 = p_code.get(a + 1);
+      int v2 = p_code.get(a + 4);
+      
+      if (p_code.get(a+2) == PCode.IADD.getValue()) {
+        p_code.set(a+1, v1 + v2);            
+      }
+      else if (p_code.get(a+2) == PCode.ISUB.getValue()) {
+        p_code.set(a+1, v1 - v2);            
+      }
+      else if (p_code.get(a+2) == PCode.IMULT.getValue()) {
+        p_code.set(a+1, v1 * v2);
+      }
+      // TODO: IDIV, IMOD, IAND, IOR, IXOR auch behandeln? Kommt das bisher überhaupt vor?
+
+      p_code.remove(a+2);
+      p_code.remove(a+2);
+      p_code.remove(a+2);
+      
+      if (p_code.get(a+2) == PCode.NOP.getValue()) {
+        p_code.remove(a+2);
+      }
+      showPCode("Constant Folding");
+      
+      return true;
+    }
+    return false;
   }
 
   /**

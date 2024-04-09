@@ -115,10 +115,10 @@ public class TestExpression {
     source.addVariable("X", Type.BYTE);
 
     setupWordExpression(source);
-    Assert.assertEquals("160 0 162 168 0 163 9", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 0 162 168 0 163 9 254", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 0 17 168 0 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 0 17 168 0 254 9999999", expressionSUT.joinedPCode());
   }
 
   @Test
@@ -222,9 +222,15 @@ public class TestExpression {
     Assert.assertEquals("160 123 162 160 876 163 8", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 123 16 167 876 9999999", expressionSUT.joinedPCode());
-  }
 
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("167 999 9999999", expressionSUT.joinedPCode());
+    }
+    else {
+      Assert.assertEquals("167 123 16 167 876 9999999", expressionSUT.joinedPCode());
+    }
+  }
+  
   @Test
   public void testAndInExpression() {
     Source source = new Source("123 & 876");
@@ -273,10 +279,10 @@ public class TestExpression {
     setupWordExpression(source);
 
     // zahl <value> push zahl <value> pull add
-    Assert.assertEquals("160 123 162 160 876 163 15", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 123 162 160 876 163 15 254", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 123 23 167 876 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 123 23 167 876 254 9999999", expressionSUT.joinedPCode());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -286,23 +292,30 @@ public class TestExpression {
 
     setupWordExpression(source);
 
-    Assert.assertEquals("160 2 162 160 3 163 8 162 160 4 163 9", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 2 162 160 3 163 8 162 160 4 163 9 254", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 2 16 167 3 17 167 4 9999999", expressionSUT.joinedPCode());
 
+    if (source.useCFOptimisation()) {
+      // Assert.assertEquals("167 5 17 167 4 254 9999999", expressionSUT.joinedPCode());
+      Assert.assertEquals("167 1 9999999", expressionSUT.joinedPCode());
+    }
+    else {
+      Assert.assertEquals("167 2 16 167 3 17 167 4 9999999", expressionSUT.joinedPCode());
+    }
   }
-
+  
   @Test
   public void testSubstractInExpression() {
     Source source = new Source("999 - 876");
 
     setupWordExpression(source);
 
-    Assert.assertEquals("160 999 162 160 876 163 9", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 999 162 160 876 163 9 254", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 999 17 167 876 9999999", expressionSUT.joinedPCode());
+    // Assert.assertEquals("167 999 17 167 876 254 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 123 9999999", expressionSUT.joinedPCode());
   }
 
   @Test
@@ -311,10 +324,11 @@ public class TestExpression {
 
     setupWordExpression(source);
 
-    Assert.assertEquals("160 2 162 160 3 162 160 4 163 10 163 8", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 2 162 160 3 162 160 4 163 10 254 163 8", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 2 162 167 3 18 167 4 163 8 9999999", expressionSUT.joinedPCode());
+    // Assert.assertEquals("167 2 162 167 3 18 167 4 254 163 8 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 14 9999999", expressionSUT.joinedPCode());
     Assert.assertEquals(2, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -324,10 +338,10 @@ public class TestExpression {
 
     setupWordExpression(source);
 
-    Assert.assertEquals("160 8 162 160 2 163 11 162 160 4 163 9", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 8 162 160 2 163 11 254 162 160 4 163 9 254", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 8 19 167 2 17 167 4 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 8 19 167 2 254 17 167 4 254 9999999", expressionSUT.joinedPCode());
     Assert.assertEquals(2, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -351,10 +365,11 @@ public class TestExpression {
 
     // zahl <value> push zahl <value> pull add
     // besser: 0-1
-    Assert.assertEquals("160 2 162 160 -1 163 10", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 2 162 160 -1 163 10 254", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 2 18 167 -1 9999999", expressionSUT.joinedPCode());
+    // Assert.assertEquals("167 2 18 167 -1 254 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 -2 9999999", expressionSUT.joinedPCode());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -408,10 +423,11 @@ public class TestExpression {
     setupWordExpression(source);
 
     // zahl <value> push zahl <value> pull add
-    Assert.assertEquals("160 48 162 180 0 160 123 162 160 2 163 9 181 0 64 0 1 163 8", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 48 162 180 0 160 123 162 160 2 163 9 254 181 0 64 0 1 163 8", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 48 162 180 0 167 123 17 167 2 181 0 64 0 1 163 8 9999999", expressionSUT.joinedPCode());
+    // Assert.assertEquals("167 48 162 180 0 167 123 17 167 2 254 181 0 64 0 1 163 8 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 48 162 180 0 167 121 181 0 64 0 1 163 8 9999999", expressionSUT.joinedPCode());
   }
 
   // innerhalb von Ausdrücken wollen wir keine Strings, das sollten wir nur in
@@ -427,13 +443,13 @@ public class TestExpression {
     // zahl <value> push zahl <value> pull add
     System.out.println(expressionSUT.joinedPCode());
     Assert.assertEquals(
-        "160 48 162 180 0 172 2 181 0 172 3 181 1 160 2 162 168 0 162 160 4 163 10 163 8 181 2 64 1 3 163 8",
+        "160 48 162 180 0 172 2 181 0 172 3 181 1 160 2 162 168 0 162 160 4 163 10 254 163 8 181 2 64 1 3 163 8",
         expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
     System.out.println(expressionSUT.joinedPCode());
     Assert.assertEquals(
-        "167 48 162 180 0 172 2 181 0 172 3 181 1 167 2 162 168 0 18 167 4 163 8 181 2 64 1 3 163 8 9999999",
+        "167 48 162 180 0 172 2 181 0 172 3 181 1 167 2 162 168 0 18 167 4 254 163 8 181 2 64 1 3 163 8 9999999",
         expressionSUT.joinedPCode());
   }
 
@@ -563,8 +579,17 @@ public class TestExpression {
         expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 2 162 167 3 162 167 4 162 167 5 16 167 6 163 8 163 8 163 8 9999999",
+    
+    if (source.useCFOptimisation()) {
+      // Assert.assertEquals("167 2 162 167 3 162 167 4 162 167 11 163 8 163 8 163 8 9999999",
+      //    expressionSUT.joinedPCode());
+      Assert.assertEquals("167 20 9999999",
+          expressionSUT.joinedPCode());
+    }
+    else {
+      Assert.assertEquals("167 2 162 167 3 162 167 4 162 167 5 16 167 6 163 8 163 8 163 8 9999999",
         expressionSUT.joinedPCode());
+    }
   }
 
   @Test
@@ -572,10 +597,11 @@ public class TestExpression {
     Source source = new Source("$ff - 16");
 
     setupWordExpression(source);
-    Assert.assertEquals("160 255 162 160 16 163 9", expressionSUT.joinedPCode());
+    Assert.assertEquals("160 255 162 160 16 163 9 254", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 255 17 167 16 9999999", expressionSUT.joinedPCode());
+    // Assert.assertEquals("167 255 17 167 16 254 9999999", expressionSUT.joinedPCode());
+    Assert.assertEquals("167 239 9999999", expressionSUT.joinedPCode());
     Assert.assertEquals(1, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -602,10 +628,14 @@ public class TestExpression {
     Assert.assertEquals("160 2 162 160 3 163 8 162 160 4 163 8", expressionSUT.joinedPCode());
 
     expressionSUT.optimisation();
-    Assert.assertEquals("167 2 16 167 3 16 167 4 9999999", expressionSUT.joinedPCode());
-    Assert.assertEquals(2, expressionSUT.getCountArithmeticSymbols());
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("167 9 9999999", expressionSUT.joinedPCode());
+    }
+    else {
+      Assert.assertEquals("167 2 16 167 3 16 167 4 9999999", expressionSUT.joinedPCode());
+      Assert.assertEquals(2, expressionSUT.getCountArithmeticSymbols());
+    }
   }
-
   @Test
   public void testMulDivInExpression() {
     // Mathematisch richtig!
@@ -617,11 +647,11 @@ public class TestExpression {
     setupWordExpression(source);
 
     String joinedPCode = expressionSUT.joinedPCode();
-    Assert.assertEquals("160 2 162 160 3 162 160 4 163 11 163 10", joinedPCode);
+    Assert.assertEquals("160 2 162 160 3 162 160 4 163 11 254 163 10 254", joinedPCode);
 
     expressionSUT.optimisation();
     joinedPCode = expressionSUT.joinedPCode();
-    Assert.assertEquals("167 2 162 167 3 19 167 4 163 10 9999999", joinedPCode);
+    Assert.assertEquals("167 2 162 167 3 19 167 4 254 163 10 254 9999999", joinedPCode);
   }
 
   @Test
@@ -640,11 +670,12 @@ public class TestExpression {
     // 160 := load# 4
     // 163 := pull
     //  11 := div
-    Assert.assertEquals("160 2 162 160 3 163 10 162 160 4 163 11", joinedPCode);
+    Assert.assertEquals("160 2 162 160 3 163 10 254 162 160 4 163 11 254", joinedPCode);
 
     expressionSUT.optimisation();
     joinedPCode = expressionSUT.joinedPCode();
-    Assert.assertEquals("167 2 18 167 3 19 167 4 9999999", joinedPCode);
+    // Assert.assertEquals("167 2 18 167 3 254 19 167 4 254 9999999", joinedPCode);
+    Assert.assertEquals("167 6 19 167 4 254 9999999", joinedPCode);
     Assert.assertEquals(2, expressionSUT.getCountArithmeticSymbols());
   }
 
@@ -657,7 +688,7 @@ public class TestExpression {
     setupWordExpression(source);
 
     String joinedPCode = expressionSUT.joinedPCode();
-    Assert.assertEquals("180 0 168 0 181 0 160 159 162 168 1 163 9 181 1 64 2 2", joinedPCode);
+    Assert.assertEquals("180 0 168 0 181 0 160 159 162 168 1 163 9 254 181 1 64 2 2", joinedPCode);
   }
 
   @Test

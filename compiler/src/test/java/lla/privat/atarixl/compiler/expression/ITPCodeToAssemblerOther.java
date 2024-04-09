@@ -14,14 +14,18 @@ import lla.privat.atarixl.compiler.source.Source;
 
 public class ITPCodeToAssemblerOther {
   private List<Integer> getPCodeOf(Source source) {
-    source.setVerboseLevel(2);
-
+    if (source.getVerboseLevel() < 2) {
+      source.setVerboseLevel(2);
+    }
+    
     Expression expression = new Expression(source);
 
     Symbol symbol = source.nextElement();
     symbol = expression.expression(symbol).getLastSymbol();
 
     Assert.assertEquals(SymbolEnum.noSymbol, symbol.getId());
+
+    System.out.println(expression.joinedPCode());
 
     expression.optimisation();
     System.out.println();
@@ -229,7 +233,7 @@ public class ITPCodeToAssemblerOther {
 
     Assert.assertEquals(11, code.size());
   }
-  
+
   @Test
   public void testExpressionWordFunctionOhneParameter() {
     Source source = new Source("x() ");
@@ -686,6 +690,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" JSR @A_III", code.get(++n));
   }
 
+
   @Test
   public void testExpressionWordFunctionPtrOhneParameter() {
     Source source = new Source("@(x)() ");
@@ -975,10 +980,10 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals("?ABS_POSITIVE1", code.get(++n));
     Assert.assertEquals(" LDY X", code.get(++n));
     Assert.assertEquals("?ABS_WAS_NEGATIVE1", code.get(++n));
-    
+
     Assert.assertEquals(14, code.size());
   }
-  
+
   @Test
   public void testExpressionAbsoluteInt8() {
     Source source = new Source("abs:x ");
@@ -1000,7 +1005,7 @@ public class ITPCodeToAssemblerOther {
     Assert.assertEquals(" SBC X", code.get(++n));
     Assert.assertEquals(" TAY", code.get(++n));
     Assert.assertEquals("?ABS_POSITIVE1", code.get(++n));
-    
+
     Assert.assertEquals(8, code.size());
   }
 
@@ -1028,7 +1033,7 @@ public class ITPCodeToAssemblerOther {
     Source source = new Source("hi:CONST_VALUE ");
     source.addVariable("CONST_VALUE", Type.CONST);
     source.setVariableAddress("CONST_VALUE", "123");
-    
+
     List<Integer> p_code = getPCodeOf(source);
 
     Type ergebnis = Type.BYTE;
@@ -1068,6 +1073,61 @@ public class ITPCodeToAssemblerOther {
     Source source = new Source("hi:x ");
     source.addVariable("X", Type.BYTE);
     /*List<Integer> p_code = */ getPCodeOf(source); // Must throw here due to wrong size of variable
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testExpressionHSPFunctionCallWithoutParameter() {
+    Source source = new Source("@hsp_noParameter() ");
+    List<Integer> p_code = getPCodeOf(source);
+
+//    Type ergebnis = Type.WORD;
+//    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+//
+//    pcodeGenerator.build();
+  }
+
+  @Test
+  public void testExpressionHSPFunctionCallWithByteVariableParameter() {
+    Source source = new Source("@hsp_x(n) ");
+    source.addVariable("DUMP1", Type.BYTE);
+    source.addVariable("DUMP2", Type.WORD);
+
+    source.addVariable("@HSP_X", Type.FUNCTION);
+    source.addVariable("N", Type.BYTE);
+
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    List<String> code = source.getCode();
+
+    int n = -1;
+    Assert.assertEquals("; (6)", code.get(++n));
+    Assert.assertEquals(" LDY N", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+
+    Assert.assertEquals("; (16b)", code.get(++n));
+    Assert.assertEquals(" STY @HSP_PARAM+1", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" STA @HSP_PARAM+2", code.get(++n));
+
+    Assert.assertEquals("; (14)", code.get(++n));
+    Assert.assertEquals(" JSR @HSP_X_I", code.get(++n));
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testExpressionHSPFunctionCallWithInnerHSPFunctionCall() {
+    Source source = new Source("@hsp_noParameter(@hsp_innerCall(b)) ");
+    source.addVariable("B", Type.BYTE);
+
+    List<Integer> p_code = getPCodeOf(source);
+
+//    Type ergebnis = Type.WORD;
+//    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+//
+//    pcodeGenerator.build();
   }
 
 @Test

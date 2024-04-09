@@ -14,6 +14,8 @@ import lla.privat.atarixl.compiler.source.Source;
 
 public class ITPCodeToAssemblerMostlyByte {
 
+  private String joinedPCode;
+  
   private List<Integer> getPCodeOf(Source source) {
     source.setVerboseLevel(2);
 
@@ -26,7 +28,8 @@ public class ITPCodeToAssemblerMostlyByte {
 
     expression.optimisation();
     System.out.println();
-    System.out.println(expression.joinedPCode());
+    this.joinedPCode = expression.joinedPCode();
+    System.out.println(this.joinedPCode);
 
     return expression.getPCode();
   }
@@ -91,15 +94,143 @@ public class ITPCodeToAssemblerMostlyByte {
     PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
 
     pcodeGenerator.build();
+    
+    List<String> code = source.getCode();
+    int n=-1;
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", code.get(++n));
+      Assert.assertEquals(" LDY #<247", code.get(++n));
+      // Assert.assertEquals(" LDX #>247", code.get(++n));
+    }
+    else {
+      Assert.assertEquals("167 123 16 167 124 9999999", joinedPCode); 
+  
+      Assert.assertEquals("; (3)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA #<123", code.get(++n));
+      Assert.assertEquals(" ADC #<124", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+    }
+  }
+
+  @Test
+  public void testExpressionAdd123() {
+    Source source = new Source("1 + 2 + 3 ");
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.BYTE;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    
     List<String> code = source.getCode();
 
     int n=-1;
-    Assert.assertEquals("; (3)", code.get(++n));
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", code.get(++n));
+      Assert.assertEquals(" LDY #<6", code.get(++n));
+      // Assert.assertEquals(" LDX #>6", code.get(++n));
 
-    Assert.assertEquals(" CLC", code.get(++n));
-    Assert.assertEquals(" LDA #<123", code.get(++n));
-    Assert.assertEquals(" ADC #<124", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
+    }
+    else {
+    
+      Assert.assertEquals("167 1 16 167 2 16 167 3 9999999", joinedPCode);
+  
+      Assert.assertEquals("; (3)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA #<1", code.get(++n));
+      Assert.assertEquals(" ADC #<2", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+  
+      Assert.assertEquals("; (8)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" TYA", code.get(++n));
+      Assert.assertEquals(" ADC #<3", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+    }
+  }
+
+  @Test
+  public void testExpressionAdd123WithBrace() {
+    Source source = new Source("(1 + 2) + 3 ");
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.BYTE;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    
+    
+    List<String> code = source.getCode();
+
+    int n=-1;
+//  Assert.assertEquals("; (5)", code.get(++n));
+//  Assert.assertEquals(" LDY #<6", code.get(++n));
+//  Assert.assertEquals(" LDX #>6", code.get(++n));
+
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", code.get(++n));
+      Assert.assertEquals(" LDY #<6", code.get(++n));
+//    Assert.assertEquals(" LDX #>6", code.get(++n));
+    }
+    else {
+
+      Assert.assertEquals("167 1 16 167 2 16 167 3 9999999", joinedPCode);
+  
+      Assert.assertEquals("; (3)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA #<1", code.get(++n));
+      Assert.assertEquals(" ADC #<2", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+  
+      Assert.assertEquals("; (8)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" TYA", code.get(++n));
+      Assert.assertEquals(" ADC #<3", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+    }
+  }
+
+  @Test
+  public void testExpressionAdd123WithBrace2() {
+    Source source = new Source("1 + (2 + 3) ");
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.BYTE;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+    
+    List<String> code = source.getCode();
+
+    int n=-1;
+    if (source.useCFOptimisation()) {
+//      Assert.assertEquals("; (5)", code.get(++n));
+//      Assert.assertEquals(" LDY #<6", code.get(++n));
+//    Assert.assertEquals(" LDX #>6", code.get(++n));
+    }
+    else {
+      Assert.assertEquals("167 1 162 167 2 16 167 3 163 8 9999999", joinedPCode);
+
+      Assert.assertEquals("; (1)", code.get(++n));
+      Assert.assertEquals(" LDA #<1", code.get(++n));
+      Assert.assertEquals(" PHA", code.get(++n));
+  
+      Assert.assertEquals("; (3)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA #<2", code.get(++n));
+      Assert.assertEquals(" ADC #<3", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+  
+      Assert.assertEquals("; (7)", code.get(++n));
+      Assert.assertEquals(" STY @OP", code.get(++n));
+      Assert.assertEquals(" PLA", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" TYA", code.get(++n));   
+      Assert.assertEquals(" ADC @OP", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+    }
   }
 
   @Test
@@ -135,14 +266,22 @@ public class ITPCodeToAssemblerMostlyByte {
     List<String> code = source.getCode();
 
     int n=-1;
-    Assert.assertEquals("; (3)", code.get(++n));
-
-    Assert.assertEquals(" SEC", code.get(++n));
-    Assert.assertEquals(" LDA #<255", code.get(++n));
-    Assert.assertEquals(" SBC #<16", code.get(++n));
-    Assert.assertEquals(" TAY", code.get(++n));
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (5)", code.get(++n));
+      Assert.assertEquals(" LDY #<239", code.get(++n));
+      Assert.assertEquals(2, code.size());
+    }
+    else {     
+      Assert.assertEquals("; (3)", code.get(++n));
+  
+      Assert.assertEquals(" SEC", code.get(++n));
+      Assert.assertEquals(" LDA #<255", code.get(++n));
+      Assert.assertEquals(" SBC #<16", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(5, code.size());
+    }
   }
-
+  
   @Test
   public void testExpressionDivXZahl2erKomplement() {
     Source source = new Source("X / 2 ");
@@ -398,6 +537,42 @@ public class ITPCodeToAssemblerMostlyByte {
   }
 
   @Test
+  public void testExpressionXMul2ExponentByteAddInt() {
+    Source source = new Source("X * 8 + 32 ");
+
+    source.addVariable("X", Type.BYTE);
+    source.setStarChainMult(true);
+
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.BYTE;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    Assert.assertEquals("168 0 18 167 8 254 16 167 32 9999999", joinedPCode);
+
+    pcodeGenerator.build();
+    
+    List<String> code = source.getCode();
+
+    int n=-1;
+    Assert.assertEquals("; (4)", code.get(++n));
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" ASL A", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+
+    Assert.assertEquals("; (8)", code.get(++n));    
+    Assert.assertEquals(" CLC", code.get(++n));
+    Assert.assertEquals(" TYA", code.get(++n));
+    Assert.assertEquals(" ADC #<32", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+
+    Assert.assertEquals(12, code.size());
+  }
+
+  @Test
   public void testExpressionXDiv2ExponentByte() {
     Source source = new Source("X / 32 ");
     source.setStarChainMult(true);
@@ -424,5 +599,7 @@ public class ITPCodeToAssemblerMostlyByte {
 
     Assert.assertEquals(9, code.size());
   }
+
+
 
 }

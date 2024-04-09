@@ -79,7 +79,7 @@ public class ITMain {
     Assert.assertTrue(file.exists());
     file.renameTo(new File(tempPath, "TSTSIEVE-optimize-O2.ASM"));
     
-    Assert.assertEquals(71, main.getUsedOptimisations());
+    Assert.assertEquals(70, main.getUsedOptimisations());
   }
 
   @Test
@@ -92,7 +92,7 @@ public class ITMain {
     Assert.assertTrue(file.exists());
     file.renameTo(new File(tempPath, "TSTSIEVE-optimize-O3.ASM"));
     
-    Assert.assertEquals(77, main.getUsedOptimisations());
+    Assert.assertEquals(76, main.getUsedOptimisations());
   }
 
   @Test
@@ -135,7 +135,6 @@ public class ITMain {
     Options options = new Options();
     options.setOptimisationLevel(optimize);
     options.setVerboseLevel(verbose);
-    options.setPrecalculate('e');
     
     Main main = new Main(testOxygeneBe, null, options).readFile().compile().optimize(optimize)
         .setOutputPath(tempPath).write();
@@ -251,18 +250,6 @@ public class ITMain {
   public void testError() {
     Source source = new Source("program name\n byte i\n { \n assert(i==0,'show if false')\n }\n");
     new Main(source).compile();
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void testPrecalculationError() throws IOException {
-    Source source = new Source("program name byte i begin i := 1 + 1 end ");
-    int optimize = 2;
-    int verbose = 1;
-    Options options = new Options();
-    options.setOptimisationLevel(optimize);
-    options.setVerboseLevel(verbose);
-    options.setPrecalculate('e');
-    new Main(source).setOptions(options).compile();    
   }
 
 }

@@ -40,8 +40,14 @@ public class TestFunction {
 
   @Test
   public void testFunctionOneParameter() {
+    Options options = new Options();
+// options.setSmallAddSubHeapPtr(false);
     options.setSaveLocalToStack(false);
+    options.setVerboseLevel(1);
+
     Source source = new Source("function name(one) begin end").setVerboseLevel(1);
+    source.setOptions(options);
+    
     source.addVariable("ONE", Type.BYTE);
 
     Symbol symbol = source.nextElement();
@@ -98,8 +104,13 @@ public class TestFunction {
 
   @Test
   public void testFunctionOneTwoParameters() {
+    Options options = new Options();
+// options.setSmallAddSubHeapPtr(false);
     options.setSaveLocalToStack(false);
+    options.setVerboseLevel(1);
+
     Source source = new Source("function name(one, two) begin end").setVerboseLevel(1);
+    source.setOptions(options);
     source.addVariable("ONE", Type.BYTE);
     source.addVariable("TWO", Type.WORD);
 
@@ -279,7 +290,7 @@ public class TestFunction {
     
     Source source = new Source("function name(one) local b begin end").setVerboseLevel(1);
     source.setOptions(options);
-    source.addVariable("ONE", Type.BYTE);
+    source.addVariable("ONE", Type.WORD);
     source.addVariable("B", Type.WORD);
 
     Symbol symbol = source.nextElement();
@@ -298,12 +309,18 @@ public class TestFunction {
 
     Assert.assertEquals("NAME", code.get(++n));
     Assert.assertEquals("NAME_I", code.get(++n));
-    Assert.assertEquals(" LDX ONE", code.get(++n));
+    Assert.assertEquals(" LDA ONE", code.get(++n));
+    Assert.assertEquals(" PHA", code.get(++n));
     Assert.assertEquals(" LDY #1", code.get(++n));
     Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
     Assert.assertEquals(" STA ONE", code.get(++n));
-    Assert.assertEquals(" TXA", code.get(++n));
-    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" LDA ONE+1", code.get(++n));
+    Assert.assertEquals(" PHA", code.get(++n));
+    Assert.assertEquals(" INY", code.get(++n));
+    Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" STA ONE+1", code.get(++n));
+//    Assert.assertEquals(" TXA", code.get(++n));
+//    Assert.assertEquals(" STA (@HEAP_PTR),Y", code.get(++n));
 
 //    Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
     Assert.assertEquals(" CLC", code.get(++n));
@@ -358,7 +375,7 @@ public class TestFunction {
     Assert.assertEquals(" STA B", code.get(++n));
 
 //    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
-    Assert.assertEquals(" STY @REG+2", code.get(++n));
+//    Assert.assertEquals(" STY @REG+2", code.get(++n));
     Assert.assertEquals(" SEC", code.get(++n));
     Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
     Assert.assertEquals(" SBC #3", code.get(++n));
@@ -366,10 +383,13 @@ public class TestFunction {
 //    Assert.assertEquals(" BCS *+4", code.get(++n));
 //    Assert.assertEquals(" DEC @HEAP_PTR+1", code.get(++n));
 
-    Assert.assertEquals(" LDY #1", code.get(++n));
-    Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
+//    Assert.assertEquals(" LDY #1", code.get(++n));
+//    Assert.assertEquals(" LDA (@HEAP_PTR),Y", code.get(++n));
+    Assert.assertEquals(" PLA", code.get(++n));
+    Assert.assertEquals(" STA ONE+1", code.get(++n));
+    Assert.assertEquals(" PLA", code.get(++n));
     Assert.assertEquals(" STA ONE", code.get(++n));
-    Assert.assertEquals(" LDY @REG+2", code.get(++n));
+//    Assert.assertEquals(" LDY @REG+2", code.get(++n));
 
     Assert.assertEquals(" RTS", code.get(++n));
   }

@@ -104,6 +104,7 @@ public class PCodeToAssembler extends Code {
 
       final int value = p_code.get(a + 1); // wert
       if (currentPCode == PCode.INT_ZAHL && p_code.get(a + 2) == PCode.PUSH.getValue()) {
+        // TODO: Reihenfolge umdrehen, Wert in Stack ablegen!
         code(";#2 (1)"); // TEST VORHANDEN
         code(" lda #<" + value); // ;" ;push zahl"
         code(" pha");
@@ -118,6 +119,7 @@ public class PCodeToAssembler extends Code {
         if (currentPCode == PCode.WORD && p_code.get(a + 2) == PCode.PUSH.getValue()) {
           a$ = source.getVariableAt(value);
           code(";#2 (2)"); // TEST VORHANDEN
+          // TODO: Reihenfolge umdrehen, Wert in Stack ablegen!
           code(" lda " + a$); // ;" ;push var"
           source.incrementRead(a$);
           code(" pha");
@@ -357,6 +359,7 @@ public class PCodeToAssembler extends Code {
         code(";#2 (7)"); // TEST VORHANDEN
         code(" sty @op"); // ;movepull"
 // TODO: testen mit word + byte + word?
+        // TODO: Reihenfolge umdrehen, Wert in Stack ablegen!
         if (ergebnis.getBytes() == 2) {
           code(" stx @op+1");
           code(" pla");
@@ -488,6 +491,7 @@ public class PCodeToAssembler extends Code {
 // -------------------------------
       if (currentPCode == PCode.PUSH) {
         code(";#2 (10)"); // TEST VORHANDEN
+        // TODO: Reihenfolge umdrehen, Wert in Stack ablegen!
         code(" tya"); // ;push"
         code(" pha");
         if (ergebnis.getBytes() == 2) {
@@ -753,11 +757,47 @@ public class PCodeToAssembler extends Code {
         a = a + 2;
       }
       else if (currentPCode == PCode.PARAMETER_PUSH) {
-        code(";#2 (16)");
         int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
-        code(" tya"); // ; ummodeln x,y in parameter->heap"
-        code(" ldy #" + String.valueOf(num * 2 + 1));
-        code(" sta (@heap_ptr),y");
+        if (source.getOptions().isUseStoreHeapPtrFunction()) {
+          code(";#2 (16c)");
+          if (ergebnis == Type.WORD || ergebnis == Type.UINT16) {  
+          }
+          else {
+            code(" cpx #$80");
+            code(" ldx #0");
+            code(" bcs *+4");
+            code(" ldx #$ff");           
+          }
+          code(" jsr @storeToHeap" + String.valueOf(num * 2 + 1));
+        }
+        else {
+          code(";#2 (16)");
+          // Wert als Parameter auf dem Heap ablegen
+          //
+          code(" tya"); // ; ummodeln x,y in parameter->heap"
+          code(" ldy #" + String.valueOf(num * 2 + 1));
+          code(" sta (@heap_ptr),y");
+          if (ergebnis == Type.WORD || ergebnis == Type.UINT16) {
+            code(" txa");
+          }
+          else {
+            // TODO Kontrolle!!!!!
+            code(" cmp #$80");
+            code(" lda #0");
+            code(" bcs *+4");
+            code(" lda #$ff");
+          }
+          code(" iny");
+          code(" sta (@heap_ptr),y");
+        }
+        a = a + 2;
+      }
+      else if (currentPCode == PCode.HSP_PARAMETER_PUSH) {
+        code(";#2 (16b)");
+        int num = p_code.get(a + 1); // todo was enthaelt num, wenn es keinen parameter gibt?
+        a$ = source.getVariableAt(num);
+        code(" sty @hsp_param+"+ String.valueOf(num * 2 + 1));
+// TODO: type of current variable
         if (ergebnis == Type.WORD || ergebnis == Type.UINT16) {
           code(" txa");
         }
@@ -768,8 +808,7 @@ public class PCodeToAssembler extends Code {
           code(" bcs *+4");
           code(" lda #$ff");
         }
-        code(" iny");
-        code(" sta (@heap_ptr),y");
+        code(" sta @hsp_param+"+ String.valueOf(num * 2 + 2));
         a = a + 2;
       }
       else if (currentPCode == PCode.PARAMETER_START_ADD_TO_HEAP_PTR) {
@@ -938,17 +977,6 @@ public class PCodeToAssembler extends Code {
     }
   }
 
-// // -------------------------------
-//   public void get_typ(String mne$, String a$) {
-//     Type typ = source.getVariableType(a$);
-//     if (typ == Type.BYTE) {
-//       code(" " + mne$ + " #0");
-//     }
-//     else {
-//       code(" " + mne$ + " " + a$ + "+1");
-//     }
-//   }
-
 // -------------------------------
   public String mne_is_add_sub_or_eor_and(int x) {
     String mne$ = "";
@@ -968,6 +996,8 @@ public class PCodeToAssembler extends Code {
     case 6:
       mne$ = "and";
       break;
+    default:
+      source.throwUnsupportedFeature("mne_is_add_sub_or_eor_and(), x&7 not handled");
     }
     return mne$;
   }
@@ -982,6 +1012,9 @@ public class PCodeToAssembler extends Code {
     case 1:
       code(" sec"); // ;subtraktion"
       break;
+    default:
+      // This is not an error, we need no clc nor sec 
+      // source.throwUnsupportedFeature("prepareCarryFlag(), x&7 not handled");
     }
   }
 
