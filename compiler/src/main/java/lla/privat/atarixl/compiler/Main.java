@@ -132,7 +132,7 @@ public class Main {
     LOGGER.info(" -showPeepholeOptimize - if given, show which peephole optimize will applied.");
     LOGGER.info(" -testincludes         - if given, test given includes");
     LOGGER.info(" -boundscheck or -bc   - if given, bounds check will be added in write to array");
-    LOGGER.info(" -noSafeLocalToStack   - if given, local variables will store on heap");
+    LOGGER.info(" -noSaveLocalToStack   - if given, local variables will store on heap");
     LOGGER.info("                         6502 Stack holds only 256 bytes and need 2 bytes per function call.");
     LOGGER.info("                         Now it stores also local variables on stack.");
     LOGGER.info("                         If stack underrun occur, use this parameter.");
@@ -225,7 +225,7 @@ public class Main {
         LOGGER.info("Parameter for bounds check is given, we add bounds check.");
         boundsCheck = true;
       }
-      else if (parameter.equalsIgnoreCase("-noSafeLocalToStack") || parameter.equalsIgnoreCase("-nl")) {
+      else if (parameter.equalsIgnoreCase("-noSaveLocalToStack") || parameter.equalsIgnoreCase("-nl")) {
         LOGGER.info("Parameter for noSaveLocalToStack is given, local variables will store on heap.");
         saveLocalToStack = true;
       }
