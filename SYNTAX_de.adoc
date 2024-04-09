@@ -6,10 +6,10 @@ v1.0
 
 
 Die Syntax ist relativ offen, erstmal soll ein Grundgerüst
-soweit stehen und jede Menge Tests zeigen, das der Compiler macht,
+so weit stehen und jede Menge Tests zeigen, das der Compiler macht,
 was man von ihm verlangt.
 _"Schnelleren Code erzeugen, als compiliertes (Turbo)BASIC."_.
-Dabei aber genauso einfach zu programmieren sein wie structuriertes Basic.
+Dabei aber genauso einfach zu programmieren sein wie strukturiertes Basic.
 
 == Die Syntax
 
@@ -28,7 +28,7 @@ Eine Datei sieht grob immer wie folgt aus
 BLOCK
 ```
 
-`(PROGRAM |INCLUDE [suffix:])name`:: Jede WNF-Datei startet entweder mit `PROGRAM name` oder `INCLUDE suffix:name`. Der `name` ist ohne Extension anzugeben, max 8 Zeichen lang, unter diesem Namen
+`(PROGRAM |INCLUDE [suffix:])name`:: Jede WNF-Datei startet entweder mit `PROGRAM name` oder `INCLUDE suffix:name`. Der `name` ist ohne Extension anzugeben, max. 8 Zeichen lang, unter diesem Namen
 wird das Assembler-Programm abgelegt. Vorsicht, die Datei kann sehr groß werden >180kb ist möglich!
 
 TODO: längere Namen supporten.
