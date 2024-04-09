@@ -448,4 +448,58 @@ public class TestFor {
     Assert.assertEquals("?EXIT1", code.get(++n));
   }
 
+  @Test
+  public void testForWORDToByteDo() {
+    Source source = new Source("for i:=0 to v_byte-1 do begin end").setVerboseLevel(2);
+    source.addVariable("I", Type.WORD);
+    source.addVariable("V_WORD", Type.WORD);
+    source.addVariable("V_BYTE", Type.BYTE);
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new For(source).statement(symbol).build();
+
+    Assert.assertEquals("", nextSymbol.get());
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    List<String> code = source.getCode();
+
+    int n=-1;
+    Assert.assertEquals("; (5)", code.get(++n));
+    Assert.assertEquals(" LDY #<0", code.get(++n));
+    Assert.assertEquals(" LDX #>0", code.get(++n));
+    Assert.assertEquals(" STY I", code.get(++n));
+    Assert.assertEquals(" STX I+1", code.get(++n));
+
+    Assert.assertEquals("; (3)", code.get(++n));   
+    Assert.assertEquals(" SEC", code.get(++n));
+    Assert.assertEquals(" LDA V_BYTE", code.get(++n));
+    Assert.assertEquals(" SBC #<1", code.get(++n));
+    Assert.assertEquals(" TAY", code.get(++n));
+    Assert.assertEquals(" LDA #0", code.get(++n));
+    Assert.assertEquals(" SBC #>1", code.get(++n));
+    Assert.assertEquals(" TAX", code.get(++n));
+    Assert.assertEquals(" STY ?FOR1", code.get(++n));
+    Assert.assertEquals(" STX ?FOR1+1", code.get(++n));
+
+    Assert.assertEquals("?FORLOOP1", code.get(++n));
+
+    Assert.assertEquals(" LDA ?FOR1", code.get(++n)); // check ob nicht schon am Ende
+    Assert.assertEquals(" CMP I", code.get(++n));
+    Assert.assertEquals(" LDA ?FOR1+1", code.get(++n));
+    Assert.assertEquals(" SBC I+1", code.get(++n));
+    Assert.assertEquals(" BVC *+4", code.get(++n));
+    Assert.assertEquals(" EOR #$80", code.get(++n));
+    Assert.assertEquals(" BPL ?GO1", code.get(++n));
+    Assert.assertEquals(" JMP ?EXIT1", code.get(++n));
+    Assert.assertEquals("?GO1", code.get(++n));
+    // statement in for loop
+
+    Assert.assertEquals(" INC I", code.get(++n));
+    Assert.assertEquals(" BNE ?LOOP1", code.get(++n));
+    Assert.assertEquals(" INC I+1", code.get(++n));
+    Assert.assertEquals("?LOOP1", code.get(++n));
+    Assert.assertEquals(" JMP ?FORLOOP1", code.get(++n));
+    Assert.assertEquals("?EXIT1", code.get(++n));
+  }
+
 }

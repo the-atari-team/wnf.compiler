@@ -10,7 +10,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import lla.privat.atarixl.compiler.Symbol;
+import lla.privat.atarixl.compiler.SymbolEnum;
+import lla.privat.atarixl.compiler.expression.Type;
 import lla.privat.atarixl.compiler.source.Source;
+import lla.privat.atarixl.compiler.statement.For;
 
 public class TestPeepholeOptimizer {
 
@@ -147,8 +151,9 @@ public class TestPeepholeOptimizer {
   @Test
   public void testLdxnTaxTxa() {
     List<String> list = new ArrayList<>();
-    list.add(" LDX");
-    list.add(" STY");
+    list.add(" ...");
+    list.add(" LDX A");
+    list.add(" STY B");
     list.add(" TXA");
     list.add(" ...");
     source.resetCode(list);
@@ -156,15 +161,51 @@ public class TestPeepholeOptimizer {
     peepholeOptimizerSUT.optimize().build();
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
-    Assert.assertEquals(3, source.getCode().size());
+    Assert.assertEquals(4, source.getCode().size());
 
     List<String> code = source.getCode();
     int n = -1;
-    Assert.assertEquals(" STY", code.get(++n));
-    Assert.assertEquals(" LDA ; (6.2)", code.get(++n));
+    Assert.assertEquals(" ...", code.get(++n));
+    Assert.assertEquals(" STY B", code.get(++n));
+    Assert.assertEquals(" LDA A ; (6.2)", code.get(++n));
+    Assert.assertEquals(" ...", code.get(++n));
+//    Assert.assertEquals(" ...", code.get(++n));
+  }
+
+
+  @Test
+  public void testLdxnTxaSta() {
+    List<String> list = new ArrayList<>();
+    list.add(" LDY X");
+    list.add(" CPY #$80");
+    list.add(" LDX #0");
+    list.add(" BCC *+4");
+    list.add(" LDX #$FF");
+    list.add(" STY @HSP_PARAM+1");
+    list.add(" TXA");
+    list.add(" STA @HSP_PARAM+2");
+    list.add(" ...");
+    source.resetCode(list);
+
+    peepholeOptimizerSUT.optimize().build();
+    Assert.assertEquals(0, peepholeOptimizerSUT.getUsedOptimisations());
+
+    Assert.assertEquals(9, source.getCode().size());
+
+    List<String> code = source.getCode();
+    int n = -1;
+    Assert.assertEquals(" LDY X", code.get(++n));
+    Assert.assertEquals(" CPY #$80", code.get(++n));
+    Assert.assertEquals(" LDX #0", code.get(++n));
+    Assert.assertEquals(" BCC *+4", code.get(++n));
+    Assert.assertEquals(" LDX #$FF", code.get(++n));
+    Assert.assertEquals(" STY @HSP_PARAM+1", code.get(++n));
+    Assert.assertEquals(" TXA", code.get(++n));
+    Assert.assertEquals(" STA @HSP_PARAM+2", code.get(++n));
     Assert.assertEquals(" ...", code.get(++n));
   }
 
+  
   @Test
   public void testLdyTya() {
     List<String> list = new ArrayList<>();
@@ -310,12 +351,13 @@ public class TestPeepholeOptimizer {
     list.add(" SBC #<1");
     list.add(" STA A");
     list.add(" ...");
+    list.add(" ...");
     source.resetCode(list);
 
     peepholeOptimizerSUT.optimize().build();
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
-    Assert.assertEquals(2, source.getCode().size());
+    Assert.assertEquals(3, source.getCode().size());
   }
 
   @Test
@@ -326,12 +368,13 @@ public class TestPeepholeOptimizer {
     list.add(" SBC #<1");
     list.add(" STA TIMER");
     list.add(" ...");
+    list.add(" ...");
     source.resetCode(list);
 
     peepholeOptimizerSUT.optimize().build();
     Assert.assertEquals(1, peepholeOptimizerSUT.getUsedOptimisations());
 
-    Assert.assertEquals(4, source.getCode().size());
+    Assert.assertEquals(5, source.getCode().size());
   }
 
   @Test
@@ -1527,7 +1570,7 @@ public class TestPeepholeOptimizer {
 //Assert.assertEquals(3, source.getCode().size());
 
    int n = -1;
-   List<String> code = source.getCode();
+   // List<String> code = source.getCode();
 
    // ldx #>710
    // sta $0+1
@@ -1800,4 +1843,72 @@ public class TestPeepholeOptimizer {
  LDY #15
  STY ?FOR1
 */
+ 
+ 
+  /*
+   * for i:=0 to v_byte do begin end
+   */ 
+ 
+ @Test
+ public void testForWORDToByteDo() {
+   Source source = new Source("for i:=0 to v_byte-1 do begin end").setVerboseLevel(2);
+   source.addVariable("I", Type.WORD);
+   source.addVariable("V_WORD", Type.WORD);
+   source.addVariable("V_BYTE", Type.BYTE);
+   Symbol symbol = source.nextElement();
+
+   Symbol nextSymbol = new For(source).statement(symbol).build();
+
+   Assert.assertEquals("", nextSymbol.get());
+   Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+   PeepholeOptimizer peepholeOptimizerSUT = new PeepholeOptimizer(source, 1);
+
+   peepholeOptimizerSUT.setLevel(3).optimize().build();
+   Assert.assertEquals(2, peepholeOptimizerSUT.getUsedOptimisations());
+
+//Assert.assertEquals(3, source.getCode().size());
+   List<String> status = peepholeOptimizerSUT.getStatus();
+   Assert.assertEquals(2, status.size());
+
+   
+   List<String> code = source.getCode();
+
+   int n=-1;
+   // Assert.assertEquals("; (5)", code.get(++n));
+   Assert.assertEquals(" LDY #<0", code.get(++n));
+   Assert.assertEquals(" LDX #>0", code.get(++n));
+   Assert.assertEquals(" STY I", code.get(++n));
+   Assert.assertEquals(" STX I+1", code.get(++n));
+
+   // Assert.assertEquals("; (6)", code.get(++n));
+   Assert.assertEquals(" SEC", code.get(++n));       // das lässt sich so nicht weiter optimieren
+   Assert.assertEquals(" LDA V_BYTE", code.get(++n));
+   Assert.assertEquals(" SBC #<1", code.get(++n));
+   Assert.assertEquals(" STA ?FOR1 ; (5)", code.get(++n));
+   Assert.assertEquals(" LDA #0", code.get(++n));
+   Assert.assertEquals(" SBC #>1", code.get(++n));
+   Assert.assertEquals(" STA ?FOR1+1 ; (4)", code.get(++n));
+
+   Assert.assertEquals("?FORLOOP1", code.get(++n));
+
+   Assert.assertEquals(" LDA ?FOR1", code.get(++n)); // check ob nicht schon am Ende
+   Assert.assertEquals(" CMP I", code.get(++n));
+   Assert.assertEquals(" LDA ?FOR1+1", code.get(++n));
+   Assert.assertEquals(" SBC I+1", code.get(++n));
+   Assert.assertEquals(" BVC *+4", code.get(++n));
+   Assert.assertEquals(" EOR #$80", code.get(++n));
+   Assert.assertEquals(" BPL ?GO1", code.get(++n));
+   Assert.assertEquals(" JMP ?EXIT1", code.get(++n));
+   Assert.assertEquals("?GO1", code.get(++n));
+   // statement in for loop
+
+   Assert.assertEquals(" INC I", code.get(++n));
+   Assert.assertEquals(" BNE ?LOOP1", code.get(++n));
+   Assert.assertEquals(" INC I+1", code.get(++n));
+   Assert.assertEquals("?LOOP1", code.get(++n));
+   Assert.assertEquals(" JMP ?FORLOOP1", code.get(++n));
+   Assert.assertEquals("?EXIT1", code.get(++n));
+ }
+ 
 }
