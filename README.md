@@ -1,4 +1,4 @@
-image:https://github.com/the-atari-team/wnf.compiler/actions/workflows/maven.yml/badge.svg[Build Status,link=https://github.com/the-atari-team/wnf.compiler/]
+![Build Status](https://github.com/the-atari-team/wnf.compiler/actions/workflows/maven.yml/badge.svg)
 
 # Atari 8bit WNF Compiler
 
