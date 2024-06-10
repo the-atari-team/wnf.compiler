@@ -575,8 +575,9 @@ public class TestExpression {
 
     setupWordExpression(source);
 
-    Assert.assertEquals("160 2 162 160 3 162 160 4 162 160 5 162 160 6 163 8 163 8 163 8 163 8",
-        expressionSUT.joinedPCode());
+    final String joinedPCode =expressionSUT.joinedPCode(); 
+    Assert.assertEquals("160 2 162 160 3 162 160 4 162 160 5 162 160 6 163 8 254 163 8 254 163 8 254 163 8",
+        joinedPCode);
 
     expressionSUT.optimisation();
     
@@ -670,12 +671,12 @@ public class TestExpression {
     // 160 := load# 4
     // 163 := pull
     //  11 := div
-    Assert.assertEquals("160 2 162 160 3 163 10 254 162 160 4 163 11 254", joinedPCode);
+    Assert.assertEquals("160 2 162 160 3 163 10 254 254 162 160 4 163 11 254", joinedPCode);
 
     expressionSUT.optimisation();
     joinedPCode = expressionSUT.joinedPCode();
     // Assert.assertEquals("167 2 18 167 3 254 19 167 4 254 9999999", joinedPCode);
-    Assert.assertEquals("167 6 19 167 4 254 9999999", joinedPCode);
+    Assert.assertEquals("167 6 254 19 167 4 254 9999999", joinedPCode);
     Assert.assertEquals(2, expressionSUT.getCountArithmeticSymbols());
   }
 

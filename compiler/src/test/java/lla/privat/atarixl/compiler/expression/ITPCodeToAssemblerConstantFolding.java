@@ -196,5 +196,104 @@ public class ITPCodeToAssemblerConstantFolding {
     }
   }
 
+  @Test
+  public void testExpressionInEnvelopeVarPlusOne() {
+    Source source = new Source("(X + 1) ");
+    source.addVariable("X", Type.WORD);
+    source.setVerboseLevel(3);
+    
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+
+    List<String> code = source.getCode();
+    int n = -1;
+
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (3)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA X", code.get(++n));
+      Assert.assertEquals(" ADC #<1", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" LDA X+1", code.get(++n));
+      Assert.assertEquals(" ADC #>1", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n));
+    }
+  }
+
+  @Test
+  public void testExpressionInEnvelopeVarMult8() {
+    Source source = new Source("(X * 8) ");
+    source.addVariable("X", Type.WORD);
+    source.setVerboseLevel(3);
+    
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+
+    List<String> code = source.getCode();
+    int n = -1;
+
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (4)", code.get(++n));
+      Assert.assertEquals(" LDY X", code.get(++n));
+      Assert.assertEquals(" LDX X+1", code.get(++n));
+      Assert.assertEquals(" TYA", code.get(++n));
+      Assert.assertEquals(" STX @OP+1", code.get(++n));
+      Assert.assertEquals(" ASL A", code.get(++n));
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+      Assert.assertEquals(" ASL A", code.get(++n));
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+      Assert.assertEquals(" ASL A", code.get(++n));
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" LDX @OP+1", code.get(++n));
+    }
+  }
+  
+  @Test
+  public void testExpressionInEnvelopeVarPlusOneThenMult8() {
+    Source source = new Source("(X + 1) * 8 ");
+    source.addVariable("X", Type.WORD);
+    source.setVerboseLevel(3);
+    
+    List<Integer> p_code = getPCodeOf(source);
+
+    Type ergebnis = Type.WORD;
+    PCodeToAssembler pcodeGenerator = new PCodeToAssembler(source, p_code, ergebnis);
+
+    pcodeGenerator.build();
+
+    List<String> code = source.getCode();
+    int n = -1;
+
+    if (source.useCFOptimisation()) {
+      Assert.assertEquals("; (3)", code.get(++n));
+      Assert.assertEquals(" CLC", code.get(++n));
+      Assert.assertEquals(" LDA X", code.get(++n));
+      Assert.assertEquals(" ADC #<1", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" LDA X+1", code.get(++n));
+      Assert.assertEquals(" ADC #>1", code.get(++n));
+      Assert.assertEquals(" TAX", code.get(++n));
+      Assert.assertEquals("; (9)", code.get(++n));
+      Assert.assertEquals(" TYA", code.get(++n));
+      Assert.assertEquals(" STX @OP+1", code.get(++n));
+      Assert.assertEquals(" ASL A", code.get(++n));
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+      Assert.assertEquals(" ASL A", code.get(++n));
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+      Assert.assertEquals(" ASL A", code.get(++n));
+      Assert.assertEquals(" ROL @OP+1", code.get(++n));
+      Assert.assertEquals(" TAY", code.get(++n));
+      Assert.assertEquals(" LDX @OP+1", code.get(++n));
+    }
+  }
 
 }

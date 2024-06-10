@@ -5,6 +5,8 @@
 .settings
 target
 bin/*
+devel/.metadata
+devel/.sonarlint
 
 TODO.txt
 pcode.txt

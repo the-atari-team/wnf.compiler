@@ -244,6 +244,9 @@ public class Expression extends Code {
       nextSymbol = source.nextElement();
       nextSymbol = expression(nextSymbol).getLastSymbol();
       match(nextSymbol, ")");
+      // very important NOP or expressions like (a+1)*8 will fail
+      p_code.add(PCode.NOP.getValue());
+
       nextSymbol = source.nextElement();
     }
     // eckige Klammern signalisieren eine innere Berechnung die vorzuziehen ist,
