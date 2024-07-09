@@ -171,9 +171,29 @@ public class Variable {
             definition.setType(Type.FAT_WORD_ARRAY);
           }
           String variable = squaredBrackedOpenOrNumber.get();
-          source.setVariableAddress(name, variable);
 
           nextSymbol = source.nextElement();
+          // new feature: const variable = address (+|-) value
+          // we can add or sub something from a const variable
+          // this is more a hack because the assembler must do this add / sub for us.
+          if (nextSymbol.getId() == SymbolEnum.symbol) {
+            if (nextSymbol.get().equals("+")) {
+              String addition = source.nextElement().get();
+              source.setVariableAddress(name, variable + "+" + addition);
+              nextSymbol = source.nextElement();            
+            }
+            else if (nextSymbol.get().equals("-")) {
+              String substraction = source.nextElement().get();
+              source.setVariableAddress(name, variable + "-" + substraction);
+              nextSymbol = source.nextElement();
+            }
+            else {
+              source.error(nextSymbol, "+ or - are ok, nothing else.");
+            }
+          } 
+          else {
+            source.setVariableAddress(name, variable);            
+          }
         }
         else if (squaredBrackedOpenOrNumber.get().equals("[")) {
           source.throwIfNotArrayType(lastType);

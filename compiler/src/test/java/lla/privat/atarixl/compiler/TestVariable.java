@@ -705,6 +705,34 @@ public class TestVariable {
     Assert.assertEquals("@COLOR", source.getVariableAddress("COLOR"));
   }
 
+  // Test for const variable value assignment with additional plus and other value 
+  // "const variable = address+1"
+  
+  @Test
+  public void testVariableConstWithVariablePlus1() {
+    Source source = new Source("const color=@color+1");
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("COLOR"));
+    Assert.assertEquals("@COLOR+1", source.getVariableAddress("COLOR"));
+  }
+
+  @Test
+  public void testVariableConstWithVariableMinus123() {
+    Source source = new Source("const color=@color-123");
+    Symbol symbol = source.nextElement();
+
+    Symbol nextSymbol = new Variable(source).variable(symbol).build();
+    Assert.assertEquals(SymbolEnum.noSymbol, nextSymbol.getId());
+
+    Assert.assertTrue(source.hasVariable("COLOR"));
+    Assert.assertEquals("@COLOR-123", source.getVariableAddress("COLOR"));
+  }
+
+
   // a const MUST follow by '='
 
   @Test(expected = IllegalStateException.class)
