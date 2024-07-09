@@ -325,6 +325,7 @@ public class TestFunction {
 //    Assert.assertEquals(" ADD_TO_HEAP_PTR 3", code.get(++n));
     Assert.assertEquals(" CLC", code.get(++n));
     Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+    Assert.assertEquals(" PHA", code.get(++n));
     Assert.assertEquals(" ADC #3", code.get(++n));
     Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
 //    Assert.assertEquals(" BCC *+4", code.get(++n));
@@ -376,9 +377,10 @@ public class TestFunction {
 
 //    Assert.assertEquals(" SUB_FROM_HEAP_PTR 3", code.get(++n));
 //    Assert.assertEquals(" STY @REG+2", code.get(++n));
-    Assert.assertEquals(" SEC", code.get(++n));
-    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
-    Assert.assertEquals(" SBC #3", code.get(++n));
+//    Assert.assertEquals(" SEC", code.get(++n));
+//    Assert.assertEquals(" LDA @HEAP_PTR", code.get(++n));
+//    Assert.assertEquals(" SBC #3", code.get(++n));
+    Assert.assertEquals(" PLA", code.get(++n));
     Assert.assertEquals(" STA @HEAP_PTR", code.get(++n));
 //    Assert.assertEquals(" BCS *+4", code.get(++n));
 //    Assert.assertEquals(" DEC @HEAP_PTR+1", code.get(++n));

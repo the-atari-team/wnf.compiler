@@ -252,11 +252,19 @@ public class Source implements Enumeration<Symbol> {
 //  private int heapPtrCheck = 0;
 
   public void sub_from_heap_ptr(int count) {
-    code(" SEC"); //              ;2
-    code(" LDA @HEAP_PTR"); //    ;3
-    code(" SBC #"+count);   // %1 ;2
-    code(" STA @HEAP_PTR"); //    ;3
-    if (!options.isSmallAddSubHeapPtr()) {
+    if (options.isSmallAddSubHeapPtr()) {
+//      code(" SEC"); //              ;2
+//      code(" LDA @HEAP_PTR"); //    ;3
+//      code(" SBC #"+count);   // %1 ;2
+      code(" PLA"); //              ;3
+      code(" STA @HEAP_PTR"); //    ;3
+    }
+    else {
+      code(" SEC"); //              ;2
+      code(" LDA @HEAP_PTR"); //    ;3
+      code(" SBC #"+count);   // %1 ;2
+      code(" STA @HEAP_PTR"); //    ;3
+      
       code(" BCS *+4");       // das geht nur, weil HEAP_PTR in der Zero Page ist
 //    code(" BCS ?NO_DEC_HIGH_HEAP_PTR"); // ;3 ; => 13 Takte statt 30 mit jsr
       code(" DEC @HEAP_PTR+1"); //  ;5
@@ -265,11 +273,19 @@ public class Source implements Enumeration<Symbol> {
   }
 
   public void add_to_heap_ptr(int count) {
-    code(" CLC"); //              ;2 (Takte)
-    code(" LDA @HEAP_PTR"); //    ;3
-    code(" ADC #" + count); //    ;2
-    code(" STA @HEAP_PTR"); //    ;3
-    if (!options.isSmallAddSubHeapPtr()) {
+    if (options.isSmallAddSubHeapPtr()) {
+      code(" CLC"); //              ;2 (Takte)
+      code(" LDA @HEAP_PTR"); //    ;3
+      code(" PHA");           //    ;4
+      code(" ADC #" + count); //    ;2
+      code(" STA @HEAP_PTR"); //    ;3
+    }
+    else {
+      code(" CLC"); //              ;2 (Takte)
+      code(" LDA @HEAP_PTR"); //    ;3
+      code(" ADC #" + count); //    ;2
+      code(" STA @HEAP_PTR"); //    ;3
+
       code(" BCC *+4");
 //    code(" BCC NO_INC_HIGH_HEAP_PTR"); // ;3 ; => 13 Takte statt 24 mit jsr
       code(" INC @HEAP_PTR+1"); //  ;5
